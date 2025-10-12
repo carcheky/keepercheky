@@ -682,8 +682,7 @@ icons/
 
 ### Using ImageMagick (CLI)
 ```bash
-# Replace 'path/to/your/logo.png' with the correct path to your Janitorr logo file (e.g., ./logo.png or provide the actual location in your project)
-# Replace 'path/to/your/logo.png' with the actual path to your logo file (e.g., ../images/logos/janitorr_icon.png)
+# Replace 'path/to/your/logo.png' with the actual path to your logo file (e.g., ./logo.png or ../images/logos/janitorr_icon.png)
 convert path/to/your/logo.png -resize 16x16 favicon-16x16.png
 convert path/to/your/logo.png -resize 32x32 favicon-32x32.png
 convert path/to/your/logo.png -resize 180x180 apple-touch-icon.png
