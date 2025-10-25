@@ -1,5 +1,6 @@
 # KeeperCheky Configuration Example
-# Copy this file to config.yaml and adjust values for your setup
+# Copy this file to /app/config/config.yaml (or ./volumes/keepercheky-config/config.yaml)
+# and adjust values for your setup
 
 # Application Settings
 app:
@@ -7,36 +8,18 @@ app:
   environment: development
 
   # Log level: debug, info, warn, error
-  log_level: debug
-
-  # Dry run mode: if true, no media will actually be deleted
-  dry_run: true
-
-  # Days before deletion to add to "Leaving Soon" collection
-  leaving_soon_days: 7
+  log_level: info
 
   # Enable scheduled cleanup jobs
   scheduler_enabled: false
-
-  # Tags to exclude from cleanup (media with these tags won't be deleted)
-  exclusion_tags:
-    - "keep"
-    - "favorite"
-    - "protected"
-
-  # Leaving Soon collection path (for Jellyfin symlinks)
-  leaving_soon_path: "/media/leaving-soon"
 
 # Server Configuration
 server:
   # Port to listen on
   port: "8000"
 
-  # Host to bind to (0.0.0.0 for all interfaces, 127.0.0.1 for localhost only)
+  # Host to bind to (0.0.0.0 for all interfaces)
   host: "0.0.0.0"
-
-  # Enable CORS (for development with separate frontend)
-  cors_enabled: true
 
 # Database Configuration
 database:
@@ -44,47 +27,28 @@ database:
   type: sqlite
 
   # SQLite specific
-  path: ./data/dev.db
+  path: ./data/keepercheky.db
 
   # PostgreSQL specific (uncomment and configure if using postgres)
   # host: localhost
   # port: 5432
   # user: keepercheky
   # password: your_password_here
-  # dbname: keepercheky
-  # sslmode: disable
+  # name: keepercheky
 
 # External Service Clients
 clients:
-  # Radarr (Movies)
+  # Radarr (Movies Management)
   radarr:
     enabled: false
     url: "http://radarr:7878"
     api_key: "your_radarr_api_key_here"
 
-    # Cleanup rules
-    min_age_days: 30 # Delete movies older than X days
-    min_size_gb: 0 # Minimum size to consider (0 = all)
-    max_size_gb: 0 # Maximum size to consider (0 = no limit)
-
-    # Quality profiles to exclude from cleanup
-    excluded_quality_profiles:
-      - "Ultra-HD"
-      - "4K"
-
-  # Sonarr (TV Shows)
+  # Sonarr (TV Shows Management)
   sonarr:
     enabled: false
     url: "http://sonarr:8989"
     api_key: "your_sonarr_api_key_here"
-
-    # Cleanup rules
-    keep_latest_episodes: 5 # Keep last X episodes per series
-    delete_after_season_end: true # Delete season after it's complete
-    min_age_days: 60 # Delete episodes older than X days
-
-    # Series to exclude from cleanup
-    excluded_series_ids: []
 
   # Jellyfin (Media Server)
   jellyfin:
@@ -92,112 +56,32 @@ clients:
     url: "http://jellyfin:8096"
     api_key: "your_jellyfin_api_key_here"
 
-    # Authentication (if not using API key)
-    username: "your_jellyfin_username"
-    password: "your_jellyfin_password"
-
-    # Use play history for cleanup decisions
-    use_play_history: true
-
-    # Delete media not played in X days
-    delete_unwatched_after_days: 90
-
-    # Create "Leaving Soon" collection
-    create_leaving_soon_collection: true
-
   # Jellyseerr (Request Management)
   jellyseerr:
     enabled: false
     url: "http://jellyseerr:5055"
     api_key: "your_jellyseerr_api_key_here"
 
-    # Check if media was requested before deletion
-    respect_requests: true
-
-    # Delete media if request was auto-approved
-    delete_auto_approved: true
-
-# Cleanup Schedules
-schedules:
-  # Daily cleanup at 3 AM
-  - name: "Daily Cleanup"
+  # qBittorrent (Torrent Client - Seeding Validation)
+  qbittorrent:
     enabled: false
-    cron: "0 3 * * *"
-    rules:
-      type: "all" # all, movies, series
-      min_age_days: 30
-      exclude_tags: ["keep", "favorite"]
-      max_items: 10 # Maximum items to delete per run
+    url: "http://qbittorrent:8080"
+    username: "admin"
+    password: "adminadmin"
 
-  # Weekly deep cleanup on Sundays at 2 AM
-  - name: "Weekly Deep Cleanup"
-    enabled: false
-    cron: "0 2 * * 0"
-    rules:
-      type: "all"
-      min_age_days: 60
-      min_size_gb: 5 # Only large files
-      exclude_tags: ["keep"]
-      max_items: 50
+# Cleanup Rules Configuration
+cleanup:
+  # Dry run mode: if true, no media will actually be deleted
+  dry_run: true
 
-  # Update "Leaving Soon" collection every 6 hours
-  - name: "Update Leaving Soon"
-    enabled: false
-    cron: "0 */6 * * *"
-    rules:
-      type: "update_leaving_soon"
-      days_before: 7
+  # Delete media older than X days (0 = disabled)
+  days_to_keep: 90
 
-# Advanced Settings
-advanced:
-  # Maximum concurrent operations
-  max_concurrent_operations: 3
+  # Days before deletion to add to "Leaving Soon" collection
+  leaving_soon_days: 7
 
-  # Retry failed operations
-  retry_failed_operations: true
-  max_retries: 3
+  # Tags to exclude from cleanup (comma-separated)
+  exclusion_tags: []
 
-  # API request timeout (seconds)
-  api_timeout: 30
-
-  # Enable performance metrics
-  enable_metrics: false
-
-  # Cache duration for external API calls (minutes)
-  cache_duration: 15
-
-# Notifications (Future Feature)
-notifications:
-  enabled: false
-
-  # Discord webhook
-  discord:
-    enabled: false
-    webhook_url: ""
-
-  # Email notifications
-  email:
-    enabled: false
-    smtp_host: ""
-    smtp_port: 587
-    smtp_user: ""
-    smtp_password: ""
-    from_address: ""
-    to_addresses: []
-
-# Logging
-logging:
-  # Log file path (empty = stdout only)
-  file_path: ""
-
-  # Maximum log file size in MB
-  max_size_mb: 100
-
-  # Maximum log files to keep
-  max_backups: 3
-
-  # Maximum age of log files in days
-  max_age_days: 30
-
-  # Compress old log files
-  compress: true
+  # Delete unmonitored media (not tracked in Radarr/Sonarr)
+  delete_unmonitored: false

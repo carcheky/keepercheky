@@ -66,6 +66,12 @@ func (h *SettingsHandler) Get(c *fiber.Ctx) error {
 				"url":     h.config.Clients.Jellyseerr.URL,
 				"api_key": h.config.Clients.Jellyseerr.APIKey,
 			},
+			"qbittorrent": fiber.Map{
+				"enabled":  h.config.Clients.QBittorrent.Enabled,
+				"url":      h.config.Clients.QBittorrent.URL,
+				"username": h.config.Clients.QBittorrent.Username,
+				"password": h.config.Clients.QBittorrent.Password,
+			},
 		},
 		"cleanup": fiber.Map{
 			"dry_run":            h.config.Cleanup.DryRun,
@@ -100,6 +106,12 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 				URL     string `json:"url"`
 				APIKey  string `json:"api_key"`
 			} `json:"jellyseerr"`
+			QBittorrent struct {
+				Enabled  bool   `json:"enabled"`
+				URL      string `json:"url"`
+				Username string `json:"username"`
+				Password string `json:"password"`
+			} `json:"qbittorrent"`
 		} `json:"services"`
 		Cleanup struct {
 			DryRun            bool `json:"dry_run"`
@@ -132,6 +144,11 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 	h.config.Clients.Jellyseerr.Enabled = update.Services.Jellyseerr.Enabled
 	h.config.Clients.Jellyseerr.URL = update.Services.Jellyseerr.URL
 	h.config.Clients.Jellyseerr.APIKey = update.Services.Jellyseerr.APIKey
+
+	h.config.Clients.QBittorrent.Enabled = update.Services.QBittorrent.Enabled
+	h.config.Clients.QBittorrent.URL = update.Services.QBittorrent.URL
+	h.config.Clients.QBittorrent.Username = update.Services.QBittorrent.Username
+	h.config.Clients.QBittorrent.Password = update.Services.QBittorrent.Password
 
 	h.config.Cleanup.DryRun = update.Cleanup.DryRun
 	h.config.Cleanup.DaysToKeep = update.Cleanup.DaysToKeep

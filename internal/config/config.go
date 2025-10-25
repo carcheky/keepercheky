@@ -44,16 +44,24 @@ type DatabaseConfig struct {
 }
 
 type ClientsConfig struct {
-	Radarr     ServiceClient `mapstructure:"radarr" yaml:"radarr"`
-	Sonarr     ServiceClient `mapstructure:"sonarr" yaml:"sonarr"`
-	Jellyfin   ServiceClient `mapstructure:"jellyfin" yaml:"jellyfin"`
-	Jellyseerr ServiceClient `mapstructure:"jellyseerr" yaml:"jellyseerr"`
+	Radarr      ServiceClient     `mapstructure:"radarr" yaml:"radarr"`
+	Sonarr      ServiceClient     `mapstructure:"sonarr" yaml:"sonarr"`
+	Jellyfin    ServiceClient     `mapstructure:"jellyfin" yaml:"jellyfin"`
+	Jellyseerr  ServiceClient     `mapstructure:"jellyseerr" yaml:"jellyseerr"`
+	QBittorrent QBittorrentClient `mapstructure:"qbittorrent" yaml:"qbittorrent"`
 }
 
 type ServiceClient struct {
 	Enabled bool   `mapstructure:"enabled" yaml:"enabled"`
 	URL     string `mapstructure:"url" yaml:"url"`
 	APIKey  string `mapstructure:"api_key" yaml:"api_key"`
+}
+
+type QBittorrentClient struct {
+	Enabled  bool   `mapstructure:"enabled" yaml:"enabled"`
+	URL      string `mapstructure:"url" yaml:"url"`
+	Username string `mapstructure:"username" yaml:"username"`
+	Password string `mapstructure:"password" yaml:"password"`
 }
 
 func Load() (*Config, error) {
@@ -128,4 +136,5 @@ func setDefaults() {
 	viper.SetDefault("clients.sonarr.enabled", false)
 	viper.SetDefault("clients.jellyfin.enabled", false)
 	viper.SetDefault("clients.jellyseerr.enabled", false)
+	viper.SetDefault("clients.qbittorrent.enabled", false)
 }

@@ -1,0 +1,222 @@
+package clients
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/carcheky/keepercheky/internal/models"
+	"github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
+)
+
+// QBittorrentClient implements the TorrentClient interface for qBittorrent.
+type QBittorrentClient struct {
+	client   *resty.Client
+	baseURL  string
+	username string
+	password string
+	logger   *zap.Logger
+	cookie   string // SID cookie for authentication
+}
+
+// NewQBittorrentClient creates a new qBittorrent client.
+func NewQBittorrentClient(baseURL, username, password string, logger *zap.Logger) *QBittorrentClient {
+	client := resty.New()
+	client.SetBaseURL(baseURL)
+	client.SetTimeout(30 * time.Second)
+
+	return &QBittorrentClient{
+		client:   client,
+		baseURL:  baseURL,
+		username: username,
+		password: password,
+		logger:   logger,
+	}
+}
+
+// qbTorrent represents a torrent from qBittorrent API.
+type qbTorrent struct {
+	Hash        string  `json:"hash"`
+	Name        string  `json:"name"`
+	State       string  `json:"state"`
+	Progress    float64 `json:"progress"`
+	Ratio       float64 `json:"ratio"`
+	Size        int64   `json:"size"`
+	UpSpeed     int64   `json:"upspeed"`
+	DlSpeed     int64   `json:"dlspeed"`
+	SeedingTime int64   `json:"seeding_time"`
+	Category    string  `json:"category"`
+	Tags        string  `json:"tags"`
+	SavePath    string  `json:"save_path"`
+	ContentPath string  `json:"content_path"`
+	AmountLeft  int64   `json:"amount_left"`
+}
+
+// qbBuildInfo represents build info from qBittorrent API.
+type qbBuildInfo struct {
+	Qt         string `json:"qt"`
+	Libtorrent string `json:"libtorrent"`
+	Boost      string `json:"boost"`
+	Openssl    string `json:"openssl"`
+	Bitness    int    `json:"bitness"`
+}
+
+// login authenticates with qBittorrent and stores the SID cookie.
+func (c *QBittorrentClient) login(ctx context.Context) error {
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{
+			"username": c.username,
+			"password": c.password,
+		}).
+		Post("/api/v2/auth/login")
+
+	if err != nil {
+		return fmt.Errorf("login request failed: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("login failed with status %d: %s", resp.StatusCode(), resp.String())
+	}
+
+	// Extract SID cookie
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "SID" {
+			c.cookie = cookie.Value
+			c.client.SetHeader("Cookie", fmt.Sprintf("SID=%s", c.cookie))
+			break
+		}
+	}
+
+	if c.cookie == "" {
+		return fmt.Errorf("no SID cookie received")
+	}
+
+	return nil
+}
+
+// TestConnection verifies the connection to qBittorrent.
+func (c *QBittorrentClient) TestConnection(ctx context.Context) error {
+	// Login first
+	if err := c.login(ctx); err != nil {
+		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	var buildInfo qbBuildInfo
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&buildInfo).
+		Get("/api/v2/app/buildInfo")
+
+	if err != nil {
+		return fmt.Errorf("failed to get build info: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	c.logger.Info("qBittorrent connection successful",
+		zap.String("qt", buildInfo.Qt),
+		zap.String("libtorrent", buildInfo.Libtorrent),
+		zap.Int("bitness", buildInfo.Bitness),
+		zap.String("url", c.baseURL),
+	)
+
+	return nil
+}
+
+// GetTorrentByPath finds a torrent by its file path.
+func (c *QBittorrentClient) GetTorrentByPath(ctx context.Context, filePath string) (*models.TorrentInfo, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	var torrents []qbTorrent
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&torrents).
+		Get("/api/v2/torrents/info")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get torrents: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	// Search for torrent containing the file path
+	for _, t := range torrents {
+		// Check if the file path matches this torrent's save path or content path
+		if strings.Contains(filePath, t.SavePath) || strings.Contains(filePath, t.ContentPath) {
+			info := &models.TorrentInfo{
+				Hash:        t.Hash,
+				Name:        t.Name,
+				State:       t.State,
+				Progress:    t.Progress,
+				Ratio:       t.Ratio,
+				Size:        t.Size,
+				UpSpeed:     t.UpSpeed,
+				DlSpeed:     t.DlSpeed,
+				SeedingTime: t.SeedingTime,
+				Category:    t.Category,
+				Tags:        t.Tags,
+				SavePath:    t.SavePath,
+				IsSeeding:   c.isStateSeeding(t.State),
+				IsComplete:  t.Progress >= 1.0,
+			}
+
+			c.logger.Info("Found torrent for path",
+				zap.String("path", filePath),
+				zap.String("hash", info.Hash),
+				zap.String("name", info.Name),
+				zap.String("state", info.State),
+				zap.Bool("is_seeding", info.IsSeeding),
+			)
+
+			return info, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no torrent found for path: %s", filePath)
+}
+
+// IsSeeding checks if a file is currently seeding.
+func (c *QBittorrentClient) IsSeeding(ctx context.Context, filePath string) (bool, error) {
+	torrent, err := c.GetTorrentByPath(ctx, filePath)
+	if err != nil {
+		// If torrent not found, it's not seeding
+		if strings.Contains(err.Error(), "no torrent found") {
+			return false, nil
+		}
+		return false, err
+	}
+
+	c.logger.Info("Checked seeding status",
+		zap.String("path", filePath),
+		zap.Bool("is_seeding", torrent.IsSeeding),
+		zap.Float64("ratio", torrent.Ratio),
+		zap.Int64("seed_time", torrent.SeedingTime),
+	)
+
+	return torrent.IsSeeding, nil
+}
+
+// isStateSeeding determines if a torrent state indicates seeding.
+func (c *QBittorrentClient) isStateSeeding(state string) bool {
+	seedingStates := map[string]bool{
+		"uploading":  true,
+		"stalledUP":  true,
+		"checkingUP": true,
+		"forcedUP":   true,
+		"queuedUP":   true,
+	}
+
+	return seedingStates[state]
+}

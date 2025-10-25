@@ -15,13 +15,14 @@ import (
 
 // SyncService handles synchronization of media from external services.
 type SyncService struct {
-	mediaRepo        *repository.MediaRepository
-	radarrClient     clients.MediaClient
-	sonarrClient     clients.MediaClient
-	jellyfinClient   clients.StreamingClient
-	jellyseerrClient clients.RequestClient
-	logger           *zap.Logger
-	config           *config.Config
+	mediaRepo         *repository.MediaRepository
+	radarrClient      clients.MediaClient
+	sonarrClient      clients.MediaClient
+	jellyfinClient    clients.StreamingClient
+	jellyseerrClient  clients.RequestClient
+	qbittorrentClient *clients.QBittorrentClient
+	logger            *zap.Logger
+	config            *config.Config
 }
 
 // NewSyncService creates a new sync service.
@@ -82,6 +83,15 @@ func NewSyncService(
 				APIKey:  cfg.Clients.Jellyseerr.APIKey,
 				Timeout: 30 * time.Second,
 			},
+			zapLogger,
+		)
+	}
+
+	if cfg.Clients.QBittorrent.Enabled {
+		svc.qbittorrentClient = clients.NewQBittorrentClient(
+			cfg.Clients.QBittorrent.URL,
+			cfg.Clients.QBittorrent.Username,
+			cfg.Clients.QBittorrent.Password,
 			zapLogger,
 		)
 	}
@@ -223,6 +233,12 @@ func (s *SyncService) TestConnection(ctx context.Context, service string) error 
 			return fmt.Errorf("Jellyseerr not configured")
 		}
 		return s.jellyseerrClient.TestConnection(ctx)
+
+	case "qbittorrent":
+		if s.qbittorrentClient == nil {
+			return fmt.Errorf("qBittorrent not configured")
+		}
+		return s.qbittorrentClient.TestConnection(ctx)
 
 	default:
 		return fmt.Errorf("unknown service: %s", service)
