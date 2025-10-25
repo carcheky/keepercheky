@@ -1,0 +1,100 @@
+<div x-data="dashboard()" x-init="init()">
+    <div class="px-4 py-6 sm:px-0">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Dashboard</h2>
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Media</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-gray-900" x-text="stats.total_media">0</dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Size</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-gray-900" x-text="formatSize(stats.total_size)">0 GB</dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">To Delete</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-red-600" x-text="stats.to_delete">0</dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-1">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Leaving Soon</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-yellow-600" x-text="stats.leaving_soon">0</dd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        Welcome to KeeperCheky! This is the development version. Start by configuring your services in the <a href="/settings" class="font-medium underline">Settings</a> page.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function dashboard() {
+    return {
+        stats: {
+            total_media: 0,
+            total_size: 0,
+            to_delete: 0,
+            leaving_soon: 0
+        },
+        
+        async init() {
+            await this.fetchStats();
+        },
+        
+        async fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                this.stats = await response.json();
+            } catch (error) {
+                console.error('Failed to fetch stats:', error);
+            }
+        },
+        
+        formatSize(bytes) {
+            if (bytes === 0) return '0 GB';
+            const gb = bytes / (1024 * 1024 * 1024);
+            return gb.toFixed(2) + ' GB';
+        }
+    }
+}
+</script>

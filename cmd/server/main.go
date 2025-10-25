@@ -1,0 +1,152 @@
+package main
+
+import (
+	"log"
+	"os"
+
+	"github.com/carcheky/keepercheky/internal/config"
+	"github.com/carcheky/keepercheky/internal/handler"
+	"github.com/carcheky/keepercheky/internal/middleware"
+	"github.com/carcheky/keepercheky/internal/models"
+	"github.com/carcheky/keepercheky/internal/repository"
+	"github.com/carcheky/keepercheky/internal/service/scheduler"
+	"github.com/carcheky/keepercheky/pkg/logger"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/template/html/v2"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
+func main() {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Initialize logger
+	appLogger := logger.New(cfg.App.LogLevel)
+	defer appLogger.Sync()
+
+	appLogger.Info("Starting KeeperCheky",
+		"version", getVersion(),
+		"env", cfg.App.Environment,
+	)
+
+	// Initialize database
+	db, err := initDatabase(cfg, appLogger)
+	if err != nil {
+		appLogger.Fatal("Failed to initialize database", "error", err)
+	}
+
+	// Run migrations
+	if err := models.RunMigrations(db); err != nil {
+		appLogger.Fatal("Failed to run migrations", "error", err)
+	}
+
+	// Initialize repositories
+	repos := repository.NewRepositories(db)
+
+	// Initialize template engine
+	engine := html.New("./web/templates", ".html")
+	engine.Reload(cfg.App.Environment == "development")
+
+	// Initialize Fiber app
+	app := fiber.New(fiber.Config{
+		AppName:      "KeeperCheky",
+		Views:        engine,
+		ErrorHandler: middleware.ErrorHandler(appLogger),
+	})
+
+	// Global middleware
+	app.Use(recover.New())
+	app.Use(middleware.Logger(appLogger))
+	app.Use(middleware.RequestID())
+
+	// Static files
+	app.Static("/static", "./web/static")
+
+	// Initialize handlers
+	handlers := handler.NewHandlers(repos, appLogger, cfg)
+
+	// Setup routes
+	setupRoutes(app, handlers)
+
+	// Initialize scheduler (if enabled)
+	if cfg.App.SchedulerEnabled {
+		sched := scheduler.New(repos, appLogger, cfg)
+		sched.Start()
+		defer sched.Stop()
+	}
+
+	// Start server
+	port := cfg.Server.Port
+	if port == "" {
+		port = "8000"
+	}
+
+	appLogger.Info("Server starting", "port", port)
+	if err := app.Listen(":" + port); err != nil {
+		appLogger.Fatal("Failed to start server", "error", err)
+	}
+}
+
+func initDatabase(cfg *config.Config, logger *logger.Logger) (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
+	// For now, use SQLite
+	// TODO: Add PostgreSQL support based on config
+	dbPath := cfg.Database.Path
+	if dbPath == "" {
+		dbPath = "./data/keepercheky.db"
+	}
+
+	logger.Info("Initializing database", "path", dbPath)
+
+	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func setupRoutes(app *fiber.App, h *handler.Handlers) {
+	// Health check
+	app.Get("/health", h.Health.Check)
+
+	// Web UI routes
+	app.Get("/", h.Dashboard.Index)
+	app.Get("/media", h.Media.List)
+	app.Get("/schedules", h.Schedule.List)
+	app.Get("/settings", h.Settings.Index)
+	app.Get("/logs", h.Logs.Index)
+
+	// API routes
+	api := app.Group("/api")
+	{
+		// Media
+		api.Get("/media", h.Media.GetAll)
+		api.Get("/media/:id", h.Media.GetByID)
+		api.Delete("/media/:id", h.Media.Delete)
+		api.Post("/media/:id/exclude", h.Media.Exclude)
+
+		// Stats
+		api.Get("/stats", h.Dashboard.Stats)
+
+		// Settings
+		api.Get("/settings", h.Settings.Get)
+		api.Post("/settings", h.Settings.Update)
+		api.Post("/settings/test/:service", h.Settings.TestConnection)
+	}
+}
+
+func getVersion() string {
+	version := os.Getenv("VERSION")
+	if version == "" {
+		return "dev"
+	}
+	return version
+}

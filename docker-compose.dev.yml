@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: keepercheky-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - go-modules:/go/pkg/mod
+    environment:
+      - KEEPERCHEKY_APP_ENVIRONMENT=development
+      - KEEPERCHEKY_APP_LOG_LEVEL=debug
+      - KEEPERCHEKY_APP_DRY_RUN=true
+      - KEEPERCHEKY_SERVER_PORT=8000
+      - KEEPERCHEKY_DATABASE_TYPE=sqlite
+      - KEEPERCHEKY_DATABASE_PATH=/app/data/dev.db
+    develop:
+      watch:
+        # Sync Go source code
+        - path: ./cmd
+          action: sync
+          target: /app/cmd
+        - path: ./internal
+          action: sync
+          target: /app/internal
+        - path: ./pkg
+          action: sync
+          target: /app/pkg
+        # Sync web files
+        - path: ./web
+          action: sync
+          target: /app/web
+        # Rebuild on go.mod changes
+        - path: ./go.mod
+          action: rebuild
+        - path: ./go.sum
+          action: rebuild
+    networks:
+      - keepercheky-net
+    restart: unless-stopped
+
+volumes:
+  go-modules:
+
+networks:
+  keepercheky-net:
+    driver: bridge

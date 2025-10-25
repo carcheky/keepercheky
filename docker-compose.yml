@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  keepercheky:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: keepercheky
+    restart: unless-stopped
+    
+    ports:
+      - "8000:8000"
+    
+    environment:
+      # Application
+      KEEPERCHEKY_APP_ENVIRONMENT: production
+      KEEPERCHEKY_APP_LOG_LEVEL: info
+      KEEPERCHEKY_APP_DRY_RUN: "true"  # Start in dry-run mode for safety
+      KEEPERCHEKY_APP_LEAVING_SOON_DAYS: "7"
+      KEEPERCHEKY_APP_SCHEDULER_ENABLED: "false"  # Enable manually after configuration
+      
+      # Server
+      KEEPERCHEKY_SERVER_PORT: "8000"
+      KEEPERCHEKY_SERVER_HOST: "0.0.0.0"
+      
+      # Database (SQLite)
+      KEEPERCHEKY_DATABASE_TYPE: sqlite
+      KEEPERCHEKY_DATABASE_PATH: /data/keepercheky.db
+      
+      # Radarr (configure with your values)
+      KEEPERCHEKY_CLIENTS_RADARR_ENABLED: "false"
+      KEEPERCHEKY_CLIENTS_RADARR_URL: "http://radarr:7878"
+      KEEPERCHEKY_CLIENTS_RADARR_API_KEY: ""
+      
+      # Sonarr (configure with your values)
+      KEEPERCHEKY_CLIENTS_SONARR_ENABLED: "false"
+      KEEPERCHEKY_CLIENTS_SONARR_URL: "http://sonarr:8989"
+      KEEPERCHEKY_CLIENTS_SONARR_API_KEY: ""
+      
+      # Jellyfin (configure with your values)
+      KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED: "false"
+      KEEPERCHEKY_CLIENTS_JELLYFIN_URL: "http://jellyfin:8096"
+      KEEPERCHEKY_CLIENTS_JELLYFIN_API_KEY: ""
+      
+      # Jellyseerr (configure with your values)
+      KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED: "false"
+      KEEPERCHEKY_CLIENTS_JELLYSEERR_URL: "http://jellyseerr:5055"
+      KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY: ""
+    
+    volumes:
+      # Persistent data
+      - ./data:/data
+      
+      # Configuration (optional - use env vars or this)
+      - ./config:/config:ro
+      
+      # Media paths (adjust to your setup)
+      # - /path/to/movies:/movies:ro
+      # - /path/to/tv:/tv:ro
+      
+      # Leaving Soon collection path
+      # - /path/to/leaving-soon:/media/leaving-soon
+    
+    networks:
+      - arr-network
+    
+    healthcheck:
+      test: ["CMD", "/keepercheky", "healthcheck"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+        reservations:
+          memory: 50M
+
+  # Optional: PostgreSQL instead of SQLite
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: keepercheky-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: keepercheky
+  #     POSTGRES_USER: keepercheky
+  #     POSTGRES_PASSWORD: your_secure_password_here
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - arr-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U keepercheky"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+networks:
+  arr-network:
+    name: arr-network
+    external: true  # Use existing network with Radarr/Sonarr/etc.
+    # Or create a new one:
+    # driver: bridge
+
+volumes:
+  # Uncomment if using PostgreSQL
+  # postgres-data:
