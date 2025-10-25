@@ -41,7 +41,6 @@ dev:
 	@mkdir -p volumes/media-library/movies
 	@mkdir -p volumes/media-library/tv
 	@mkdir -p volumes/media-library/downloads
-	@chmod -R 755 volumes
 	@echo "✅ Volume directories ready"
 	@docker compose -f docker-compose.dev.yml up --build --watch
 
@@ -140,7 +139,6 @@ init:
 	@mkdir -p volumes/media-library/movies
 	@mkdir -p volumes/media-library/tv
 	@mkdir -p volumes/media-library/downloads
-	@chmod -R 755 volumes
 	@echo "✅ Development environment initialized"
 	@echo ""
 	@echo "📁 Directory structure:"
