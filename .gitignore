@@ -1,6 +1,10 @@
 # Repositorios de referencia
 reference-repos/
 
+# Docker volumes (local bind mounts)
+volumes/
+!volumes/.gitkeep
+
 # Python
 __pycache__/
 *.py[cod]

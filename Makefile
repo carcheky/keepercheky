@@ -28,6 +28,20 @@ help:
 # Development with hot-reload (Air + Docker Compose Watch)
 dev:
 	@echo "🚀 Starting development server with hot-reload..."
+	@echo "📁 Creating volume directories..."
+	@mkdir -p volumes/go-modules
+	@mkdir -p volumes/radarr-config
+	@mkdir -p volumes/sonarr-config
+	@mkdir -p volumes/jellyfin-config
+	@mkdir -p volumes/jellyseerr-config
+	@mkdir -p volumes/qbittorrent-config
+	@mkdir -p volumes/bazarr-config
+	@mkdir -p volumes/jellystat-config
+	@mkdir -p volumes/media-library/movies
+	@mkdir -p volumes/media-library/tv
+	@mkdir -p volumes/media-library/downloads
+	@chmod -R 755 volumes
+	@echo "✅ Volume directories ready"
 	@docker compose -f docker-compose.dev.yml up --build --watch
 
 # Development with Docker Compose Watch (Docker 28+)
@@ -46,6 +60,12 @@ shell:
 # Stop development server
 stop:
 	@docker compose -f docker-compose.dev.yml down
+
+# Stop and remove volumes
+stop-clean:
+	@echo "🧹 Stopping and cleaning volumes..."
+	@docker compose -f docker-compose.dev.yml down -v
+	@echo "✅ Containers and volumes removed"
 
 # Build production binary
 build:
@@ -91,14 +111,52 @@ lint:
 clean:
 	@echo "🧹 Cleaning build artifacts..."
 	@rm -rf bin/ tmp/ coverage.out coverage.html
-	@docker compose -f docker-compose.dev.yml down -v
+	@echo "⚠️  Note: Docker volumes in ./volumes/ are NOT deleted"
+	@echo "   Run 'make clean-all' to also remove volume data"
 	@echo "✅ Clean complete"
+
+# Clean everything including volumes
+clean-all:
+	@echo "🧹 Cleaning everything (including volumes)..."
+	@rm -rf bin/ tmp/ coverage.out coverage.html
+	@docker compose -f docker-compose.dev.yml down -v
+	@rm -rf volumes/
+	@echo "✅ Complete cleanup done"
 
 # Initialize development environment
 init:
 	@echo "🔧 Initializing development environment..."
 	@mkdir -p data config
+	@mkdir -p volumes/go-modules
+	@mkdir -p volumes/radarr-config
+	@mkdir -p volumes/sonarr-config
+	@mkdir -p volumes/jellyfin-config
+	@mkdir -p volumes/jellyseerr-config
+	@mkdir -p volumes/qbittorrent-config
+	@mkdir -p volumes/bazarr-config
+	@mkdir -p volumes/jellystat-config
+	@mkdir -p volumes/media-library/movies
+	@mkdir -p volumes/media-library/tv
+	@mkdir -p volumes/media-library/downloads
+	@chmod -R 755 volumes
 	@echo "✅ Development environment initialized"
+	@echo ""
+	@echo "📁 Directory structure:"
+	@echo "  ├── data/              (app data & database)"
+	@echo "  ├── config/            (configuration files)"
+	@echo "  └── volumes/           (Docker volume mounts)"
+	@echo "      ├── go-modules/"
+	@echo "      ├── radarr-config/"
+	@echo "      ├── sonarr-config/"
+	@echo "      ├── jellyfin-config/"
+	@echo "      ├── jellyseerr-config/"
+	@echo "      ├── qbittorrent-config/"
+	@echo "      ├── bazarr-config/"
+	@echo "      ├── jellystat-config/"
+	@echo "      └── media-library/"
+	@echo "          ├── movies/"
+	@echo "          ├── tv/"
+	@echo "          └── downloads/"
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. Run 'make dev' to start the development server"
