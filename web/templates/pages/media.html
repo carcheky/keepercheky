@@ -151,6 +151,9 @@
                             Type
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Services
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Size
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -186,6 +189,40 @@
                                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                                     :class="item.type === 'movie' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'">
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <!-- Radarr Icon -->
+                                    <span x-show="item.radarr_id"
+                                        class="inline-flex items-center justify-center w-6 h-6 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold"
+                                        title="En Radarr">
+                                        R
+                                    </span>
+                                    <!-- Sonarr Icon -->
+                                    <span x-show="item.sonarr_id"
+                                        class="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold"
+                                        title="En Sonarr">
+                                        S
+                                    </span>
+                                    <!-- Jellyfin Icon -->
+                                    <span x-show="item.jellyfin_id"
+                                        class="inline-flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-700 rounded-full text-xs font-bold"
+                                        title="En Jellyfin">
+                                        J
+                                    </span>
+                                    <!-- Jellyseerr Icon -->
+                                    <span x-show="item.jellyseerr_id"
+                                        class="inline-flex items-center justify-center w-6 h-6 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold"
+                                        title="En Jellyseerr">
+                                        JS
+                                    </span>
+                                    <!-- No services indicator -->
+                                    <span
+                                        x-show="!item.radarr_id && !item.sonarr_id && !item.jellyfin_id && !item.jellyseerr_id"
+                                        class="text-xs text-gray-400 italic">
+                                        Sin servicios
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <span x-text="formatSize(item.size)"></span>

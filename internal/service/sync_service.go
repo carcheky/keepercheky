@@ -101,37 +101,56 @@ func NewSyncService(
 func (s *SyncService) SyncAll(ctx context.Context) error {
 	s.logger.Info("Starting full sync from all services")
 
-	var allMedia []*models.Media
+	// Map to track media by unique key (title + year) for merging
+	mediaMap := make(map[string]*models.Media)
 
-	// Sync from Radarr
+	// 1. Sync from Radarr (movies - primary source)
 	if s.radarrClient != nil {
 		media, err := s.syncRadarr(ctx)
 		if err != nil {
 			s.logger.Error("Failed to sync Radarr", zap.Error(err))
 		} else {
-			allMedia = append(allMedia, media...)
+			for _, m := range media {
+				key := m.Title // Could use title+year for better matching
+				mediaMap[key] = m
+			}
 		}
 	}
 
-	// Sync from Sonarr
+	// 2. Sync from Sonarr (series - primary source)
 	if s.sonarrClient != nil {
 		media, err := s.syncSonarr(ctx)
 		if err != nil {
 			s.logger.Error("Failed to sync Sonarr", zap.Error(err))
 		} else {
-			allMedia = append(allMedia, media...)
+			for _, m := range media {
+				key := m.Title
+				mediaMap[key] = m
+			}
 		}
 	}
 
-	// Update playback info from Jellyfin
+	// 3. Sync from Jellyfin (enrichment + additional media)
 	if s.jellyfinClient != nil {
-		if err := s.updateJellyfinPlayback(ctx, allMedia); err != nil {
-			s.logger.Error("Failed to update Jellyfin playback", zap.Error(err))
+		if err := s.syncJellyfin(ctx, mediaMap); err != nil {
+			s.logger.Error("Failed to sync Jellyfin", zap.Error(err))
 		}
 	}
 
-	// Save all media to database
-	for _, media := range allMedia {
+	// 4. Update playback info from Jellyfin
+	if s.jellyfinClient != nil {
+		for _, media := range mediaMap {
+			if err := s.updateJellyfinPlayback(ctx, media); err != nil {
+				s.logger.Warn("Failed to update Jellyfin playback",
+					zap.String("title", media.Title),
+					zap.Error(err),
+				)
+			}
+		}
+	}
+
+	// 5. Save all media to database
+	for _, media := range mediaMap {
 		if err := s.mediaRepo.CreateOrUpdate(media); err != nil {
 			s.logger.Error("Failed to save media",
 				zap.String("title", media.Title),
@@ -141,7 +160,7 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 	}
 
 	s.logger.Info("Sync completed",
-		zap.Int("total_synced", len(allMedia)),
+		zap.Int("total_synced", len(mediaMap)),
 	)
 
 	return nil
@@ -179,27 +198,56 @@ func (s *SyncService) syncSonarr(ctx context.Context) ([]*models.Media, error) {
 	return media, nil
 }
 
-// updateJellyfinPlayback updates playback information from Jellyfin.
-func (s *SyncService) updateJellyfinPlayback(ctx context.Context, mediaList []*models.Media) error {
-	s.logger.Info("Updating Jellyfin playback info")
+// syncJellyfin syncs media from Jellyfin and merges with existing data.
+func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*models.Media) error {
+	s.logger.Info("Syncing from Jellyfin")
 
-	for _, media := range mediaList {
-		if media.JellyfinID == nil {
-			continue
-		}
+	jellyfinMedia, err := s.jellyfinClient.GetLibrary(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get Jellyfin library: %w", err)
+	}
 
-		playbackInfo, err := s.jellyfinClient.GetPlaybackInfo(ctx, *media.JellyfinID)
-		if err != nil {
-			s.logger.Warn("Failed to get playback info",
-				zap.String("jellyfin_id", *media.JellyfinID),
-				zap.Error(err),
-			)
-			continue
-		}
+	newFromJellyfin := 0
+	enriched := 0
 
-		if !playbackInfo.LastPlayed.IsZero() {
-			media.LastWatched = &playbackInfo.LastPlayed
+	for _, jfMedia := range jellyfinMedia {
+		key := jfMedia.Title
+
+		if existingMedia, exists := mediaMap[key]; exists {
+			// Media already exists from Radarr/Sonarr, enrich it with Jellyfin data
+			if existingMedia.JellyfinID == nil {
+				existingMedia.JellyfinID = jfMedia.JellyfinID
+				enriched++
+			}
+		} else {
+			// Media only exists in Jellyfin, add it to the map
+			mediaMap[key] = jfMedia
+			newFromJellyfin++
 		}
+	}
+
+	s.logger.Info("Jellyfin sync complete",
+		zap.Int("total_items", len(jellyfinMedia)),
+		zap.Int("enriched", enriched),
+		zap.Int("new_from_jellyfin", newFromJellyfin),
+	)
+
+	return nil
+}
+
+// updateJellyfinPlayback updates playback information from Jellyfin for a single media item.
+func (s *SyncService) updateJellyfinPlayback(ctx context.Context, media *models.Media) error {
+	if media.JellyfinID == nil {
+		return nil
+	}
+
+	playbackInfo, err := s.jellyfinClient.GetPlaybackInfo(ctx, *media.JellyfinID)
+	if err != nil {
+		return fmt.Errorf("failed to get playback info: %w", err)
+	}
+
+	if !playbackInfo.LastPlayed.IsZero() {
+		media.LastWatched = &playbackInfo.LastPlayed
 	}
 
 	return nil
