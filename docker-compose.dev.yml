@@ -19,32 +19,19 @@ services:
       - KEEPERCHEKY_SERVER_PORT=8000
       - KEEPERCHEKY_DATABASE_TYPE=sqlite
       - KEEPERCHEKY_DATABASE_PATH=/app/data/dev.db
-      # Services configuration
-      - KEEPERCHEKY_SERVICES_RADARR_ENABLED=true
-      - KEEPERCHEKY_SERVICES_RADARR_URL=http://radarr:7878
-      - KEEPERCHEKY_SERVICES_RADARR_APIKEY=test-radarr-api-key-12345
-      - KEEPERCHEKY_SERVICES_SONARR_ENABLED=true
-      - KEEPERCHEKY_SERVICES_SONARR_URL=http://sonarr:8989
-      - KEEPERCHEKY_SERVICES_SONARR_APIKEY=test-sonarr-api-key-12345
-      - KEEPERCHEKY_SERVICES_JELLYFIN_ENABLED=true
-      - KEEPERCHEKY_SERVICES_JELLYFIN_URL=http://jellyfin:8096
-      - KEEPERCHEKY_SERVICES_JELLYFIN_APIKEY=test-jellyfin-api-key-12345
-      - KEEPERCHEKY_SERVICES_JELLYSEERR_ENABLED=true
-      - KEEPERCHEKY_SERVICES_JELLYSEERR_URL=http://jellyseerr:5055
-      - KEEPERCHEKY_SERVICES_JELLYSEERR_APIKEY=test-jellyseerr-api-key-12345
-      # qBittorrent configuration (seeding validation)
-      - KEEPERCHEKY_SERVICES_QBITTORRENT_ENABLED=true
-      - KEEPERCHEKY_SERVICES_QBITTORRENT_URL=http://qbittorrent:8080
-      - KEEPERCHEKY_SERVICES_QBITTORRENT_USERNAME=admin
-      - KEEPERCHEKY_SERVICES_QBITTORRENT_PASSWORD=adminadmin
-      # Bazarr configuration (subtitle preservation)
-      - KEEPERCHEKY_SERVICES_BAZARR_ENABLED=true
-      - KEEPERCHEKY_SERVICES_BAZARR_URL=http://bazarr:6767
-      - KEEPERCHEKY_SERVICES_BAZARR_APIKEY=test-bazarr-api-key-12345
-      # Jellystat configuration (playback statistics)
-      - KEEPERCHEKY_SERVICES_JELLYSTAT_ENABLED=true
-      - KEEPERCHEKY_SERVICES_JELLYSTAT_URL=http://jellystat:3000
-      - KEEPERCHEKY_SERVICES_JELLYSTAT_APIKEY=test-jellystat-api-key-12345
+      # Clients configuration (using .env file)
+      - KEEPERCHEKY_CLIENTS_RADARR_ENABLED=true
+      - KEEPERCHEKY_CLIENTS_RADARR_URL=http://radarr:7878
+      - KEEPERCHEKY_CLIENTS_RADARR_API_KEY=${RADARR_API_KEY}
+      - KEEPERCHEKY_CLIENTS_SONARR_ENABLED=true
+      - KEEPERCHEKY_CLIENTS_SONARR_URL=http://sonarr:8989
+      - KEEPERCHEKY_CLIENTS_SONARR_API_KEY=${SONARR_API_KEY}
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED=true
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_URL=http://jellyfin:8096
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_API_KEY=${JELLYFIN_API_KEY}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED=true
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_URL=http://jellyseerr:5055
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY}
     develop:
       watch:
         # Sync Go source code
@@ -73,10 +60,6 @@ services:
       - sonarr
       - jellyfin
       - jellyseerr
-      - qbittorrent
-      - bazarr
-      - jellystat
-      - jellystat-db
     restart: unless-stopped
 
   # Radarr - Movie Management
