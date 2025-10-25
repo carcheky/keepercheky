@@ -38,8 +38,8 @@ dev:
 	@mkdir -p volumes/bazarr-config
 	@mkdir -p volumes/jellystat-config
 	@mkdir -p volumes/jellystat-db
-	@mkdir -p volumes/media-library/movies
-	@mkdir -p volumes/media-library/tv
+	@mkdir -p volumes/media-library/library/movies
+	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
 	@echo "✅ Volume directories ready"
 	@docker compose -f docker-compose.dev.yml up --build --watch
@@ -136,8 +136,8 @@ init:
 	@mkdir -p volumes/bazarr-config
 	@mkdir -p volumes/jellystat-config
 	@mkdir -p volumes/jellystat-db
-	@mkdir -p volumes/media-library/movies
-	@mkdir -p volumes/media-library/tv
+	@mkdir -p volumes/media-library/library/movies
+	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
 	@echo "✅ Development environment initialized"
 	@echo ""
@@ -155,8 +155,9 @@ init:
 	@echo "      ├── jellystat-config/"
 	@echo "      ├── jellystat-db/"
 	@echo "      └── media-library/"
-	@echo "          ├── movies/"
-	@echo "          ├── tv/"
+	@echo "          ├── library/"
+	@echo "          │   ├── movies/"
+	@echo "          │   └── tv/"
 	@echo "          └── downloads/"
 	@echo ""
 	@echo "Next steps:"
