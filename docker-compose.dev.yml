@@ -76,6 +76,7 @@ services:
       - qbittorrent
       - bazarr
       - jellystat
+      - jellystat-db
     restart: unless-stopped
 
   # Radarr - Movie Management
@@ -183,14 +184,30 @@ services:
     restart: unless-stopped
 
   # Jellystat - Jellyfin Statistics & Playback Tracking
+  jellystat-db:
+    image: postgres:15-alpine
+    container_name: jellystat-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=keepercheky-dev-password
+      - POSTGRES_DB=jfstat
+    volumes:
+      - jellystat-db:/var/lib/postgresql/data
+    networks:
+      - keepercheky-net
+    restart: unless-stopped
+
   jellystat:
     image: cyfershepard/jellystat:latest
     container_name: jellystat-test
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Madrid
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=keepercheky-dev-password
+      - POSTGRES_IP=jellystat-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=jfstat
       - JWT_SECRET=keepercheky-jellystat-secret-dev
+      - TZ=Europe/Madrid
     volumes:
       - jellystat-config:/app/backend/backup-data
     ports:
@@ -199,6 +216,7 @@ services:
       - keepercheky-net
     depends_on:
       - jellyfin
+      - jellystat-db
     restart: unless-stopped
 
 volumes:
@@ -249,6 +267,12 @@ volumes:
     driver_opts:
       type: none
       device: ./volumes/jellystat-config
+      o: bind
+  jellystat-db:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./volumes/jellystat-db
       o: bind
   media-library:
     driver: local
