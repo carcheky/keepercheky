@@ -32,20 +32,16 @@ services:
       - KEEPERCHEKY_SERVICES_JELLYSEERR_ENABLED=true
       - KEEPERCHEKY_SERVICES_JELLYSEERR_URL=http://jellyseerr:5055
       - KEEPERCHEKY_SERVICES_JELLYSEERR_APIKEY=test-jellyseerr-api-key-12345
-      # qBittorrent configuration
+      # qBittorrent configuration (seeding validation)
       - KEEPERCHEKY_SERVICES_QBITTORRENT_ENABLED=true
       - KEEPERCHEKY_SERVICES_QBITTORRENT_URL=http://qbittorrent:8080
       - KEEPERCHEKY_SERVICES_QBITTORRENT_USERNAME=admin
       - KEEPERCHEKY_SERVICES_QBITTORRENT_PASSWORD=adminadmin
-      # Prowlarr configuration
-      - KEEPERCHEKY_SERVICES_PROWLARR_ENABLED=true
-      - KEEPERCHEKY_SERVICES_PROWLARR_URL=http://prowlarr:9696
-      - KEEPERCHEKY_SERVICES_PROWLARR_APIKEY=test-prowlarr-api-key-12345
-      # Bazarr configuration
+      # Bazarr configuration (subtitle preservation)
       - KEEPERCHEKY_SERVICES_BAZARR_ENABLED=true
       - KEEPERCHEKY_SERVICES_BAZARR_URL=http://bazarr:6767
       - KEEPERCHEKY_SERVICES_BAZARR_APIKEY=test-bazarr-api-key-12345
-      # Jellystat configuration
+      # Jellystat configuration (playback statistics)
       - KEEPERCHEKY_SERVICES_JELLYSTAT_ENABLED=true
       - KEEPERCHEKY_SERVICES_JELLYSTAT_URL=http://jellystat:3000
       - KEEPERCHEKY_SERVICES_JELLYSTAT_APIKEY=test-jellystat-api-key-12345
@@ -78,7 +74,6 @@ services:
       - jellyfin
       - jellyseerr
       - qbittorrent
-      - prowlarr
       - bazarr
       - jellystat
     restart: unless-stopped
@@ -170,23 +165,7 @@ services:
       - keepercheky-net
     restart: unless-stopped
 
-  # Prowlarr - Indexer Management
-  prowlarr:
-    image: linuxserver/prowlarr:latest
-    container_name: prowlarr-test
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Madrid
-    volumes:
-      - prowlarr-config:/config
-    ports:
-      - "9696:9696"
-    networks:
-      - keepercheky-net
-    restart: unless-stopped
-
-  # Bazarr - Subtitle Management
+  # Bazarr - Subtitle Management (Preserve subtitles before deletion)
   bazarr:
     image: linuxserver/bazarr:latest
     container_name: bazarr-test
@@ -229,7 +208,6 @@ volumes:
   jellyfin-config:
   jellyseerr-config:
   qbittorrent-config:
-  prowlarr-config:
   bazarr-config:
   jellystat-config:
   media-test:

@@ -42,11 +42,6 @@ El `docker-compose.dev.yml` incluye los siguientes servicios de prueba:
 - **Contraseña**: `adminadmin`
 - **Uso**: Validación de seeding antes de eliminar archivos
 
-#### Prowlarr (Puerto 9696)
-- **URL**: http://localhost:9696
-- **Gestión**: Indexers para Radarr/Sonarr
-- **API Key**: `test-prowlarr-api-key-12345` (configurar manualmente)
-
 #### Bazarr (Puerto 6767)
 - **URL**: http://localhost:6767
 - **Gestión**: Subtítulos
@@ -106,14 +101,6 @@ docker compose -f docker-compose.dev.yml up -d
 5. Asegúrate que el puerto es **8080**
 6. **Nota**: KeeperCheky usa este servicio para validar si los archivos están en seeding
 
-#### Prowlarr (http://localhost:9696)
-1. Accede a la UI web
-2. Completa el wizard de configuración inicial
-3. Ve a **Settings → General**
-4. Copia la **API Key** generada
-5. **IMPORTANTE**: Reemplaza el API key en tu configuración de KeeperCheky
-6. Conecta Prowlarr con Radarr y Sonarr en **Settings → Apps**
-
 #### Bazarr (http://localhost:6767)
 1. Accede a la UI web
 2. Completa el wizard de configuración inicial
@@ -146,7 +133,6 @@ environment:
   - KEEPERCHEKY_SERVICES_JELLYFIN_APIKEY=tu-api-key-real-de-jellyfin
   - KEEPERCHEKY_SERVICES_JELLYSEERR_APIKEY=tu-api-key-real-de-jellyseerr
   - KEEPERCHEKY_SERVICES_QBITTORRENT_PASSWORD=tu-contraseña-de-qbittorrent
-  - KEEPERCHEKY_SERVICES_PROWLARR_APIKEY=tu-api-key-real-de-prowlarr
   - KEEPERCHEKY_SERVICES_BAZARR_APIKEY=tu-api-key-real-de-bazarr
   - KEEPERCHEKY_SERVICES_JELLYSTAT_APIKEY=tu-api-key-real-de-jellystat
 ```
@@ -315,7 +301,6 @@ docker compose -f docker-compose.dev.yml down -v
 
 ### Servicios Complementarios
 - **qBittorrent**: http://localhost:8080
-- **Prowlarr**: http://localhost:9696
 - **Bazarr**: http://localhost:6767
 - **Jellystat**: http://localhost:3000
 
