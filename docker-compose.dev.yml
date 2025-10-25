@@ -1,6 +1,6 @@
 services:
   # KeeperCheky Application
-  app:
+  keepercheky:
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - go-modules:/go/pkg/mod
+      - keepercheky-go-modules:/go/pkg/mod
       - ./data:/app/data
       - ./config:/app/config
       - media-library:/media-library:ro  # Read-only access to test media
@@ -220,11 +220,11 @@ services:
     restart: unless-stopped
 
 volumes:
-  go-modules:
+  keepercheky-go-modules:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/go-modules
+      device: ./volumes/keepercheky-go-modules
       o: bind
   radarr-config:
     driver: local

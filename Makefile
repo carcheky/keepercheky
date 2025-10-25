@@ -29,7 +29,7 @@ help:
 dev:
 	@echo "🚀 Starting development server with hot-reload..."
 	@echo "📁 Creating volume directories..."
-	@mkdir -p volumes/go-modules
+	@mkdir -p volumes/keepercheky-go-modules
 	@mkdir -p volumes/radarr-config
 	@mkdir -p volumes/sonarr-config
 	@mkdir -p volumes/jellyfin-config
@@ -52,11 +52,11 @@ dev-watch:
 
 # Show development logs
 logs:
-	@docker compose -f docker-compose.dev.yml logs -f app
+	@docker compose -f docker-compose.dev.yml logs -f keepercheky
 
 # Open shell in development container
 shell:
-	@docker compose -f docker-compose.dev.yml exec app sh
+	@docker compose -f docker-compose.dev.yml exec keepercheky sh
 
 # Stop development server
 stop:
@@ -128,7 +128,7 @@ clean-all:
 init:
 	@echo "🔧 Initializing development environment..."
 	@mkdir -p data config
-	@mkdir -p volumes/go-modules
+	@mkdir -p volumes/keepercheky-go-modules
 	@mkdir -p volumes/radarr-config
 	@mkdir -p volumes/sonarr-config
 	@mkdir -p volumes/jellyfin-config
@@ -147,7 +147,7 @@ init:
 	@echo "  ├── data/              (app data & database)"
 	@echo "  ├── config/            (configuration files)"
 	@echo "  └── volumes/           (Docker volume mounts)"
-	@echo "      ├── go-modules/"
+	@echo "      ├── keepercheky-go-modules/"
 	@echo "      ├── radarr-config/"
 	@echo "      ├── sonarr-config/"
 	@echo "      ├── jellyfin-config/"
