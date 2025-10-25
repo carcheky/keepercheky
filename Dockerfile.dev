@@ -1,16 +1,16 @@
-# Development Dockerfile with hot-reload using Air
-FROM golang:1.22-alpine AS development
+# Development Dockerfile with hot-reload support
+FROM golang:1.23-alpine
 
-# Install Air for hot-reload
-RUN go install github.com/cosmtrek/air@latest
+# Install Air for hot-reload (v1.61.0 is the last version compatible with Go 1.23)
+RUN go install github.com/air-verse/air@v1.61.0
 
 # Install build dependencies
 RUN apk add --no-cache git gcc musl-dev sqlite-dev
 
 WORKDIR /app
 
-# Copy go mod files
-COPY go.mod go.sum ./
+# Copy go mod files (go.sum will be created by go mod download if not exists)
+COPY go.mod ./
 RUN go mod download
 
 # Copy source code

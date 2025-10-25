@@ -76,17 +76,17 @@ See [Comparison Document](docs/COMPARACION_Y_RECOMENDACIONES.md) for detailed an
 
 ## 📊 Comparison with Similar Projects
 
-| Feature | Janitorr | Maintainerr | KeeperCheky (Goal) |
-|---------|----------|-------------|-------------------|
-| **Web Interface** | ❌ | ✅ | ✅ |
-| **Stack** | Kotlin + Spring | TypeScript + NestJS + Next.js | **Go + Alpine.js** |
-| **Docker Image** | ~300MB | ~500MB | **15-25MB** ✅ |
-| **RAM Usage** | ~256MB | ~400-600MB | **20-50MB** ✅ |
-| **Startup Time** | ~10-15s | ~15-25s | **<1s** ✅ |
-| **Jellyfin Support** | ✅ | ❌ | ✅ |
-| **Plex Support** | ❌ | ✅ | ✅ (future) |
-| **Rule Builder** | Config file | ✅ Visual | ✅ Visual |
-| **Leaving Soon** | ❌ | ✅ Collections | ✅ Symlinks |
+| Feature              | Janitorr        | Maintainerr                   | KeeperCheky (Goal) |
+| -------------------- | --------------- | ----------------------------- | ------------------ |
+| **Web Interface**    | ❌               | ✅                             | ✅                  |
+| **Stack**            | Kotlin + Spring | TypeScript + NestJS + Next.js | **Go + Alpine.js** |
+| **Docker Image**     | ~300MB          | ~500MB                        | **15-25MB** ✅      |
+| **RAM Usage**        | ~256MB          | ~400-600MB                    | **20-50MB** ✅      |
+| **Startup Time**     | ~10-15s         | ~15-25s                       | **<1s** ✅          |
+| **Jellyfin Support** | ✅               | ❌                             | ✅                  |
+| **Plex Support**     | ❌               | ✅                             | ✅ (future)         |
+| **Rule Builder**     | Config file     | ✅ Visual                      | ✅ Visual           |
+| **Leaving Soon**     | ❌               | ✅ Collections                 | ✅ Symlinks         |
 
 **See [detailed comparison](docs/RESUMEN_COMPARATIVO.md) for more information.**
 
