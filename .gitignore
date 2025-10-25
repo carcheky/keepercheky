@@ -9,7 +9,16 @@ volumes/
 __pycache__/
 *.py[cod]
 *$py.class
+# Logs
+logs/
+*.log
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
 *.so
+*.dylib
 .Python
 build/
 develop-eggs/
@@ -53,6 +62,10 @@ Thumbs.db
 # Docker
 *.log
 
+# Logs directory
+logs/
+tmp/
+
 # Environment variables
 .env
 .env.local
@@ -61,3 +74,4 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+volumes-dev.zip

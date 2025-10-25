@@ -20,8 +20,8 @@ type Handlers struct {
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
 	// Initialize SyncService
-	syncService := service.NewSyncService(repos.Media, logger.Logger, cfg)
-	
+	syncService := service.NewSyncService(repos.Media, logger, cfg)
+
 	return &Handlers{
 		Health:    NewHealthHandler(db, logger),
 		Dashboard: NewDashboardHandler(repos, logger),
