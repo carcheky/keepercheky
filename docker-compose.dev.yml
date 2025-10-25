@@ -8,10 +8,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - keepercheky-go-modules:/go/pkg/mod
+      - ./volumes/keepercheky-go-modules:/go/pkg/mod
       - ./data:/app/data
       - ./config:/app/config
-      - media-library:/media-library:ro  # Read-only access to test media
+      - ./volumes/media-library:/media-library:ro  # Read-only access to test media
     environment:
       - KEEPERCHEKY_APP_ENVIRONMENT=development
       - KEEPERCHEKY_APP_LOG_LEVEL=debug
@@ -88,8 +88,8 @@ services:
       - PGID=1000
       - TZ=Europe/Madrid
     volumes:
-      - radarr-config:/config
-      - media-library:/media-library
+      - ./volumes/radarr-config:/config
+      - ./volumes/media-library:/media-library
     ports:
       - "7878:7878"
     networks:
@@ -105,8 +105,8 @@ services:
       - PGID=1000
       - TZ=Europe/Madrid
     volumes:
-      - sonarr-config:/config
-      - media-library:/media-library
+      - ./volumes/sonarr-config:/config
+      - ./volumes/media-library:/media-library
     ports:
       - "8989:8989"
     networks:
@@ -122,8 +122,8 @@ services:
       - PGID=1000
       - TZ=Europe/Madrid
     volumes:
-      - jellyfin-config:/config
-      - media-library:/media-library:ro
+      - ./volumes/jellyfin-config:/config
+      - ./volumes/media-library:/media-library:ro
     ports:
       - "8096:8096"
     networks:
@@ -139,7 +139,7 @@ services:
       - PGID=1000
       - TZ=Europe/Madrid
     volumes:
-      - jellyseerr-config:/app/config
+      - ./volumes/jellyseerr-config:/app/config
     ports:
       - "5055:5055"
     networks:
@@ -156,8 +156,8 @@ services:
       - TZ=Europe/Madrid
       - WEBUI_PORT=8080
     volumes:
-      - qbittorrent-config:/config
-      - media-library:/media-library
+      - ./volumes/qbittorrent-config:/config
+      - ./volumes/media-library:/media-library
     ports:
       - "8080:8080"
       - "6881:6881"
@@ -175,8 +175,8 @@ services:
       - PGID=1000
       - TZ=Europe/Madrid
     volumes:
-      - bazarr-config:/config
-      - media-library:/media-library
+      - ./volumes/bazarr-config:/config
+      - ./volumes/media-library:/media-library
     ports:
       - "6767:6767"
     networks:
@@ -209,7 +209,7 @@ services:
       - JWT_SECRET=keepercheky-jellystat-secret-dev
       - TZ=Europe/Madrid
     volumes:
-      - jellystat-config:/app/backend/backup-data
+      - ./volumes/jellystat-config:/app/backend/backup-data
     ports:
       - "3000:3000"
     networks:
@@ -220,61 +220,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  keepercheky-go-modules:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/keepercheky-go-modules
-      o: bind
-  radarr-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/radarr-config
-      o: bind
-  sonarr-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/sonarr-config
-      o: bind
-  jellyfin-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/jellyfin-config
-      o: bind
-  jellyseerr-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/jellyseerr-config
-      o: bind
-  qbittorrent-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/qbittorrent-config
-      o: bind
-  bazarr-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/bazarr-config
-      o: bind
-  jellystat-config:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/jellystat-config
-      o: bind
   jellystat-db:
-  media-library:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/media-library
-      o: bind
 
 networks:
   keepercheky-net:

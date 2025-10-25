@@ -37,7 +37,6 @@ dev:
 	@mkdir -p volumes/qbittorrent-config
 	@mkdir -p volumes/bazarr-config
 	@mkdir -p volumes/jellystat-config
-	@mkdir -p volumes/jellystat-db
 	@mkdir -p volumes/media-library/library/movies
 	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
@@ -135,7 +134,6 @@ init:
 	@mkdir -p volumes/qbittorrent-config
 	@mkdir -p volumes/bazarr-config
 	@mkdir -p volumes/jellystat-config
-	@mkdir -p volumes/jellystat-db
 	@mkdir -p volumes/media-library/library/movies
 	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
@@ -153,7 +151,6 @@ init:
 	@echo "      ├── qbittorrent-config/"
 	@echo "      ├── bazarr-config/"
 	@echo "      ├── jellystat-config/"
-	@echo "      ├── jellystat-db/"
 	@echo "      └── media-library/"
 	@echo "          ├── library/"
 	@echo "          │   ├── movies/"
