@@ -191,30 +191,32 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <!-- Radarr Icon -->
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <!-- Radarr Tag - Color dorado/amarillo oficial -->
                                     <span x-show="item.radarr_id != null && item.radarr_id !== ''"
-                                        class="inline-flex items-center justify-center w-6 h-6 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold"
-                                        title="En Radarr">
-                                        R
+                                        class="px-2 py-0.5 text-xs font-semibold rounded"
+                                        style="background-color: #ffc230; color: #1f1f1f;" title="Disponible en Radarr">
+                                        Radarr
                                     </span>
-                                    <!-- Sonarr Icon -->
+                                    <!-- Sonarr Tag - Color azul oficial -->
                                     <span x-show="item.sonarr_id != null && item.sonarr_id !== ''"
-                                        class="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold"
-                                        title="En Sonarr">
-                                        S
+                                        class="px-2 py-0.5 text-xs font-semibold rounded"
+                                        style="background-color: #35c5f4; color: #1f1f1f;" title="Disponible en Sonarr">
+                                        Sonarr
                                     </span>
-                                    <!-- Jellyfin Icon -->
+                                    <!-- Jellyfin Tag - Color púrpura oficial -->
                                     <span x-show="item.jellyfin_id != null && item.jellyfin_id !== ''"
-                                        class="inline-flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-700 rounded-full text-xs font-bold"
-                                        title="En Jellyfin">
-                                        J
+                                        class="px-2 py-0.5 text-xs font-semibold rounded"
+                                        style="background-color: #aa5cc3; color: #ffffff;"
+                                        title="Disponible en Jellyfin">
+                                        Jellyfin
                                     </span>
-                                    <!-- Jellyseerr Icon -->
+                                    <!-- Jellyseerr Tag - Color púrpura/índigo -->
                                     <span x-show="item.jellyseerr_id != null && item.jellyseerr_id !== ''"
-                                        class="inline-flex items-center justify-center w-6 h-6 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold"
-                                        title="En Jellyseerr">
-                                        JS
+                                        class="px-2 py-0.5 text-xs font-semibold rounded"
+                                        style="background-color: #7b50ff; color: #ffffff;"
+                                        title="Solicitado en Jellyseerr">
+                                        Jellyseerr
                                     </span>
                                     <!-- No services indicator -->
                                     <span
