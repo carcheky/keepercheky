@@ -192,6 +192,7 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Test basic connection first
 	err := h.syncService.TestConnection(ctx, service)
 	if err != nil {
 		h.logger.Error("Connection test failed",
@@ -203,9 +204,30 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		})
 	}
 
+	// For Radarr, get complete system information
+	if service == "radarr" {
+		systemInfo, err := h.syncService.GetRadarrSystemInfo(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Radarr system info",
+				"error", err,
+			)
+			// Still return success for connection, but without detailed info
+			return c.JSON(fiber.Map{
+				"success": true,
+				"message": "Connection test successful",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success":     true,
+			"message":     "Connection successful",
+			"system_info": systemInfo,
+		})
+	}
+
+	// For other services, return basic success
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Connection test successful",
-		"version": "Connected", // TODO: Get actual version from service
 	})
 }

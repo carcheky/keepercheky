@@ -244,3 +244,18 @@ func (s *SyncService) TestConnection(ctx context.Context, service string) error 
 		return fmt.Errorf("unknown service: %s", service)
 	}
 }
+
+// GetRadarrSystemInfo returns complete system information from Radarr.
+func (s *SyncService) GetRadarrSystemInfo(ctx context.Context) (*clients.RadarrSystemInfo, error) {
+	if s.radarrClient == nil {
+		return nil, fmt.Errorf("Radarr not configured")
+	}
+
+	// Type assertion to access RadarrClient specific methods
+	radarrClient, ok := s.radarrClient.(*clients.RadarrClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Radarr client type")
+	}
+
+	return radarrClient.GetSystemInfo(ctx)
+}

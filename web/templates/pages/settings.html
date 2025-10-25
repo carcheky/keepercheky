@@ -104,10 +104,97 @@
                 <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
             </button>
 
-            <div x-show="connectionResults.radarr" x-transition
-                :class="connectionResults.radarr.success ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'"
-                class="mt-4 p-4 rounded-lg border">
-                <p x-text="connectionResults.radarr.message"></p>
+            <!-- Connection Results -->
+            <div x-show="connectionResults.radarr" x-transition class="mt-4">
+                <!-- Error State -->
+                <div x-show="connectionResults.radarr && !connectionResults.radarr.success"
+                    class="p-4 bg-red-50 text-red-800 border border-red-200 rounded-lg">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p x-text="connectionResults.radarr.message"></p>
+                    </div>
+                </div>
+
+                <!-- Success State with System Info -->
+                <div x-show="connectionResults.radarr && connectionResults.radarr.success"
+                    class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p class="font-semibold text-green-800">✓ Connection Successful</p>
+                    </div>
+
+                    <!-- System Information Grid -->
+                    <div x-show="connectionResults.radarr.system_info"
+                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Version</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.version || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Branch</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.branch || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Operating System</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.os || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">OS Version</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.os_version || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Runtime</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.runtime || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Runtime Version</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.runtime_version || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">SQLite Version</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.sqlite_version || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Authentication</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.authentication || 'N/A'"></p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-xs text-green-700 font-medium">App Data Path</p>
+                            <p class="text-sm text-green-900 font-mono break-all"
+                                x-text="connectionResults.radarr.system_info?.app_data || 'N/A'"></p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-xs text-green-700 font-medium">Build Time</p>
+                            <p class="text-sm text-green-900"
+                                x-text="connectionResults.radarr.system_info?.build_time || 'N/A'"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-green-700 font-medium">Mode</p>
+                            <p class="text-sm text-green-900">
+                                <span x-show="connectionResults.radarr.system_info?.is_production"
+                                    class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Production</span>
+                                <span x-show="connectionResults.radarr.system_info?.is_debug"
+                                    class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Debug</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -482,7 +569,8 @@
                     if (response.ok) {
                         this.connectionResults[service] = {
                             success: true,
-                            message: `✓ Connected successfully! ${data.version ? 'Version: ' + data.version : ''}`
+                            message: data.message || 'Connection successful',
+                            system_info: data.system_info || null
                         };
                     } else {
                         this.connectionResults[service] = {
