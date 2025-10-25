@@ -269,11 +269,6 @@ volumes:
       device: ./volumes/jellystat-config
       o: bind
   jellystat-db:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./volumes/jellystat-db
-      o: bind
   media-library:
     driver: local
     driver_opts:
