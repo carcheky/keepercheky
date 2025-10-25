@@ -289,3 +289,18 @@ func (s *SyncService) GetJellyfinSystemInfo(ctx context.Context) (*clients.Jelly
 
 	return jellyfinClient.GetSystemInfo(ctx)
 }
+
+// GetJellyseerrSystemInfo returns complete system information from Jellyseerr.
+func (s *SyncService) GetJellyseerrSystemInfo(ctx context.Context) (*clients.JellyseerrSystemInfo, error) {
+	if s.jellyseerrClient == nil {
+		return nil, fmt.Errorf("Jellyseerr not configured")
+	}
+
+	// Type assertion to access JellyseerrClient specific methods
+	jellyseerrClient, ok := s.jellyseerrClient.(*clients.JellyseerrClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyseerr client type")
+	}
+
+	return jellyseerrClient.GetSystemInfo(ctx)
+}
