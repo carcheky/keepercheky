@@ -193,32 +193,32 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <!-- Radarr Icon -->
-                                    <span x-show="item.radarr_id"
+                                    <span x-show="item.radarr_id != null && item.radarr_id !== ''"
                                         class="inline-flex items-center justify-center w-6 h-6 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold"
                                         title="En Radarr">
                                         R
                                     </span>
                                     <!-- Sonarr Icon -->
-                                    <span x-show="item.sonarr_id"
+                                    <span x-show="item.sonarr_id != null && item.sonarr_id !== ''"
                                         class="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded-full text-xs font-bold"
                                         title="En Sonarr">
                                         S
                                     </span>
                                     <!-- Jellyfin Icon -->
-                                    <span x-show="item.jellyfin_id"
+                                    <span x-show="item.jellyfin_id != null && item.jellyfin_id !== ''"
                                         class="inline-flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-700 rounded-full text-xs font-bold"
                                         title="En Jellyfin">
                                         J
                                     </span>
                                     <!-- Jellyseerr Icon -->
-                                    <span x-show="item.jellyseerr_id"
+                                    <span x-show="item.jellyseerr_id != null && item.jellyseerr_id !== ''"
                                         class="inline-flex items-center justify-center w-6 h-6 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold"
                                         title="En Jellyseerr">
                                         JS
                                     </span>
                                     <!-- No services indicator -->
                                     <span
-                                        x-show="!item.radarr_id && !item.sonarr_id && !item.jellyfin_id && !item.jellyseerr_id"
+                                        x-show="(!item.radarr_id || item.radarr_id === '') && (!item.sonarr_id || item.sonarr_id === '') && (!item.jellyfin_id || item.jellyfin_id === '') && (!item.jellyseerr_id || item.jellyseerr_id === '')"
                                         class="text-xs text-gray-400 italic">
                                         Sin servicios
                                     </span>
@@ -351,6 +351,17 @@
                     this.media = data.data || [];
                     this.total = data.total || 0;
                     this.totalPages = data.pages || 1;
+
+                    // Debug: log service IDs for first item
+                    if (this.media.length > 0) {
+                        console.log('📊 Sample media item:', {
+                            title: this.media[0].title,
+                            radarr_id: this.media[0].radarr_id,
+                            sonarr_id: this.media[0].sonarr_id,
+                            jellyfin_id: this.media[0].jellyfin_id,
+                            jellyseerr_id: this.media[0].jellyseerr_id
+                        });
+                    }
                 } catch (error) {
                     console.error('Error loading media:', error);
                     this.showMessage('Failed to load media', 'error');
