@@ -43,7 +43,11 @@ func (h *SettingsHandler) Get(c *fiber.Ctx) error {
 		}
 	}
 
+	// Get environment source map to inform UI which fields are from .env
+	envSources := config.GetEnvSourceMap()
+
 	// Return config in the format expected by frontend
+	// Note: Config already contains values from environment variables (they have precedence in Viper)
 	return c.JSON(fiber.Map{
 		"services": fiber.Map{
 			"radarr": fiber.Map{
@@ -80,6 +84,7 @@ func (h *SettingsHandler) Get(c *fiber.Ctx) error {
 			"exclusion_tags":     exclusionTags,
 			"delete_unmonitored": h.config.Cleanup.DeleteUnmonitored,
 		},
+		"env_sources": envSources,
 	})
 }
 
@@ -128,7 +133,7 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
-	// Update config in memory
+	// Update config in memory (environment variables will override these values on next load)
 	h.config.Clients.Radarr.Enabled = update.Services.Radarr.Enabled
 	h.config.Clients.Radarr.URL = update.Services.Radarr.URL
 	h.config.Clients.Radarr.APIKey = update.Services.Radarr.APIKey

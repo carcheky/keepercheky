@@ -62,25 +62,40 @@
     <div x-show="activeTab === 'radarr'" class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">Radarr Configuration</h2>
-            <label class="flex items-center cursor-pointer">
-                <input type="checkbox" x-model="config.services.radarr.enabled" class="sr-only peer">
-                <div
-                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                </div>
-                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
-            </label>
+            <div class="flex items-center gap-2">
+                <label class="flex items-center"
+                    :class="envSources.radarr.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
+                    <input type="checkbox" x-model="config.services.radarr.enabled"
+                        :disabled="envSources.radarr.enabled" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+                </label>
+                <span x-show="envSources.radarr.enabled" class="text-xs text-blue-600">(from .env)</span>
+            </div>
         </div>
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                    <span x-show="envSources.radarr.url" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="url" x-model="config.services.radarr.url" placeholder="http://localhost:7878"
+                    :disabled="envSources.radarr.url"
+                    :class="envSources.radarr.url ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    API Key
+                    <span x-show="envSources.radarr.api_key" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="password" x-model="config.services.radarr.api_key" placeholder="Enter Radarr API Key"
+                    :disabled="envSources.radarr.api_key"
+                    :class="envSources.radarr.api_key ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
@@ -101,25 +116,40 @@
     <div x-show="activeTab === 'sonarr'" class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">Sonarr Configuration</h2>
-            <label class="flex items-center cursor-pointer">
-                <input type="checkbox" x-model="config.services.sonarr.enabled" class="sr-only peer">
-                <div
-                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                </div>
-                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
-            </label>
+            <div class="flex items-center gap-2">
+                <label class="flex items-center"
+                    :class="envSources.sonarr.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
+                    <input type="checkbox" x-model="config.services.sonarr.enabled"
+                        :disabled="envSources.sonarr.enabled" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+                </label>
+                <span x-show="envSources.sonarr.enabled" class="text-xs text-blue-600">(from .env)</span>
+            </div>
         </div>
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                    <span x-show="envSources.sonarr.url" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="url" x-model="config.services.sonarr.url" placeholder="http://localhost:8989"
+                    :disabled="envSources.sonarr.url"
+                    :class="envSources.sonarr.url ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    API Key
+                    <span x-show="envSources.sonarr.api_key" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="password" x-model="config.services.sonarr.api_key" placeholder="Enter Sonarr API Key"
+                    :disabled="envSources.sonarr.api_key"
+                    :class="envSources.sonarr.api_key ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
@@ -140,25 +170,40 @@
     <div x-show="activeTab === 'jellyfin'" class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">Jellyfin Configuration</h2>
-            <label class="flex items-center cursor-pointer">
-                <input type="checkbox" x-model="config.services.jellyfin.enabled" class="sr-only peer">
-                <div
-                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                </div>
-                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
-            </label>
+            <div class="flex items-center gap-2">
+                <label class="flex items-center"
+                    :class="envSources.jellyfin.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
+                    <input type="checkbox" x-model="config.services.jellyfin.enabled"
+                        :disabled="envSources.jellyfin.enabled" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+                </label>
+                <span x-show="envSources.jellyfin.enabled" class="text-xs text-blue-600">(from .env)</span>
+            </div>
         </div>
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                    <span x-show="envSources.jellyfin.url" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="url" x-model="config.services.jellyfin.url" placeholder="http://localhost:8096"
+                    :disabled="envSources.jellyfin.url"
+                    :class="envSources.jellyfin.url ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    API Key
+                    <span x-show="envSources.jellyfin.api_key" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="password" x-model="config.services.jellyfin.api_key" placeholder="Enter Jellyfin API Key"
+                    :disabled="envSources.jellyfin.api_key"
+                    :class="envSources.jellyfin.api_key ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
@@ -179,26 +224,40 @@
     <div x-show="activeTab === 'jellyseerr'" class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">Jellyseerr Configuration</h2>
-            <label class="flex items-center cursor-pointer">
-                <input type="checkbox" x-model="config.services.jellyseerr.enabled" class="sr-only peer">
-                <div
-                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                </div>
-                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
-            </label>
+            <div class="flex items-center gap-2">
+                <label class="flex items-center"
+                    :class="envSources.jellyseerr.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
+                    <input type="checkbox" x-model="config.services.jellyseerr.enabled"
+                        :disabled="envSources.jellyseerr.enabled" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+                </label>
+                <span x-show="envSources.jellyseerr.enabled" class="text-xs text-blue-600">(from .env)</span>
+            </div>
         </div>
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                    <span x-show="envSources.jellyseerr.url" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="url" x-model="config.services.jellyseerr.url" placeholder="http://localhost:5055"
+                    :disabled="envSources.jellyseerr.url"
+                    :class="envSources.jellyseerr.url ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    API Key
+                    <span x-show="envSources.jellyseerr.api_key" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="password" x-model="config.services.jellyseerr.api_key"
-                    placeholder="Enter Jellyseerr API Key"
+                    placeholder="Enter Jellyseerr API Key" :disabled="envSources.jellyseerr.api_key"
+                    :class="envSources.jellyseerr.api_key ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
@@ -219,32 +278,51 @@
     <div x-show="activeTab === 'qbittorrent'" class="bg-white shadow rounded-lg p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">qBittorrent Configuration</h2>
-            <label class="flex items-center cursor-pointer">
-                <input type="checkbox" x-model="config.services.qbittorrent.enabled" class="sr-only peer">
-                <div
-                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                </div>
-                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
-            </label>
+            <div class="flex items-center gap-2">
+                <label class="flex items-center"
+                    :class="envSources.qbittorrent.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
+                    <input type="checkbox" x-model="config.services.qbittorrent.enabled"
+                        :disabled="envSources.qbittorrent.enabled" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+                </label>
+                <span x-show="envSources.qbittorrent.enabled" class="text-xs text-blue-600">(from .env)</span>
+            </div>
         </div>
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    URL
+                    <span x-show="envSources.qbittorrent.url" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="url" x-model="config.services.qbittorrent.url" placeholder="http://localhost:8080"
+                    :disabled="envSources.qbittorrent.url"
+                    :class="envSources.qbittorrent.url ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Username
+                    <span x-show="envSources.qbittorrent.username" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="text" x-model="config.services.qbittorrent.username" placeholder="admin"
+                    :disabled="envSources.qbittorrent.username"
+                    :class="envSources.qbittorrent.username ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Password
+                    <span x-show="envSources.qbittorrent.password" class="text-xs text-blue-600">(from .env)</span>
+                </label>
                 <input type="password" x-model="config.services.qbittorrent.password"
-                    placeholder="Enter qBittorrent Password"
+                    placeholder="Enter qBittorrent Password" :disabled="envSources.qbittorrent.password"
+                    :class="envSources.qbittorrent.password ? 'bg-gray-100 cursor-not-allowed' : ''"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
@@ -356,6 +434,13 @@
                 jellyseerr: null,
                 qbittorrent: null
             },
+            envSources: {
+                radarr: { enabled: false, url: false, api_key: false },
+                sonarr: { enabled: false, url: false, api_key: false },
+                jellyfin: { enabled: false, url: false, api_key: false },
+                jellyseerr: { enabled: false, url: false, api_key: false },
+                qbittorrent: { enabled: false, url: false, username: false, password: false }
+            },
             testing: false,
             saving: false,
             message: '',
@@ -369,7 +454,12 @@
                 try {
                     const response = await fetch('/api/config');
                     if (response.ok) {
-                        this.config = await response.json();
+                        const data = await response.json();
+                        this.config = data;
+                        // Store env_sources to disable fields that come from .env
+                        if (data.env_sources) {
+                            this.envSources = data.env_sources;
+                        }
                     }
                 } catch (error) {
                     console.error('Error loading config:', error);
