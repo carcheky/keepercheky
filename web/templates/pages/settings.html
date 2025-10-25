@@ -1,8 +1,394 @@
-<div class="px-4 py-6 sm:px-0">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
-    
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg p-6">
-        <p class="text-gray-500">Settings configuration will appear here...</p>
-        <p class="text-sm text-gray-400 mt-2">Coming soon: Configure Radarr, Sonarr, Jellyfin, and other services</p>
+{{template "layouts/main" .}}
+
+{{define "content"}}
+<div x-data="settings()" x-init="init()" class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900">Settings</h1>
+        <button @click="saveAll()" :disabled="saving"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            <svg x-show="!saving" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                </path>
+            </svg>
+            <svg x-show="saving" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <span x-text="saving ? 'Saving...' : 'Save All'"></span>
+        </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8">
+            <button @click="activeTab = 'radarr'"
+                :class="activeTab === 'radarr' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Radarr
+            </button>
+            <button @click="activeTab = 'sonarr'"
+                :class="activeTab === 'sonarr' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Sonarr
+            </button>
+            <button @click="activeTab = 'jellyfin'"
+                :class="activeTab === 'jellyfin' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Jellyfin
+            </button>
+            <button @click="activeTab = 'jellyseerr'"
+                :class="activeTab === 'jellyseerr' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Jellyseerr
+            </button>
+            <button @click="activeTab = 'cleanup'"
+                :class="activeTab === 'cleanup' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Cleanup Rules
+            </button>
+        </nav>
+    </div>
+
+    <!-- Radarr Settings -->
+    <div x-show="activeTab === 'radarr'" class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Radarr Configuration</h2>
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" x-model="config.services.radarr.enabled" class="sr-only peer">
+                <div
+                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+            </label>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <input type="url" x-model="config.services.radarr.url" placeholder="http://localhost:7878"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input type="password" x-model="config.services.radarr.api_key" placeholder="Enter Radarr API Key"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <button @click="testConnection('radarr')" :disabled="testing"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
+            </button>
+
+            <div x-show="connectionResults.radarr" x-transition
+                :class="connectionResults.radarr.success ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'"
+                class="mt-4 p-4 rounded-lg border">
+                <p x-text="connectionResults.radarr.message"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sonarr Settings -->
+    <div x-show="activeTab === 'sonarr'" class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Sonarr Configuration</h2>
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" x-model="config.services.sonarr.enabled" class="sr-only peer">
+                <div
+                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+            </label>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <input type="url" x-model="config.services.sonarr.url" placeholder="http://localhost:8989"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input type="password" x-model="config.services.sonarr.api_key" placeholder="Enter Sonarr API Key"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <button @click="testConnection('sonarr')" :disabled="testing"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
+            </button>
+
+            <div x-show="connectionResults.sonarr" x-transition
+                :class="connectionResults.sonarr.success ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'"
+                class="mt-4 p-4 rounded-lg border">
+                <p x-text="connectionResults.sonarr.message"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jellyfin Settings -->
+    <div x-show="activeTab === 'jellyfin'" class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Jellyfin Configuration</h2>
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" x-model="config.services.jellyfin.enabled" class="sr-only peer">
+                <div
+                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+            </label>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <input type="url" x-model="config.services.jellyfin.url" placeholder="http://localhost:8096"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input type="password" x-model="config.services.jellyfin.api_key" placeholder="Enter Jellyfin API Key"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <button @click="testConnection('jellyfin')" :disabled="testing"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
+            </button>
+
+            <div x-show="connectionResults.jellyfin" x-transition
+                :class="connectionResults.jellyfin.success ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'"
+                class="mt-4 p-4 rounded-lg border">
+                <p x-text="connectionResults.jellyfin.message"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jellyseerr Settings -->
+    <div x-show="activeTab === 'jellyseerr'" class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Jellyseerr Configuration</h2>
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" x-model="config.services.jellyseerr.enabled" class="sr-only peer">
+                <div
+                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-900">Enabled</span>
+            </label>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <input type="url" x-model="config.services.jellyseerr.url" placeholder="http://localhost:5055"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input type="password" x-model="config.services.jellyseerr.api_key"
+                    placeholder="Enter Jellyseerr API Key"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <button @click="testConnection('jellyseerr')" :disabled="testing"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
+            </button>
+
+            <div x-show="connectionResults.jellyseerr" x-transition
+                :class="connectionResults.jellyseerr.success ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'"
+                class="mt-4 p-4 rounded-lg border">
+                <p x-text="connectionResults.jellyseerr.message"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cleanup Rules -->
+    <div x-show="activeTab === 'cleanup'" class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Cleanup Rules Configuration</h2>
+
+        <div class="space-y-6">
+            <!-- Dry Run Mode -->
+            <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div>
+                    <h3 class="font-medium text-gray-900">Dry Run Mode</h3>
+                    <p class="text-sm text-gray-600">Preview deletions without actually removing files</p>
+                </div>
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" x-model="config.cleanup.dry_run" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                </label>
+            </div>
+
+            <!-- Days to Keep -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Days to Keep Media</label>
+                <input type="number" x-model.number="config.cleanup.days_to_keep" min="1" max="365"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-sm text-gray-500 mt-1">Media older than this will be marked for deletion</p>
+            </div>
+
+            <!-- Leaving Soon Days -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Leaving Soon Warning (days)</label>
+                <input type="number" x-model.number="config.cleanup.leaving_soon_days" min="1" max="30"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-sm text-gray-500 mt-1">Create symlinks this many days before deletion</p>
+            </div>
+
+            <!-- Exclusion Tags -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Exclusion Tags</label>
+                <input type="text" x-model="config.cleanup.exclusion_tags" placeholder="keep, favorite, important"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-sm text-gray-500 mt-1">Comma-separated list of tags that prevent deletion</p>
+            </div>
+
+            <!-- Delete Unmonitored -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-medium text-gray-900">Delete Unmonitored</h3>
+                    <p class="text-sm text-gray-600">Remove media not monitored in Radarr/Sonarr</p>
+                </div>
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" x-model="config.cleanup.delete_unmonitored" class="sr-only peer">
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div x-show="message" x-transition :class="{
+            'bg-green-50 border-green-200 text-green-800': messageType === 'success',
+            'bg-red-50 border-red-200 text-red-800': messageType === 'error'
+        }" class="p-4 rounded-lg border">
+        <p x-text="message"></p>
     </div>
 </div>
+
+<script>
+    function settings() {
+        return {
+            activeTab: 'radarr',
+            config: {
+                services: {
+                    radarr: { enabled: false, url: '', api_key: '' },
+                    sonarr: { enabled: false, url: '', api_key: '' },
+                    jellyfin: { enabled: false, url: '', api_key: '' },
+                    jellyseerr: { enabled: false, url: '', api_key: '' }
+                },
+                cleanup: {
+                    dry_run: true,
+                    days_to_keep: 90,
+                    leaving_soon_days: 7,
+                    exclusion_tags: '',
+                    delete_unmonitored: false
+                }
+            },
+            connectionResults: {
+                radarr: null,
+                sonarr: null,
+                jellyfin: null,
+                jellyseerr: null
+            },
+            testing: false,
+            saving: false,
+            message: '',
+            messageType: 'success',
+
+            async init() {
+                await this.loadConfig();
+            },
+
+            async loadConfig() {
+                try {
+                    const response = await fetch('/api/config');
+                    if (response.ok) {
+                        this.config = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Error loading config:', error);
+                }
+            },
+
+            async testConnection(service) {
+                this.testing = true;
+                this.connectionResults[service] = null;
+
+                try {
+                    const response = await fetch(`/api/config/test/${service}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.config.services[service])
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.connectionResults[service] = {
+                            success: true,
+                            message: `✓ Connected successfully! ${data.version ? 'Version: ' + data.version : ''}`
+                        };
+                    } else {
+                        this.connectionResults[service] = {
+                            success: false,
+                            message: `✗ Connection failed: ${data.error || 'Unknown error'}`
+                        };
+                    }
+                } catch (error) {
+                    this.connectionResults[service] = {
+                        success: false,
+                        message: `✗ Error: ${error.message}`
+                    };
+                } finally {
+                    this.testing = false;
+                }
+            },
+
+            async saveAll() {
+                this.saving = true;
+                this.message = '';
+
+                try {
+                    const response = await fetch('/api/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.config)
+                    });
+
+                    if (response.ok) {
+                        this.showMessage('Configuration saved successfully!', 'success');
+                    } else {
+                        const data = await response.json();
+                        this.showMessage(data.error || 'Failed to save configuration', 'error');
+                    }
+                } catch (error) {
+                    this.showMessage('Error: ' + error.message, 'error');
+                } finally {
+                    this.saving = false;
+                }
+            },
+
+            showMessage(msg, type = 'success') {
+                this.message = msg;
+                this.messageType = type;
+                setTimeout(() => {
+                    this.message = '';
+                }, 5000);
+            }
+        }
+    }
+</script>
+{{end}}
