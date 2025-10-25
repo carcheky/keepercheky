@@ -225,6 +225,27 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		})
 	}
 
+	// For Sonarr, get complete system information
+	if service == "sonarr" {
+		systemInfo, err := h.syncService.GetSonarrSystemInfo(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Sonarr system info",
+				"error", err,
+			)
+			// Still return success for connection, but without detailed info
+			return c.JSON(fiber.Map{
+				"success": true,
+				"message": "Connection test successful",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success":     true,
+			"message":     "Connection successful",
+			"system_info": systemInfo,
+		})
+	}
+
 	// For other services, return basic success
 	return c.JSON(fiber.Map{
 		"success": true,

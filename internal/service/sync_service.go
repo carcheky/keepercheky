@@ -259,3 +259,18 @@ func (s *SyncService) GetRadarrSystemInfo(ctx context.Context) (*clients.RadarrS
 
 	return radarrClient.GetSystemInfo(ctx)
 }
+
+// GetSonarrSystemInfo returns complete system information from Sonarr.
+func (s *SyncService) GetSonarrSystemInfo(ctx context.Context) (*clients.SonarrSystemInfo, error) {
+	if s.sonarrClient == nil {
+		return nil, fmt.Errorf("Sonarr not configured")
+	}
+
+	// Type assertion to access SonarrClient specific methods
+	sonarrClient, ok := s.sonarrClient.(*clients.SonarrClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Sonarr client type")
+	}
+
+	return sonarrClient.GetSystemInfo(ctx)
+}
