@@ -11,25 +11,53 @@ El `docker-compose.dev.yml` incluye los siguientes servicios de prueba:
 - Dashboard de gestión
 - Configuración pre-cargada con todos los servicios
 
-### Radarr (Puerto 7878)
+### Stack Principal - Gestión de Media
+
+#### Radarr (Puerto 7878)
 - **URL**: http://localhost:7878
 - **Gestión**: Películas
 - **API Key**: `test-radarr-api-key-12345` (configurar manualmente)
 
-### Sonarr (Puerto 8989)
+#### Sonarr (Puerto 8989)
 - **URL**: http://localhost:8989
 - **Gestión**: Series de TV
 - **API Key**: `test-sonarr-api-key-12345` (configurar manualmente)
 
-### Jellyfin (Puerto 8096)
+#### Jellyfin (Puerto 8096)
 - **URL**: http://localhost:8096
 - **Servidor**: Media streaming
 - **API Key**: `test-jellyfin-api-key-12345` (configurar manualmente)
 
-### Jellyseerr (Puerto 5055)
+#### Jellyseerr (Puerto 5055)
 - **URL**: http://localhost:5055
 - **Gestión**: Peticiones de media
 - **API Key**: `test-jellyseerr-api-key-12345` (configurar manualmente)
+
+### Servicios Complementarios
+
+#### qBittorrent (Puerto 8080)
+- **URL**: http://localhost:8080
+- **Gestión**: Cliente torrent
+- **Usuario**: `admin`
+- **Contraseña**: `adminadmin`
+- **Uso**: Validación de seeding antes de eliminar archivos
+
+#### Prowlarr (Puerto 9696)
+- **URL**: http://localhost:9696
+- **Gestión**: Indexers para Radarr/Sonarr
+- **API Key**: `test-prowlarr-api-key-12345` (configurar manualmente)
+
+#### Bazarr (Puerto 6767)
+- **URL**: http://localhost:6767
+- **Gestión**: Subtítulos
+- **API Key**: `test-bazarr-api-key-12345` (configurar manualmente)
+- **Uso**: Copiar subtítulos antes de eliminar media
+
+#### Jellystat (Puerto 3000)
+- **URL**: http://localhost:3000
+- **Gestión**: Estadísticas de Jellyfin y seguimiento de reproducción
+- **API Key**: `test-jellystat-api-key-12345` (configurar manualmente)
+- **Uso**: Determinar qué media ha sido vista recientemente
 
 ## 🚀 Inicio Rápido
 
@@ -70,6 +98,39 @@ docker compose -f docker-compose.dev.yml up -d
 4. Copia la **API Key** generada
 5. **IMPORTANTE**: Reemplaza el API key en tu configuración de KeeperCheky
 
+#### qBittorrent (http://localhost:8080)
+1. Accede a la UI web
+2. **Usuario**: `admin` / **Contraseña**: `adminadmin` (default)
+3. En el primer login, cambia la contraseña si lo deseas
+4. Ve a **Tools → Options → Web UI**
+5. Asegúrate que el puerto es **8080**
+6. **Nota**: KeeperCheky usa este servicio para validar si los archivos están en seeding
+
+#### Prowlarr (http://localhost:9696)
+1. Accede a la UI web
+2. Completa el wizard de configuración inicial
+3. Ve a **Settings → General**
+4. Copia la **API Key** generada
+5. **IMPORTANTE**: Reemplaza el API key en tu configuración de KeeperCheky
+6. Conecta Prowlarr con Radarr y Sonarr en **Settings → Apps**
+
+#### Bazarr (http://localhost:6767)
+1. Accede a la UI web
+2. Completa el wizard de configuración inicial
+3. Ve a **Settings → General**
+4. Copia la **API Key** generada
+5. **IMPORTANTE**: Reemplaza el API key en tu configuración de KeeperCheky
+6. Conecta Bazarr con Radarr y Sonarr en **Settings → Sonarr/Radarr**
+
+#### Jellystat (http://localhost:3000)
+1. Accede a la UI web
+2. Completa el wizard de configuración inicial
+3. Conecta con tu instancia de Jellyfin
+4. Ve a **Settings → API Key**
+5. Copia la **API Key** generada
+6. **IMPORTANTE**: Reemplaza el API key en tu configuración de KeeperCheky
+7. **Nota**: KeeperCheky usa Jellystat para determinar qué media ha sido vista recientemente
+
 ### 3. Actualizar API Keys en KeeperCheky
 
 Hay dos formas de configurar las API keys reales:
@@ -84,6 +145,10 @@ environment:
   - KEEPERCHEKY_SERVICES_SONARR_APIKEY=tu-api-key-real-de-sonarr
   - KEEPERCHEKY_SERVICES_JELLYFIN_APIKEY=tu-api-key-real-de-jellyfin
   - KEEPERCHEKY_SERVICES_JELLYSEERR_APIKEY=tu-api-key-real-de-jellyseerr
+  - KEEPERCHEKY_SERVICES_QBITTORRENT_PASSWORD=tu-contraseña-de-qbittorrent
+  - KEEPERCHEKY_SERVICES_PROWLARR_APIKEY=tu-api-key-real-de-prowlarr
+  - KEEPERCHEKY_SERVICES_BAZARR_APIKEY=tu-api-key-real-de-bazarr
+  - KEEPERCHEKY_SERVICES_JELLYSTAT_APIKEY=tu-api-key-real-de-jellystat
 ```
 
 Luego reinicia el contenedor:
@@ -241,11 +306,18 @@ docker compose -f docker-compose.dev.yml down -v
 
 ## 🔗 Enlaces Rápidos
 
+### Stack Principal
 - **KeeperCheky**: http://localhost:8000
 - **Radarr**: http://localhost:7878
 - **Sonarr**: http://localhost:8989
 - **Jellyfin**: http://localhost:8096
 - **Jellyseerr**: http://localhost:5055
+
+### Servicios Complementarios
+- **qBittorrent**: http://localhost:8080
+- **Prowlarr**: http://localhost:9696
+- **Bazarr**: http://localhost:6767
+- **Jellystat**: http://localhost:3000
 
 ---
 
