@@ -246,6 +246,27 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		})
 	}
 
+	// For Jellyfin, get complete system information
+	if service == "jellyfin" {
+		systemInfo, err := h.syncService.GetJellyfinSystemInfo(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Jellyfin system info",
+				"error", err,
+			)
+			// Still return success for connection, but without detailed info
+			return c.JSON(fiber.Map{
+				"success": true,
+				"message": "Connection test successful",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success":     true,
+			"message":     "Connection successful",
+			"system_info": systemInfo,
+		})
+	}
+
 	// For other services, return basic success
 	return c.JSON(fiber.Map{
 		"success": true,

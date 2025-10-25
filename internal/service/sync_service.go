@@ -274,3 +274,18 @@ func (s *SyncService) GetSonarrSystemInfo(ctx context.Context) (*clients.SonarrS
 
 	return sonarrClient.GetSystemInfo(ctx)
 }
+
+// GetJellyfinSystemInfo returns complete system information from Jellyfin.
+func (s *SyncService) GetJellyfinSystemInfo(ctx context.Context) (*clients.JellyfinSystemInfo, error) {
+	if s.jellyfinClient == nil {
+		return nil, fmt.Errorf("Jellyfin not configured")
+	}
+
+	// Type assertion to access JellyfinClient specific methods
+	jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyfin client type")
+	}
+
+	return jellyfinClient.GetSystemInfo(ctx)
+}
