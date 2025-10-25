@@ -117,6 +117,11 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 	// Health check
 	app.Get("/health", h.Health.Check)
 
+	// Favicon (prevent 404 errors in logs)
+	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
+		return c.SendStatus(204) // No Content
+	})
+
 	// Web UI routes
 	app.Get("/", h.Dashboard.Index)
 	app.Get("/media", h.Media.List)
@@ -140,7 +145,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/config", h.Settings.Get)
 		api.Post("/config", h.Settings.Update)
 		api.Post("/config/test/:service", h.Settings.TestConnection)
-		
+
 		// Sync
 		api.Post("/sync", h.Sync.Sync)
 	}
