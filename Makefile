@@ -41,6 +41,8 @@ dev:
 	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
 	@echo "✅ Volume directories ready"
+	@echo "🎬 Creating mock media library..."
+	@./scripts/create-mock-media.sh
 	@docker compose -f docker-compose.dev.yml up --build --watch
 
 # Development with Docker Compose Watch (Docker 28+)
@@ -138,6 +140,8 @@ init:
 	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
 	@echo "✅ Development environment initialized"
+	@echo "🎬 Creating mock media library..."
+	@./scripts/create-mock-media.sh
 	@echo ""
 	@echo "📁 Directory structure:"
 	@echo "  ├── data/              (app data & database)"
