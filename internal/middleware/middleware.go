@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -10,7 +12,7 @@ import (
 func Logger(log *logger.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Start timer
-		start := fiber.Now()
+		start := time.Now()
 
 		// Process request
 		err := c.Next()
@@ -20,7 +22,7 @@ func Logger(log *logger.Logger) fiber.Handler {
 			"method", c.Method(),
 			"path", c.Path(),
 			"status", c.Response().StatusCode(),
-			"duration_ms", fiber.Now().Sub(start).Milliseconds(),
+			"duration_ms", time.Since(start).Milliseconds(),
 			"ip", c.IP(),
 			"request_id", c.Locals("requestid"),
 		)

@@ -4,6 +4,7 @@ import (
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/pkg/logger"
+	"gorm.io/gorm"
 )
 
 type Handlers struct {
@@ -15,9 +16,9 @@ type Handlers struct {
 	Logs      *LogsHandler
 }
 
-func NewHandlers(repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
+func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
 	return &Handlers{
-		Health:    NewHealthHandler(repos, logger),
+		Health:    NewHealthHandler(db, logger),
 		Dashboard: NewDashboardHandler(repos, logger),
 		Media:     NewMediaHandler(repos, logger),
 		Schedule:  NewScheduleHandler(repos, logger),

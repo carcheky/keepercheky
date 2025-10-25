@@ -1,28 +1,28 @@
 package handler
 
 import (
-	"github.com/carcheky/keepercheky/internal/repository"
+	"time"
+
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type HealthHandler struct {
-	repos  *repository.Repositories
+	db     *gorm.DB
 	logger *logger.Logger
 }
 
-func NewHealthHandler(repos *repository.Repositories, logger *logger.Logger) *HealthHandler {
+func NewHealthHandler(db *gorm.DB, logger *logger.Logger) *HealthHandler {
 	return &HealthHandler{
-		repos:  repos,
+		db:     db,
 		logger: logger,
 	}
 }
 
 func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	// Get database connection
-	db := h.repos.Media.(*repository.MediaRepository)
-	sqlDB, err := db.GetDB().DB()
+	sqlDB, err := h.db.DB()
 	if err != nil {
 		return c.Status(503).JSON(fiber.Map{
 			"status": "unhealthy",
@@ -39,6 +39,6 @@ func (h *HealthHandler) Check(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"status":    "healthy",
-		"timestamp": fiber.Now(),
+		"timestamp": time.Now().Unix(),
 	})
 }

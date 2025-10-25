@@ -68,7 +68,7 @@ func main() {
 	app.Static("/static", "./web/static")
 
 	// Initialize handlers
-	handlers := handler.NewHandlers(repos, appLogger, cfg)
+	handlers := handler.NewHandlers(db, repos, appLogger, cfg)
 
 	// Setup routes
 	setupRoutes(app, handlers)

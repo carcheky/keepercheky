@@ -25,10 +25,10 @@ help:
 	@echo "  make lint         - Run linter"
 	@echo ""
 
-# Development with hot-reload (Air)
+# Development with hot-reload (Air + Docker Compose Watch)
 dev:
 	@echo "🚀 Starting development server with hot-reload..."
-	@docker compose -f docker-compose.dev.yml up --build
+	@docker compose -f docker-compose.dev.yml up --build --watch
 
 # Development with Docker Compose Watch (Docker 28+)
 dev-watch:
