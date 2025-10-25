@@ -118,6 +118,7 @@ func (h *MediaHandler) Exclude(c *fiber.Ctx) error {
 		})
 	}
 
+	// Check if media exists
 	media, err := h.repos.Media.GetByID(uint(id))
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -125,16 +126,18 @@ func (h *MediaHandler) Exclude(c *fiber.Ctx) error {
 		})
 	}
 
-	media.Excluded = true
-	if err := h.repos.Media.Update(media); err != nil {
-		h.logger.Error("Failed to exclude media", "id", id, "error", err)
+	// Toggle excluded status
+	newExcludedStatus := !media.Excluded
+	if err := h.repos.Media.SetExcluded(uint(id), newExcludedStatus); err != nil {
+		h.logger.Error("Failed to toggle exclude status", "id", id, "error", err)
 		return c.Status(500).JSON(fiber.Map{
-			"error": "Failed to exclude media",
+			"error": "Failed to update media",
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Media excluded successfully",
+		"message":  "Media status updated successfully",
+		"excluded": newExcludedStatus,
 	})
 }
 

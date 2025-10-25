@@ -31,10 +31,8 @@ func NewSyncService(
 	appLogger *logger.Logger,
 	cfg *config.Config,
 ) *SyncService {
-	// Extract the underlying zap.Logger from our Logger wrapper
-	// We need to recreate it since SugaredLogger doesn't expose the underlying logger
-	zapLogger := zap.NewNop() // Create a basic logger for now
-	// TODO: Improve this by exposing the underlying logger in pkg/logger
+	// Get the underlying zap.Logger from our Logger wrapper
+	zapLogger := appLogger.Desugar()
 
 	svc := &SyncService{
 		mediaRepo: mediaRepo,

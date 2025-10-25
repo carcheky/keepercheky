@@ -61,3 +61,8 @@ func New(level string) *Logger {
 func (l *Logger) Sync() {
 	_ = l.SugaredLogger.Sync()
 }
+
+// Desugar returns the underlying zap.Logger
+func (l *Logger) Desugar() *zap.Logger {
+	return l.SugaredLogger.Desugar()
+}
