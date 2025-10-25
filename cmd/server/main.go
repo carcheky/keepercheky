@@ -134,6 +134,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 	{
 		// Media
 		api.Get("/media", h.Media.GetAll)
+		api.Get("/media/stats", h.Media.GetStats)
 		api.Get("/media/:id", h.Media.GetByID)
 		api.Delete("/media/:id", h.Media.Delete)
 		api.Post("/media/:id/exclude", h.Media.Exclude)

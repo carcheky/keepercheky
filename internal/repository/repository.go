@@ -63,7 +63,7 @@ func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
 	// Try to find existing media by external IDs
 	var existing models.Media
 	var found bool
-	
+
 	if media.RadarrID != nil {
 		result := r.db.Where("radarr_id = ?", *media.RadarrID).First(&existing)
 		found = result.Error == nil
@@ -74,14 +74,14 @@ func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
 		result := r.db.Where("jellyfin_id = ?", *media.JellyfinID).First(&existing)
 		found = result.Error == nil
 	}
-	
+
 	if found {
 		// Update existing
 		media.ID = existing.ID
 		media.CreatedAt = existing.CreatedAt
 		return r.db.Save(media).Error
 	}
-	
+
 	// Create new
 	return r.db.Create(media).Error
 }
@@ -94,18 +94,88 @@ func (r *MediaRepository) GetStats() (map[string]interface{}, error) {
 		TotalSeries int64
 		TotalSize   int64
 	}
-	
+
 	r.db.Model(&models.Media{}).Count(&stats.TotalMedia)
 	r.db.Model(&models.Media{}).Where("type = ?", "movie").Count(&stats.TotalMovies)
 	r.db.Model(&models.Media{}).Where("type = ?", "series").Count(&stats.TotalSeries)
 	r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&stats.TotalSize)
-	
+
 	return map[string]interface{}{
 		"total_media":  stats.TotalMedia,
 		"total_movies": stats.TotalMovies,
 		"total_series": stats.TotalSeries,
 		"total_size":   stats.TotalSize,
 	}, nil
+}
+
+// GetPaginated retrieves media with pagination and optional filters.
+func (r *MediaRepository) GetPaginated(page, pageSize int, mediaType string) ([]models.Media, int64, error) {
+	var media []models.Media
+	var total int64
+
+	query := r.db.Model(&models.Media{})
+
+	// Apply type filter if provided
+	if mediaType != "" && mediaType != "all" {
+		query = query.Where("type = ?", mediaType)
+	}
+
+	// Get total count
+	query.Count(&total)
+
+	// Apply pagination
+	offset := (page - 1) * pageSize
+	result := query.Offset(offset).Limit(pageSize).Order("added_date DESC").Find(&media)
+
+	return media, total, result.Error
+}
+
+// Search searches media by title.
+func (r *MediaRepository) Search(query string) ([]models.Media, error) {
+	var media []models.Media
+	result := r.db.Where("title LIKE ?", "%"+query+"%").Order("title ASC").Find(&media)
+	return media, result.Error
+}
+
+// GetByType retrieves all media of a specific type.
+func (r *MediaRepository) GetByType(mediaType string) ([]models.Media, error) {
+	var media []models.Media
+	result := r.db.Where("type = ?", mediaType).Order("added_date DESC").Find(&media)
+	return media, result.Error
+}
+
+// GetExcluded retrieves all excluded media.
+func (r *MediaRepository) GetExcluded() ([]models.Media, error) {
+	var media []models.Media
+	result := r.db.Where("excluded = ?", true).Order("title ASC").Find(&media)
+	return media, result.Error
+}
+
+// GetOlderThan retrieves media added before a specific date.
+func (r *MediaRepository) GetOlderThan(days int) ([]models.Media, error) {
+	var media []models.Media
+	cutoffDate := r.db.NowFunc().AddDate(0, 0, -days)
+	result := r.db.Where("added_date < ?", cutoffDate).Order("added_date ASC").Find(&media)
+	return media, result.Error
+}
+
+// SetExcluded marks media as excluded or not excluded.
+func (r *MediaRepository) SetExcluded(id uint, excluded bool) error {
+	return r.db.Model(&models.Media{}).Where("id = ?", id).Update("excluded", excluded).Error
+}
+
+// CountByType counts media by type.
+func (r *MediaRepository) CountByType() (map[string]int64, error) {
+	counts := make(map[string]int64)
+
+	var movies, series int64
+	r.db.Model(&models.Media{}).Where("type = ?", "movie").Count(&movies)
+	r.db.Model(&models.Media{}).Where("type = ?", "series").Count(&series)
+
+	counts["movies"] = movies
+	counts["series"] = series
+
+	return counts, nil
 }
 
 // ScheduleRepository handles schedule data access

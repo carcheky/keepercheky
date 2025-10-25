@@ -3,6 +3,7 @@ package handler
 import (
 	"strconv"
 
+	"github.com/carcheky/keepercheky/internal/models"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"github.com/gofiber/fiber/v2"
@@ -23,11 +24,36 @@ func NewMediaHandler(repos *repository.Repositories, logger *logger.Logger) *Med
 func (h *MediaHandler) List(c *fiber.Ctx) error {
 	return c.Render("pages/media", fiber.Map{
 		"Title": "Media Management - KeeperCheky",
-	})
+	}, "layouts/main")
 }
 
 func (h *MediaHandler) GetAll(c *fiber.Ctx) error {
-	media, err := h.repos.Media.GetAll()
+	// Get pagination parameters
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("pageSize", "20"))
+	mediaType := c.Query("type", "all")
+	search := c.Query("search", "")
+
+	// Validate pagination
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	var media []models.Media
+	var total int64
+	var err error
+
+	// If search query provided, use search
+	if search != "" {
+		media, err = h.repos.Media.Search(search)
+		total = int64(len(media))
+	} else {
+		media, total, err = h.repos.Media.GetPaginated(page, pageSize, mediaType)
+	}
+
 	if err != nil {
 		h.logger.Error("Failed to get media", "error", err)
 		return c.Status(500).JSON(fiber.Map{
@@ -35,7 +61,13 @@ func (h *MediaHandler) GetAll(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(media)
+	return c.JSON(fiber.Map{
+		"data":     media,
+		"total":    total,
+		"page":     page,
+		"pageSize": pageSize,
+		"pages":    (total + int64(pageSize) - 1) / int64(pageSize),
+	})
 }
 
 func (h *MediaHandler) GetByID(c *fiber.Ctx) error {
@@ -104,4 +136,16 @@ func (h *MediaHandler) Exclude(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "Media excluded successfully",
 	})
+}
+
+func (h *MediaHandler) GetStats(c *fiber.Ctx) error {
+	stats, err := h.repos.Media.GetStats()
+	if err != nil {
+		h.logger.Error("Failed to get stats", "error", err)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to retrieve statistics",
+		})
+	}
+
+	return c.JSON(stats)
 }

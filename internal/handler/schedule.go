@@ -21,5 +21,5 @@ func NewScheduleHandler(repos *repository.Repositories, logger *logger.Logger) *
 func (h *ScheduleHandler) List(c *fiber.Ctx) error {
 	return c.Render("pages/schedules", fiber.Map{
 		"Title": "Cleanup Schedules - KeeperCheky",
-	})
+	}, "layouts/main")
 }

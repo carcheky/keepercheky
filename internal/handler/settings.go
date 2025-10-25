@@ -30,7 +30,7 @@ func NewSettingsHandler(repos *repository.Repositories, logger *logger.Logger, c
 func (h *SettingsHandler) Index(c *fiber.Ctx) error {
 	return c.Render("pages/settings", fiber.Map{
 		"Title": "Settings - KeeperCheky",
-	})
+	}, "layouts/main")
 }
 
 func (h *SettingsHandler) Get(c *fiber.Ctx) error {

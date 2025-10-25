@@ -21,7 +21,7 @@ func NewDashboardHandler(repos *repository.Repositories, logger *logger.Logger) 
 func (h *DashboardHandler) Index(c *fiber.Ctx) error {
 	return c.Render("pages/dashboard", fiber.Map{
 		"Title": "Dashboard - KeeperCheky",
-	})
+	}, "layouts/main")
 }
 
 func (h *DashboardHandler) Stats(c *fiber.Ctx) error {
@@ -32,10 +32,10 @@ func (h *DashboardHandler) Stats(c *fiber.Ctx) error {
 			"error": "Failed to get statistics",
 		})
 	}
-	
+
 	// Add placeholder values for features not yet implemented
 	stats["to_delete"] = 0
 	stats["leaving_soon"] = 0
-	
+
 	return c.JSON(stats)
 }

@@ -1,3 +1,6 @@
+{{template "layouts/main" .}}
+
+{{define "content"}}
 <div x-data="mediaManager()" x-init="init()" class="space-y-6">
     <!-- Header -->
     <div class="flex justify-between items-center">
@@ -424,3 +427,4 @@
         }
     }
 </script>
+{{end}}
