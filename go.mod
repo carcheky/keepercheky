@@ -3,6 +3,7 @@ module github.com/carcheky/keepercheky
 go 1.25
 
 require (
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/template/html/v2 v2.1.2
 	github.com/google/uuid v1.6.0
@@ -16,7 +17,6 @@ require (
 require (
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/gofiber/template v1.8.3 // indirect
 	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

@@ -3,51 +3,196 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-4">Dashboard</h2>
         
         <!-- Stats Grid -->
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-1">
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Media</dt>
-                            <dd class="mt-1 text-3xl font-semibold text-gray-900" x-text="stats.total_media">0</dd>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {{template "layouts/base" .}}
 
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-1">
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Size</dt>
-                            <dd class="mt-1 text-3xl font-semibold text-gray-900" x-text="formatSize(stats.total_size)">0 GB</dd>
-                        </div>
-                    </div>
-                </div>
-            </div>
+{{define "content"}}
+<div x-data="dashboard()" x-init="init()" class="space-y-6">
+    <!-- Header with Sync Button -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <button 
+            @click="syncNow()" 
+            :disabled="syncing"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            <svg x-show="!syncing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <svg x-show="syncing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span x-text="syncing ? 'Syncing...' : 'Sync Now'"></span>
+        </button>
+    </div>
 
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-1">
-                            <dt class="text-sm font-medium text-gray-500 truncate">To Delete</dt>
-                            <dd class="mt-1 text-3xl font-semibold text-red-600" x-text="stats.to_delete">0</dd>
-                        </div>
-                    </div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Media -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Total Media</p>
+                    <p class="text-3xl font-bold text-gray-900" x-text="stats.total_media || 0"></p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <span x-text="stats.total_movies || 0"></span> movies, 
+                        <span x-text="stats.total_series || 0"></span> series
+                    </p>
                 </div>
-            </div>
-
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-1">
-                            <dt class="text-sm font-medium text-gray-500 truncate">Leaving Soon</dt>
-                            <dd class="mt-1 text-3xl font-semibold text-yellow-600" x-text="stats.leaving_soon">0</dd>
-                        </div>
-                    </div>
+                <div class="ml-4">
+                    <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+                    </svg>
                 </div>
             </div>
         </div>
+
+        <!-- Total Size -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Total Size</p>
+                    <p class="text-3xl font-bold text-gray-900" x-text="formatBytes(stats.total_size || 0)"></p>
+                    <p class="text-xs text-gray-500 mt-1">Across all media</p>
+                </div>
+                <div class="ml-4">
+                    <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- To Delete -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">To Delete</p>
+                    <p class="text-3xl font-bold text-gray-900" x-text="stats.to_delete || 0"></p>
+                    <p class="text-xs text-gray-500 mt-1">Based on rules</p>
+                </div>
+                <div class="ml-4">
+                    <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaving Soon -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Leaving Soon</p>
+                    <p class="text-3xl font-bold text-gray-900" x-text="stats.leaving_soon || 0"></p>
+                    <p class="text-xs text-gray-500 mt-1">In collection</p>
+                </div>
+                <div class="ml-4">
+                    <svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="/media" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition">
+                <h3 class="font-semibold text-gray-900">View Media</h3>
+                <p class="text-sm text-gray-600 mt-1">Browse and manage your media library</p>
+            </a>
+            <a href="/settings" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition">
+                <h3 class="font-semibold text-gray-900">Configure Services</h3>
+                <p class="text-sm text-gray-600 mt-1">Set up Radarr, Sonarr, Jellyfin, etc.</p>
+            </a>
+            <a href="/schedules" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition">
+                <h3 class="font-semibold text-gray-900">Manage Schedules</h3>
+                <p class="text-sm text-gray-600 mt-1">Configure cleanup schedules</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div x-show="message" 
+         x-transition
+         :class="{
+             'bg-green-50 border-green-200 text-green-800': messageType === 'success',
+             'bg-red-50 border-red-200 text-red-800': messageType === 'error'
+         }"
+         class="p-4 rounded-lg border">
+        <p x-text="message"></p>
+    </div>
+</div>
+
+<script>
+function dashboard() {
+    return {
+        stats: {},
+        syncing: false,
+        message: '',
+        messageType: 'success',
+
+        async init() {
+            await this.loadStats();
+            // Refresh stats every 30 seconds
+            setInterval(() => this.loadStats(), 30000);
+        },
+
+        async loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) throw new Error('Failed to load stats');
+                this.stats = await response.json();
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        },
+
+        async syncNow() {
+            this.syncing = true;
+            this.message = '';
+            
+            try {
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.showMessage('Sync completed successfully!', 'success');
+                    await this.loadStats();
+                } else {
+                    this.showMessage(data.message || 'Sync failed', 'error');
+                }
+            } catch (error) {
+                this.showMessage('Error: ' + error.message, 'error');
+            } finally {
+                this.syncing = false;
+            }
+        },
+
+        showMessage(msg, type = 'success') {
+            this.message = msg;
+            this.messageType = type;
+            setTimeout(() => {
+                this.message = '';
+            }, 5000);
+        },
+
+        formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    }
+}
+</script>
+{{end}}
 
         <!-- Welcome Message -->
         <div class="bg-blue-50 border-l-4 border-blue-400 p-4">

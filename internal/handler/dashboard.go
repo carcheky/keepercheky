@@ -25,11 +25,17 @@ func (h *DashboardHandler) Index(c *fiber.Ctx) error {
 }
 
 func (h *DashboardHandler) Stats(c *fiber.Ctx) error {
-	// TODO: Implement stats calculation
-	return c.JSON(fiber.Map{
-		"total_media":  0,
-		"total_size":   0,
-		"to_delete":    0,
-		"leaving_soon": 0,
-	})
+	stats, err := h.repos.Media.GetStats()
+	if err != nil {
+		h.logger.Error("Failed to get stats", "error", err)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to get statistics",
+		})
+	}
+	
+	// Add placeholder values for features not yet implemented
+	stats["to_delete"] = 0
+	stats["leaving_soon"] = 0
+	
+	return c.JSON(stats)
 }

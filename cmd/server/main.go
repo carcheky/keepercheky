@@ -140,6 +140,9 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/settings", h.Settings.Get)
 		api.Post("/settings", h.Settings.Update)
 		api.Post("/settings/test/:service", h.Settings.TestConnection)
+		
+		// Sync
+		api.Post("/sync", h.Sync.Sync)
 	}
 }
 

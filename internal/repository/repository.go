@@ -58,6 +58,56 @@ func (r *MediaRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Media{}, id).Error
 }
 
+// CreateOrUpdate creates or updates a media item based on external IDs.
+func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
+	// Try to find existing media by external IDs
+	var existing models.Media
+	var found bool
+	
+	if media.RadarrID != nil {
+		result := r.db.Where("radarr_id = ?", *media.RadarrID).First(&existing)
+		found = result.Error == nil
+	} else if media.SonarrID != nil {
+		result := r.db.Where("sonarr_id = ?", *media.SonarrID).First(&existing)
+		found = result.Error == nil
+	} else if media.JellyfinID != nil {
+		result := r.db.Where("jellyfin_id = ?", *media.JellyfinID).First(&existing)
+		found = result.Error == nil
+	}
+	
+	if found {
+		// Update existing
+		media.ID = existing.ID
+		media.CreatedAt = existing.CreatedAt
+		return r.db.Save(media).Error
+	}
+	
+	// Create new
+	return r.db.Create(media).Error
+}
+
+// GetStats retrieves media statistics.
+func (r *MediaRepository) GetStats() (map[string]interface{}, error) {
+	var stats struct {
+		TotalMedia  int64
+		TotalMovies int64
+		TotalSeries int64
+		TotalSize   int64
+	}
+	
+	r.db.Model(&models.Media{}).Count(&stats.TotalMedia)
+	r.db.Model(&models.Media{}).Where("type = ?", "movie").Count(&stats.TotalMovies)
+	r.db.Model(&models.Media{}).Where("type = ?", "series").Count(&stats.TotalSeries)
+	r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&stats.TotalSize)
+	
+	return map[string]interface{}{
+		"total_media":  stats.TotalMedia,
+		"total_movies": stats.TotalMovies,
+		"total_series": stats.TotalSeries,
+		"total_size":   stats.TotalSize,
+	}, nil
+}
+
 // ScheduleRepository handles schedule data access
 type ScheduleRepository struct {
 	db *gorm.DB
