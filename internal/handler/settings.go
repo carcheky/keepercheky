@@ -288,6 +288,27 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		})
 	}
 
+	// For qBittorrent, get complete system information
+	if service == "qbittorrent" {
+		systemInfo, err := h.syncService.GetQBittorrentSystemInfo(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get qBittorrent system info",
+				"error", err,
+			)
+			// Still return success for connection, but without detailed info
+			return c.JSON(fiber.Map{
+				"success": true,
+				"message": "Connection test successful",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success":     true,
+			"message":     "Connection successful",
+			"system_info": systemInfo,
+		})
+	}
+
 	// For other services, return basic success
 	return c.JSON(fiber.Map{
 		"success": true,

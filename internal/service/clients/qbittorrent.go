@@ -63,6 +63,21 @@ type qbBuildInfo struct {
 	Bitness    int    `json:"bitness"`
 }
 
+// qbAppVersion represents app version from qBittorrent API.
+type qbAppVersion struct {
+	Version string `json:"version"` // Returns just the version string
+}
+
+// QBittorrentSystemInfo representa toda la información del sistema de qBittorrent
+type QBittorrentSystemInfo struct {
+	Version    string `json:"version"`
+	Qt         string `json:"qt"`
+	Libtorrent string `json:"libtorrent"`
+	Boost      string `json:"boost"`
+	Openssl    string `json:"openssl"`
+	Bitness    int    `json:"bitness"`
+}
+
 // login authenticates with qBittorrent and stores the SID cookie.
 func (c *QBittorrentClient) login(ctx context.Context) error {
 	resp, err := c.client.R().
@@ -126,6 +141,64 @@ func (c *QBittorrentClient) TestConnection(ctx context.Context) error {
 	)
 
 	return nil
+}
+
+// GetSystemInfo retrieves complete system information from qBittorrent.
+func (c *QBittorrentClient) GetSystemInfo(ctx context.Context) (*QBittorrentSystemInfo, error) {
+	// Login first
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	// Get version
+	var version string
+	versionResp, err := c.client.R().
+		SetContext(ctx).
+		Get("/api/v2/app/version")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get version: %w", err)
+	}
+
+	if versionResp.StatusCode() == 200 {
+		version = strings.Trim(versionResp.String(), "\"")
+	}
+
+	// Get build info
+	var buildInfo qbBuildInfo
+	buildResp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&buildInfo).
+		Get("/api/v2/app/buildInfo")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get build info: %w", err)
+	}
+
+	if buildResp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", buildResp.StatusCode())
+	}
+
+	// Convertir a nuestro modelo
+	systemInfo := &QBittorrentSystemInfo{
+		Version:    version,
+		Qt:         buildInfo.Qt,
+		Libtorrent: buildInfo.Libtorrent,
+		Boost:      buildInfo.Boost,
+		Openssl:    buildInfo.Openssl,
+		Bitness:    buildInfo.Bitness,
+	}
+
+	c.logger.Info("Retrieved qBittorrent system info",
+		zap.String("version", systemInfo.Version),
+		zap.String("qt", systemInfo.Qt),
+		zap.String("libtorrent", systemInfo.Libtorrent),
+		zap.Int("bitness", systemInfo.Bitness),
+	)
+
+	return systemInfo, nil
 }
 
 // GetTorrentByPath finds a torrent by its file path.

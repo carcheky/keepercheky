@@ -304,3 +304,12 @@ func (s *SyncService) GetJellyseerrSystemInfo(ctx context.Context) (*clients.Jel
 
 	return jellyseerrClient.GetSystemInfo(ctx)
 }
+
+// GetQBittorrentSystemInfo returns complete system information from qBittorrent.
+func (s *SyncService) GetQBittorrentSystemInfo(ctx context.Context) (*clients.QBittorrentSystemInfo, error) {
+	if s.qbittorrentClient == nil {
+		return nil, fmt.Errorf("qBittorrent not configured")
+	}
+
+	return s.qbittorrentClient.GetSystemInfo(ctx)
+}
