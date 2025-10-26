@@ -109,10 +109,98 @@ echo "✅ Biblioteca de medios simulada creada exitosamente!"
 echo ""
 echo "📍 Ubicación: $MEDIA_DIR/"
 echo ""
+
+# Leer configuración para obtener URLs y API keys
+CONFIG_FILE="./config/config.yaml"
+
+if [ -f "$CONFIG_FILE" ]; then
+    echo "� Iniciando escaneo de bibliotecas en servicios..."
+    echo ""
+    
+    # Función para extraer valores del YAML (simple grep)
+    get_config_value() {
+        local key="$1"
+        grep "^\s*${key}:" "$CONFIG_FILE" | sed 's/.*: *"\?\([^"]*\)"\?.*/\1/' | head -1
+    }
+    
+    # Obtener configuración de Radarr
+    RADARR_URL=$(get_config_value "url" | sed -n '1p')
+    RADARR_API_KEY=$(get_config_value "api_key" | sed -n '1p')
+    
+    # Obtener configuración de Sonarr (segunda ocurrencia)
+    SONARR_URL=$(get_config_value "url" | sed -n '2p')
+    SONARR_API_KEY=$(get_config_value "api_key" | sed -n '2p')
+    
+    # Obtener configuración de Jellyfin (tercera ocurrencia)
+    JELLYFIN_URL=$(get_config_value "url" | sed -n '3p')
+    JELLYFIN_API_KEY=$(get_config_value "api_key" | sed -n '3p')
+    
+    # Escanear Radarr
+    if [ -n "$RADARR_URL" ] && [ -n "$RADARR_API_KEY" ]; then
+        echo "📽️  Escaneando biblioteca de Radarr..."
+        RADARR_RESPONSE=$(curl -s -X POST \
+            -H "X-Api-Key: $RADARR_API_KEY" \
+            -H "Content-Type: application/json" \
+            "$RADARR_URL/api/v3/command" \
+            -d '{"name": "RefreshMovie"}' 2>/dev/null)
+        
+        if [ $? -eq 0 ]; then
+            echo "  ✓ Escaneo de Radarr iniciado"
+        else
+            echo "  ⚠️  No se pudo conectar con Radarr (¿está corriendo?)"
+        fi
+    else
+        echo "  ⚠️  Radarr no configurado en $CONFIG_FILE"
+    fi
+    
+    # Escanear Sonarr
+    if [ -n "$SONARR_URL" ] && [ -n "$SONARR_API_KEY" ]; then
+        echo "📺 Escaneando biblioteca de Sonarr..."
+        SONARR_RESPONSE=$(curl -s -X POST \
+            -H "X-Api-Key: $SONARR_API_KEY" \
+            -H "Content-Type: application/json" \
+            "$SONARR_URL/api/v3/command" \
+            -d '{"name": "RefreshSeries"}' 2>/dev/null)
+        
+        if [ $? -eq 0 ]; then
+            echo "  ✓ Escaneo de Sonarr iniciado"
+        else
+            echo "  ⚠️  No se pudo conectar con Sonarr (¿está corriendo?)"
+        fi
+    else
+        echo "  ⚠️  Sonarr no configurado en $CONFIG_FILE"
+    fi
+    
+    # Escanear Jellyfin
+    if [ -n "$JELLYFIN_URL" ] && [ -n "$JELLYFIN_API_KEY" ]; then
+        echo "🟣 Escaneando biblioteca de Jellyfin..."
+        JELLYFIN_RESPONSE=$(curl -s -X POST \
+            -H "X-Emby-Token: $JELLYFIN_API_KEY" \
+            "$JELLYFIN_URL/Library/Refresh" 2>/dev/null)
+        
+        if [ $? -eq 0 ]; then
+            echo "  ✓ Escaneo de Jellyfin iniciado"
+        else
+            echo "  ⚠️  No se pudo conectar con Jellyfin (¿está corriendo?)"
+        fi
+    else
+        echo "  ⚠️  Jellyfin no configurado en $CONFIG_FILE"
+    fi
+    
+    echo ""
+    echo "⏳ Los escaneos están en proceso. Esto puede tardar unos minutos."
+    echo ""
+else
+    echo "⚠️  Archivo de configuración no encontrado: $CONFIG_FILE"
+    echo "   Los servicios no se escanearon automáticamente."
+    echo ""
+fi
+
 echo "💡 Próximos pasos:"
-echo "   1. Agregar estas rutas en Radarr y Sonarr:"
-echo "      - Radarr: /media-library/library/movies"
-echo "      - Sonarr: /media-library/library/tv"
-echo "   2. Escanear la biblioteca en cada servicio"
-echo "   3. Ejecutar sincronización en KeeperCheky"
+echo "   1. Espera a que terminen los escaneos (1-2 minutos)"
+echo "   2. Verifica que los medios aparezcan en:"
+echo "      - Radarr: $RADARR_URL"
+echo "      - Sonarr: $SONARR_URL"
+echo "      - Jellyfin: $JELLYFIN_URL"
+echo "   3. Ejecuta sincronización en KeeperCheky: POST /api/sync"
 echo ""

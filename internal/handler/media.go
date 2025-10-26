@@ -99,11 +99,11 @@ func (h *MediaHandler) Delete(c *fiber.Ctx) error {
 
 	// Parse delete options from request body
 	var options struct {
-		Radarr       bool `json:"radarr"`
-		Sonarr       bool `json:"sonarr"`
-		Jellyfin     bool `json:"jellyfin"`
-		DeleteFiles  bool `json:"deleteFiles"`
-		QBittorrent  bool `json:"qbittorrent"`
+		Radarr      bool `json:"radarr"`
+		Sonarr      bool `json:"sonarr"`
+		Jellyfin    bool `json:"jellyfin"`
+		DeleteFiles bool `json:"deleteFiles"`
+		QBittorrent bool `json:"qbittorrent"`
 	}
 
 	if err := c.BodyParser(&options); err != nil {
