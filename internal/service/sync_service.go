@@ -373,3 +373,18 @@ func (s *SyncService) GetQBittorrentSystemInfo(ctx context.Context) (*clients.QB
 
 	return s.qbittorrentClient.GetSystemInfo(ctx)
 }
+
+// GetRadarrClient returns the Radarr client instance.
+func (s *SyncService) GetRadarrClient() clients.MediaClient {
+	return s.radarrClient
+}
+
+// GetSonarrClient returns the Sonarr client instance.
+func (s *SyncService) GetSonarrClient() clients.MediaClient {
+	return s.sonarrClient
+}
+
+// GetJellyfinClient returns the Jellyfin client instance.
+func (s *SyncService) GetJellyfinClient() clients.StreamingClient {
+	return s.jellyfinClient
+}

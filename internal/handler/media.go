@@ -5,19 +5,22 @@ import (
 
 	"github.com/carcheky/keepercheky/internal/models"
 	"github.com/carcheky/keepercheky/internal/repository"
+	"github.com/carcheky/keepercheky/internal/service/cleanup"
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 )
 
 type MediaHandler struct {
-	repos  *repository.Repositories
-	logger *logger.Logger
+	repos          *repository.Repositories
+	cleanupService *cleanup.CleanupService
+	logger         *logger.Logger
 }
 
-func NewMediaHandler(repos *repository.Repositories, logger *logger.Logger) *MediaHandler {
+func NewMediaHandler(repos *repository.Repositories, cleanupService *cleanup.CleanupService, logger *logger.Logger) *MediaHandler {
 	return &MediaHandler{
-		repos:  repos,
-		logger: logger,
+		repos:          repos,
+		cleanupService: cleanupService,
+		logger:         logger,
 	}
 }
 
@@ -98,21 +101,16 @@ func (h *MediaHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	// Parse delete options from request body
-	var options struct {
-		Radarr      bool `json:"radarr"`
-		Sonarr      bool `json:"sonarr"`
-		Jellyfin    bool `json:"jellyfin"`
-		DeleteFiles bool `json:"deleteFiles"`
-		QBittorrent bool `json:"qbittorrent"`
-	}
-
+	var options cleanup.DeleteOptions
 	if err := c.BodyParser(&options); err != nil {
 		// If no body provided, use defaults (backward compatibility)
-		options.Radarr = false
-		options.Sonarr = false
-		options.Jellyfin = false
-		options.DeleteFiles = false
-		options.QBittorrent = false
+		options = cleanup.DeleteOptions{
+			Radarr:      false,
+			Sonarr:      false,
+			Jellyfin:    false,
+			DeleteFiles: false,
+			QBittorrent: false,
+		}
 	}
 
 	// Get media info before deletion
@@ -134,25 +132,25 @@ func (h *MediaHandler) Delete(c *fiber.Ctx) error {
 		"qbittorrent", options.QBittorrent,
 	)
 
-	// TODO: Implement actual deletion logic with cleanup service
-	// For now, only delete from local database
-	// The CleanupService should handle:
-	// - Deleting from Radarr/Sonarr if options.Radarr/Sonarr is true
-	// - Deleting from Jellyfin if options.Jellyfin is true
-	// - Deleting files if options.DeleteFiles is true
-	// - Removing torrent if options.QBittorrent is true
-	// - Creating history entry
-
-	if err := h.repos.Media.Delete(uint(id)); err != nil {
-		h.logger.Error("Failed to delete media", "id", id, "error", err)
+	// Use CleanupService to delete from services
+	if err := h.cleanupService.DeleteMedia(c.Context(), media, options); err != nil {
+		h.logger.Error("Failed to delete media from services", "id", id, "error", err)
 		return c.Status(500).JSON(fiber.Map{
-			"error": "Failed to delete media",
+			"error":   "Failed to delete media from some services",
+			"message": err.Error(),
+		})
+	}
+
+	// Finally, delete from local database
+	if err := h.repos.Media.Delete(uint(id)); err != nil {
+		h.logger.Error("Failed to delete media from database", "id", id, "error", err)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to delete media from database",
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Media deleted successfully from local database",
-		"note":    "Service deletion (Radarr/Sonarr/Jellyfin) will be implemented soon",
+		"message": "Media deleted successfully",
 	})
 }
 

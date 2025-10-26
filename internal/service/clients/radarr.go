@@ -273,12 +273,17 @@ func (c *RadarrClient) GetItem(ctx context.Context, id int) (*models.Media, erro
 }
 
 // DeleteItem removes a movie from Radarr.
-func (c *RadarrClient) DeleteItem(ctx context.Context, id int) error {
+func (c *RadarrClient) DeleteItem(ctx context.Context, id int, deleteFiles bool) error {
 	return c.callWithRetry(ctx, func() error {
+		deleteFilesStr := "false"
+		if deleteFiles {
+			deleteFilesStr = "true"
+		}
+
 		resp, err := c.client.R().
 			SetContext(ctx).
 			SetPathParam("id", fmt.Sprintf("%d", id)).
-			SetQueryParam("deleteFiles", "true").
+			SetQueryParam("deleteFiles", deleteFilesStr).
 			SetQueryParam("addImportExclusion", "false").
 			Delete("/api/v3/movie/{id}")
 
@@ -286,12 +291,13 @@ func (c *RadarrClient) DeleteItem(ctx context.Context, id int) error {
 			return fmt.Errorf("failed to delete movie: %w", err)
 		}
 
-		if resp.StatusCode() != 200 {
+		if resp.StatusCode() != 200 && resp.StatusCode() != 204 {
 			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 		}
 
 		c.logger.Info("Deleted movie from Radarr",
 			zap.Int("movie_id", id),
+			zap.Bool("deleted_files", deleteFiles),
 		)
 
 		return nil

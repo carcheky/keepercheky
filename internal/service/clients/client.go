@@ -13,16 +13,17 @@ import (
 type MediaClient interface {
 	// TestConnection verifies the connection to the service
 	TestConnection(ctx context.Context) error
-	
+
 	// GetLibrary retrieves all media items from the service
 	GetLibrary(ctx context.Context) ([]*models.Media, error)
-	
+
 	// GetItem retrieves a specific media item by ID
 	GetItem(ctx context.Context, id int) (*models.Media, error)
-	
+
 	// DeleteItem removes a media item from the service
-	DeleteItem(ctx context.Context, id int) error
-	
+	// deleteFiles indicates whether to also delete the media files from disk
+	DeleteItem(ctx context.Context, id int, deleteFiles bool) error
+
 	// GetTags retrieves all available tags from the service
 	GetTags(ctx context.Context) ([]models.Tag, error)
 }
@@ -31,13 +32,13 @@ type MediaClient interface {
 type StreamingClient interface {
 	// TestConnection verifies the connection to the service
 	TestConnection(ctx context.Context) error
-	
+
 	// GetLibrary retrieves all media items from the service
 	GetLibrary(ctx context.Context) ([]*models.Media, error)
-	
+
 	// GetPlaybackInfo retrieves playback information for media
 	GetPlaybackInfo(ctx context.Context, mediaID string) (*models.PlaybackInfo, error)
-	
+
 	// DeleteItem removes a media item from the service
 	DeleteItem(ctx context.Context, id string) error
 }
@@ -46,13 +47,13 @@ type StreamingClient interface {
 type RequestClient interface {
 	// TestConnection verifies the connection to the service
 	TestConnection(ctx context.Context) error
-	
+
 	// GetRequests retrieves all active requests
 	GetRequests(ctx context.Context) ([]*models.Request, error)
-	
+
 	// GetRequest retrieves a specific request by ID
 	GetRequest(ctx context.Context, id int) (*models.Request, error)
-	
+
 	// DeleteRequest removes a request from the service
 	DeleteRequest(ctx context.Context, id int) error
 }
