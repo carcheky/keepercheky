@@ -26,8 +26,12 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Initialize logger
-	appLogger := logger.New(cfg.App.LogLevel)
+	// Initialize logger with file output
+	logFilePath := "./logs/keepercheky-dev.log"
+	if cfg.App.Environment == "production" {
+		logFilePath = "./logs/keepercheky.log"
+	}
+	appLogger := logger.NewWithFile(cfg.App.LogLevel, logFilePath)
 	defer appLogger.Sync()
 
 	appLogger.Info("Starting KeeperCheky",

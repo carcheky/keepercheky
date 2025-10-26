@@ -11,6 +11,7 @@ services:
       - ./volumes/keepercheky-go-modules:/go/pkg/mod
       - ./volumes/keepercheky-data:/app/data
       - ./volumes/keepercheky-config:/app/config
+      - ./logs:/app/logs  # Mount logs directory
       - ./volumes/media-library:/media-library:ro  # Read-only access to test media
     environment:
       # Application configuration
