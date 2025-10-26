@@ -78,6 +78,17 @@ type QBittorrentSystemInfo struct {
 	Bitness    int    `json:"bitness"`
 }
 
+// QBittorrentPreferences represents the application preferences from qBittorrent API.
+// We only include the fields we need for path configuration.
+type QBittorrentPreferences struct {
+	SavePath       string                 `json:"save_path"`         // Default save path for torrents
+	TempPath       string                 `json:"temp_path"`         // Path for incomplete torrents
+	TempPathEnable bool                   `json:"temp_path_enabled"` // True if temp_path is enabled
+	ExportDir      string                 `json:"export_dir"`        // Path to copy .torrent files
+	ExportDirFin   string                 `json:"export_dir_fin"`    // Path to copy completed .torrent files
+	ScanDirs       map[string]interface{} `json:"scan_dirs"`         // Directories to watch for torrents
+}
+
 // login authenticates with qBittorrent and stores the SID cookie.
 func (c *QBittorrentClient) login(ctx context.Context) error {
 	resp, err := c.client.R().
@@ -199,6 +210,42 @@ func (c *QBittorrentClient) GetSystemInfo(ctx context.Context) (*QBittorrentSyst
 	)
 
 	return systemInfo, nil
+}
+
+// GetPreferences retrieves the application preferences from qBittorrent.
+// This includes important path configuration like save_path, temp_path, etc.
+func (c *QBittorrentClient) GetPreferences(ctx context.Context) (*QBittorrentPreferences, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	var prefs QBittorrentPreferences
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&prefs).
+		Get("/api/v2/app/preferences")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get preferences: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Info("Retrieved qBittorrent preferences",
+		zap.String("save_path", prefs.SavePath),
+		zap.String("temp_path", prefs.TempPath),
+		zap.Bool("temp_path_enabled", prefs.TempPathEnable),
+		zap.String("export_dir", prefs.ExportDir),
+		zap.String("export_dir_fin", prefs.ExportDirFin),
+		zap.Int("scan_dirs_count", len(prefs.ScanDirs)),
+	)
+
+	return &prefs, nil
 }
 
 // GetAllTorrentsMap retrieves all torrents and returns them indexed by content_path for fast lookup.
