@@ -16,6 +16,7 @@ import (
 // FilesystemSyncService implements filesystem-first sync approach
 type FilesystemSyncService struct {
 	mediaRepo         *repository.MediaRepository
+	settingsRepo      *repository.SettingsRepository
 	radarrClient      clients.MediaClient
 	sonarrClient      clients.MediaClient
 	jellyfinClient    clients.StreamingClient
@@ -28,6 +29,7 @@ type FilesystemSyncService struct {
 // NewFilesystemSyncService creates a new filesystem-first sync service
 func NewFilesystemSyncService(
 	mediaRepo *repository.MediaRepository,
+	settingsRepo *repository.SettingsRepository,
 	radarrClient clients.MediaClient,
 	sonarrClient clients.MediaClient,
 	jellyfinClient clients.StreamingClient,
@@ -38,6 +40,7 @@ func NewFilesystemSyncService(
 ) *FilesystemSyncService {
 	return &FilesystemSyncService{
 		mediaRepo:         mediaRepo,
+		settingsRepo:      settingsRepo,
 		radarrClient:      radarrClient,
 		sonarrClient:      sonarrClient,
 		jellyfinClient:    jellyfinClient,
@@ -54,17 +57,27 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 
 	s.logger.Info("🗂️  Starting FILESYSTEM-FIRST sync")
 
-	// STEP 1: Scan filesystem (source of truth)
+	// STEP 1: Get dynamic paths from services
+	rootPaths := s.getDynamicRootPaths(ctx)
+
+	if len(rootPaths) == 0 {
+		progressChan <- SyncProgress{
+			Step:    "error",
+			Message: "❌ No se detectaron rutas para escanear. Verifica la configuración de qBittorrent y Jellyfin.",
+			Status:  "error",
+		}
+		return fmt.Errorf("no root paths detected")
+	}
+
+	// STEP 2: Scan filesystem (source of truth)
 	progressChan <- SyncProgress{
 		Step:    "scan_filesystem",
-		Message: "🗂️  Escaneando sistema de archivos...",
+		Message: fmt.Sprintf("🗂️  Escaneando sistema de archivos (%d rutas)...", len(rootPaths)),
 		Status:  "processing",
 	}
 
 	scanOptions := filesystem.ScanOptions{
-		RootPaths:       s.config.Filesystem.RootPaths,
-		LibraryPaths:    s.config.Filesystem.LibraryPaths,
-		DownloadPaths:   s.config.Filesystem.DownloadPaths,
+		RootPaths:       rootPaths,
 		VideoExtensions: s.config.Filesystem.VideoExtensions,
 		MinSize:         s.config.Filesystem.MinSizeMB * 1024 * 1024, // Convert MB to bytes
 		SkipHidden:      s.config.Filesystem.SkipHidden,
@@ -224,6 +237,11 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 		Status:  "success",
 	}
 
+	// Save last sync timestamp
+	if err := s.settingsRepo.Set("last_files_sync", time.Now().Format(time.RFC3339)); err != nil {
+		s.logger.Error("Failed to save last sync timestamp", zap.Error(err))
+	}
+
 	progressChan <- SyncProgress{
 		Step:    "complete",
 		Message: "✅ Sincronización filesystem-first completada exitosamente",
@@ -297,4 +315,58 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 	}
 
 	return media
+}
+
+// getDynamicRootPaths retrieves paths dynamically from qBittorrent and Jellyfin
+func (s *FilesystemSyncService) getDynamicRootPaths(ctx context.Context) []string {
+	var rootPaths []string
+	pathSet := make(map[string]bool)
+
+	// Get qBittorrent download paths
+	if s.qbittorrentClient != nil {
+		prefs, err := s.qbittorrentClient.GetPreferences(ctx)
+		if err == nil {
+			// Use ExportDirFin (completed downloads) if available, otherwise SavePath
+			completedPath := prefs.ExportDirFin
+			if completedPath == "" {
+				completedPath = prefs.SavePath
+			}
+
+			if completedPath != "" && !pathSet[completedPath] {
+				rootPaths = append(rootPaths, completedPath)
+				pathSet[completedPath] = true
+				s.logger.Info("Added qBittorrent completed downloads path",
+					zap.String("path", completedPath))
+			}
+		}
+	}
+
+	// Get Jellyfin library paths
+	if s.jellyfinClient != nil {
+		// Type assert to access JellyfinClient-specific methods
+		if jfClient, ok := s.jellyfinClient.(*clients.JellyfinClient); ok {
+			folders, err := jfClient.GetVirtualFolders(ctx)
+			if err == nil {
+				for _, folder := range folders {
+					for _, location := range folder.Locations {
+						if !pathSet[location] {
+							rootPaths = append(rootPaths, location)
+							pathSet[location] = true
+							s.logger.Info("Added Jellyfin path",
+								zap.String("folder", folder.Name),
+								zap.String("path", location))
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Fallback to config if no dynamic paths found
+	if len(rootPaths) == 0 && len(s.config.Filesystem.RootPaths) > 0 {
+		s.logger.Warn("No dynamic paths found, using config root paths")
+		rootPaths = s.config.Filesystem.RootPaths
+	}
+
+	return rootPaths
 }

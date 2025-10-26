@@ -27,6 +27,7 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 	// Initialize NEW FilesystemSyncService (filesystem-first approach)
 	filesystemSyncService := service.NewFilesystemSyncService(
 		repos.Media,
+		repos.Settings,
 		oldSyncService.GetRadarrClient(),
 		oldSyncService.GetSonarrClient(),
 		oldSyncService.GetJellyfinClient(),

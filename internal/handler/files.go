@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
 	"github.com/carcheky/keepercheky/internal/service/clients"
+	"github.com/carcheky/keepercheky/pkg/filesystem"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -68,32 +70,32 @@ func (h *FilesHandler) RenderFilesPage(c *fiber.Ctx) error {
 	// 1. InQBittorrent DESC (downloads first)
 	// 2. InJellyfin DESC (library items)
 	// 3. FilePath ASC (alphabetical)
-	var media []MediaFileInfo
-
-	// Query with custom ordering: downloads first, then library, then alphabetical
-	err := h.mediaRepo.GetDB().
-		Table("media").
-		Order("in_q_bittorrent DESC, in_jellyfin DESC, file_path ASC").
-		Find(&media).Error
-
-	if err != nil {
-		return c.Status(500).SendString("Error loading files")
-	}
-
-	// Get paths from external services (Radarr, Sonarr, Jellyfin, qBittorrent)
 	ctx := context.Background()
+
+	// Get service paths first (for scanning)
 	servicePaths := h.getServicePaths(ctx)
 
-	// Also extract paths from existing media files
-	mediaPaths := h.extractPathsFromMedia(media)
+	// Scan filesystem directly from those paths
+	scannedFiles, err := h.scanFilesystemFromPaths(servicePaths)
+	if err != nil {
+		h.logger.Error("Failed to scan filesystem",
+			zap.Error(err),
+		)
+		return c.Status(500).Render("pages/files", fiber.Map{
+			"Title": "Archivos del Sistema",
+			"Files": []MediaFileInfo{},
+			"Paths": servicePaths,
+		}, "layouts/main")
+	}
 
-	// Merge both path sources (service configs have priority)
-	allPaths := h.mergePaths(servicePaths, mediaPaths)
+	h.logger.Info("Files scanned from filesystem",
+		zap.Int("total_files", len(scannedFiles)),
+	)
 
 	return c.Render("pages/files", fiber.Map{
 		"Title": "Archivos del Sistema",
-		"Files": media,
-		"Paths": allPaths,
+		"Files": scannedFiles,
+		"Paths": servicePaths,
 	}, "layouts/main")
 }
 
@@ -221,16 +223,21 @@ func (h *FilesHandler) getQBittorrentPaths(ctx context.Context) []PathInfo {
 		return paths
 	}
 
-	// Add default save path (completed downloads path)
-	if prefs.SavePath != "" {
+	// Add completed downloads path (ExportDirFin) if available, otherwise SavePath
+	completedPath := prefs.ExportDirFin
+	if completedPath == "" {
+		completedPath = prefs.SavePath
+	}
+
+	if completedPath != "" {
 		paths = append(paths, PathInfo{
 			Service: "qbittorrent",
 			Type:    "download",
-			Path:    prefs.SavePath,
+			Path:    completedPath,
 			Label:   "⬇️ qBittorrent: Descargas completadas",
 		})
 		h.logger.Info("Added qBittorrent completed downloads path",
-			zap.String("path", prefs.SavePath),
+			zap.String("path", completedPath),
 		)
 	}
 
@@ -369,6 +376,144 @@ func (h *FilesHandler) extractPathsFromMedia(media []MediaFileInfo) []PathInfo {
 	return paths
 }
 
+// scanFilesystemFromPaths scans the filesystem from service paths and returns unified files
+func (h *FilesHandler) scanFilesystemFromPaths(servicePaths []PathInfo) ([]MediaFileInfo, error) {
+	// Extract unique root paths and categorize them
+	var rootPaths []string
+	var libraryPaths []string
+	var downloadPaths []string
+
+	pathSet := make(map[string]bool)
+
+	for _, pathInfo := range servicePaths {
+		if pathSet[pathInfo.Path] {
+			continue
+		}
+		pathSet[pathInfo.Path] = true
+		rootPaths = append(rootPaths, pathInfo.Path)
+
+		if pathInfo.Type == "library" {
+			libraryPaths = append(libraryPaths, pathInfo.Path)
+		} else if pathInfo.Type == "download" {
+			downloadPaths = append(downloadPaths, pathInfo.Path)
+		}
+	}
+
+	if len(rootPaths) == 0 {
+		h.logger.Warn("No paths to scan")
+		return []MediaFileInfo{}, nil
+	}
+
+	// Create scanner with options
+	scanOptions := filesystem.ScanOptions{
+		RootPaths:       rootPaths,
+		LibraryPaths:    libraryPaths,
+		DownloadPaths:   downloadPaths,
+		VideoExtensions: []string{".mkv", ".mp4", ".avi", ".m4v", ".ts", ".m2ts", ".wmv", ".flv", ".webm"},
+		MinSize:         50 * 1024 * 1024, // 50MB minimum
+		SkipHidden:      true,
+	}
+
+	scanner := filesystem.NewScanner(scanOptions, h.logger)
+
+	// Scan filesystem
+	fileEntries, err := scanner.Scan()
+	if err != nil {
+		return nil, fmt.Errorf("filesystem scan failed: %w", err)
+	}
+
+	// Convert to MediaFileInfo, grouping hardlinks
+	mediaFiles := make([]MediaFileInfo, 0, len(fileEntries))
+	processedInodes := make(map[uint64]bool)
+
+	for _, entry := range fileEntries {
+		// Skip if we already processed this inode (hardlink group)
+		if entry.IsHardlink && processedInodes[entry.Inode] {
+			continue
+		}
+
+		// Mark inode as processed
+		if entry.IsHardlink {
+			processedInodes[entry.Inode] = true
+		}
+
+		// Infer title from filename
+		title := h.inferTitleFromPath(entry.PrimaryPath)
+
+		// Build hardlink paths string
+		hardlinkPathsStr := ""
+		if entry.IsHardlink && len(entry.HardlinkPaths) > 0 {
+			hardlinkPathsStr = strings.Join(entry.HardlinkPaths, "|")
+		}
+
+		// Determine source (qBittorrent, Jellyfin, etc.)
+		inQBittorrent := false
+		inJellyfin := false
+		for _, downloadPath := range downloadPaths {
+			if strings.HasPrefix(entry.PrimaryPath, downloadPath) {
+				inQBittorrent = true
+				break
+			}
+		}
+		for _, libraryPath := range libraryPaths {
+			if strings.HasPrefix(entry.PrimaryPath, libraryPath) {
+				inJellyfin = true
+				break
+			}
+		}
+
+		mediaFile := MediaFileInfo{
+			ID:            0, // No database ID since this is direct filesystem scan
+			Title:         title,
+			Type:          entry.MediaType,
+			FilePath:      entry.PrimaryPath,
+			Size:          entry.Size,
+			PosterURL:     "", // No poster for direct scan
+			IsHardlink:    entry.IsHardlink,
+			HardlinkPaths: hardlinkPathsStr,
+			PrimaryPath:   entry.PrimaryPath,
+			InQBittorrent: inQBittorrent,
+			InJellyfin:    inJellyfin,
+			InRadarr:      false, // Not available from filesystem scan
+			InSonarr:      false,
+			InJellyseerr:  false,
+		}
+
+		mediaFiles = append(mediaFiles, mediaFile)
+	}
+
+	h.logger.Info("Filesystem scan complete",
+		zap.Int("total_entries", len(fileEntries)),
+		zap.Int("unique_files", len(mediaFiles)),
+		zap.Int("hardlink_groups", len(processedInodes)),
+	)
+
+	return mediaFiles, nil
+}
+
+// inferTitleFromPath extracts a title from the file path
+func (h *FilesHandler) inferTitleFromPath(path string) string {
+	// Get filename without extension
+	base := filepath.Base(path)
+	ext := filepath.Ext(base)
+	nameWithoutExt := strings.TrimSuffix(base, ext)
+
+	// Clean up common patterns
+	// Remove quality tags like [1080p], (BluRay), etc.
+	nameWithoutExt = strings.ReplaceAll(nameWithoutExt, ".", " ")
+	nameWithoutExt = strings.ReplaceAll(nameWithoutExt, "_", " ")
+
+	// Simple cleanup
+	title := strings.TrimSpace(nameWithoutExt)
+
+	// Limit length
+	if len(title) > 80 {
+		title = title[:80] + "..."
+	}
+
+	return title
+}
+
 // GetFilesAPI returns files as JSON for API access
 func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	var media []struct {
@@ -408,8 +553,24 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	// Get last sync time from settings
+	var lastSyncSetting struct {
+		Value string `gorm:"column:value"`
+	}
+	lastSyncTime := ""
+	err = h.mediaRepo.GetDB().
+		Table("settings").
+		Select("value").
+		Where("key = ?", "last_files_sync").
+		First(&lastSyncSetting).Error
+
+	if err == nil {
+		lastSyncTime = lastSyncSetting.Value
+	}
+
 	return c.JSON(fiber.Map{
-		"files": media,
-		"total": len(media),
+		"files":     media,
+		"total":     len(media),
+		"last_sync": lastSyncTime,
 	})
 }
