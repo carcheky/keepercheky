@@ -407,9 +407,43 @@
                                         title="Solicitado en Jellyseerr">
                                         Jellyseerr
                                     </span>
+                                    <!-- qBittorrent Tag - Color azul oficial con tooltip -->
+                                    <span x-show="item.torrent_hash && item.torrent_hash !== ''"
+                                        class="px-2 py-0.5 text-xs font-semibold rounded cursor-help relative group"
+                                        style="background-color: #3a91d4; color: #ffffff;">
+                                        qBittorrent
+                                        <!-- Tooltip -->
+                                        <div class="invisible group-hover:visible absolute z-50 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none">
+                                            <div class="space-y-1.5">
+                                                <div class="font-semibold text-sm border-b border-gray-700 pb-1.5 mb-1.5">
+                                                    Información del Torrent
+                                                </div>
+                                                <div x-show="item.torrent_tracker && item.torrent_tracker !== ''" class="flex justify-between">
+                                                    <span class="text-gray-400">Tracker:</span>
+                                                    <span class="font-medium" x-text="item.torrent_tracker"></span>
+                                                </div>
+                                                <div x-show="item.seed_ratio !== undefined && item.seed_ratio !== null" class="flex justify-between">
+                                                    <span class="text-gray-400">Ratio:</span>
+                                                    <span class="font-medium" x-text="item.seed_ratio?.toFixed(2) || '0.00'"></span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-gray-400">Estado:</span>
+                                                    <span class="font-medium" x-text="item.is_seeding ? '🌱 Seeding' : '⏸️ Pausado'"></span>
+                                                </div>
+                                                <div x-show="item.torrent_hash && item.torrent_hash !== ''" class="flex justify-between text-gray-500 text-xxs pt-1.5 border-t border-gray-700">
+                                                    <span>Hash:</span>
+                                                    <span class="font-mono" x-text="item.torrent_hash?.substring(0, 12) + '...'"></span>
+                                                </div>
+                                            </div>
+                                            <!-- Tooltip arrow -->
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                <div class="border-8 border-transparent border-t-gray-900"></div>
+                                            </div>
+                                        </div>
+                                    </span>
                                     <!-- No services indicator -->
                                     <span
-                                        x-show="(!item.radarr_id || item.radarr_id === '') && (!item.sonarr_id || item.sonarr_id === '') && (!item.jellyfin_id || item.jellyfin_id === '') && (!item.jellyseerr_id || item.jellyseerr_id === '')"
+                                        x-show="(!item.radarr_id || item.radarr_id === '') && (!item.sonarr_id || item.sonarr_id === '') && (!item.jellyfin_id || item.jellyfin_id === '') && (!item.jellyseerr_id || item.jellyseerr_id === '') && (!item.torrent_hash || item.torrent_hash === '')"
                                         class="text-xs text-gray-400 italic">
                                         Sin servicios
                                     </span>

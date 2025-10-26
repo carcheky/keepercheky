@@ -552,6 +552,7 @@ func (s *SyncService) enrichWithSeedingStatus(ctx context.Context, mediaMap map[
 		media.TorrentHash = torrentInfo.Hash
 		media.IsSeeding = torrentInfo.IsSeeding
 		media.SeedRatio = torrentInfo.Ratio
+		media.TorrentTracker = torrentInfo.Tracker
 
 		// Save updated media
 		if err := s.mediaRepo.CreateOrUpdate(media); err != nil {

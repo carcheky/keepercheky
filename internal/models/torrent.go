@@ -18,4 +18,5 @@ type TorrentInfo struct {
 	Leechers    int     `json:"leechers"`
 	IsSeeding   bool    `json:"is_seeding"`
 	IsComplete  bool    `json:"is_complete"`
+	Tracker     string  `json:"tracker"` // Primary tracker URL
 }

@@ -52,6 +52,15 @@ type qbTorrent struct {
 	SavePath    string  `json:"save_path"`
 	ContentPath string  `json:"content_path"`
 	AmountLeft  int64   `json:"amount_left"`
+	Tracker     string  `json:"tracker"` // Primary tracker URL
+}
+
+// qbTracker represents a tracker from qBittorrent API.
+type qbTracker struct {
+	URL    string `json:"url"`
+	Status int    `json:"status"`
+	Tier   int    `json:"tier"`
+	Msg    string `json:"msg"`
 }
 
 // qbBuildInfo represents build info from qBittorrent API.
@@ -228,6 +237,15 @@ func (c *QBittorrentClient) GetTorrentByPath(ctx context.Context, filePath strin
 	for _, t := range torrents {
 		// Check if the file path matches this torrent's save path or content path
 		if strings.Contains(filePath, t.SavePath) || strings.Contains(filePath, t.ContentPath) {
+			// Get tracker information for this torrent
+			tracker, err := c.GetPrimaryTracker(ctx, t.Hash)
+			if err != nil {
+				c.logger.Warn("Failed to get tracker info",
+					zap.String("hash", t.Hash),
+					zap.Error(err),
+				)
+			}
+
 			info := &models.TorrentInfo{
 				Hash:        t.Hash,
 				Name:        t.Name,
@@ -243,6 +261,7 @@ func (c *QBittorrentClient) GetTorrentByPath(ctx context.Context, filePath strin
 				SavePath:    t.SavePath,
 				IsSeeding:   c.isStateSeeding(t.State),
 				IsComplete:  t.Progress >= 1.0,
+				Tracker:     tracker,
 			}
 
 			c.logger.Info("Found torrent for path",
@@ -251,6 +270,7 @@ func (c *QBittorrentClient) GetTorrentByPath(ctx context.Context, filePath strin
 				zap.String("name", info.Name),
 				zap.String("state", info.State),
 				zap.Bool("is_seeding", info.IsSeeding),
+				zap.String("tracker", tracker),
 			)
 
 			return info, nil
@@ -407,4 +427,75 @@ func (c *QBittorrentClient) DeleteTorrent(ctx context.Context, hash string, dele
 	)
 
 	return nil
+}
+
+// GetPrimaryTracker retrieves the primary tracker URL for a torrent.
+func (c *QBittorrentClient) GetPrimaryTracker(ctx context.Context, hash string) (string, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return "", err
+		}
+	}
+
+	var trackers []qbTracker
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&trackers).
+		SetQueryParam("hash", hash).
+		Get("/api/v2/torrents/trackers")
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get trackers: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	// Find the working tracker with the lowest tier (primary)
+	var primaryTracker string
+	lowestTier := 999999
+	
+	for _, tracker := range trackers {
+		// Skip the DHT/PEX/LSD pseudo-trackers
+		if tracker.URL == "** [DHT] **" || tracker.URL == "** [PeX] **" || tracker.URL == "** [LSD] **" {
+			continue
+		}
+		
+		// Prefer working trackers (status 2 = working)
+		if tracker.Status == 2 && tracker.Tier < lowestTier {
+			primaryTracker = tracker.URL
+			lowestTier = tracker.Tier
+		} else if primaryTracker == "" && tracker.Tier < lowestTier {
+			// Fallback to any tracker if no working one found
+			primaryTracker = tracker.URL
+			lowestTier = tracker.Tier
+		}
+	}
+
+	// Extract domain from tracker URL for cleaner display
+	if primaryTracker != "" {
+		primaryTracker = extractTrackerDomain(primaryTracker)
+	}
+
+	return primaryTracker, nil
+}
+
+// extractTrackerDomain extracts a clean domain from a tracker URL.
+func extractTrackerDomain(trackerURL string) string {
+	// Remove protocol
+	domain := strings.TrimPrefix(trackerURL, "http://")
+	domain = strings.TrimPrefix(domain, "https://")
+	domain = strings.TrimPrefix(domain, "udp://")
+	
+	// Remove port and path
+	if idx := strings.Index(domain, ":"); idx != -1 {
+		domain = domain[:idx]
+	}
+	if idx := strings.Index(domain, "/"); idx != -1 {
+		domain = domain[:idx]
+	}
+	
+	return domain
 }

@@ -27,9 +27,10 @@ type Media struct {
 	EpisodeFileCount int `json:"episode_file_count"` // Downloaded episodes
 
 	// Torrent status
-	IsSeeding   bool    `json:"is_seeding" gorm:"default:false"`
-	TorrentHash string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
-	SeedRatio   float64 `json:"seed_ratio"`
+	IsSeeding      bool    `json:"is_seeding" gorm:"default:false"`
+	TorrentHash    string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
+	SeedRatio      float64 `json:"seed_ratio"`
+	TorrentTracker string  `json:"torrent_tracker"` // Primary tracker URL
 
 	// Service IDs
 	RadarrID     *int    `json:"radarr_id" gorm:"index"`
