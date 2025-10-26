@@ -20,8 +20,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    # Skip tests on develop branch (tests required for main/stable)
-    if: github.ref != 'refs/heads/develop'
+    # Only run tests on main, latest or stable branches
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable'
 
     steps:
       - name: Checkout code
@@ -57,8 +57,8 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    # Skip lint on develop branch until implementation is complete
-    if: github.ref != 'refs/heads/develop'
+    # Only run lint on main, latest or stable branches
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable'
 
     steps:
       - name: Checkout code
