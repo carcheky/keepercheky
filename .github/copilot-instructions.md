@@ -4,6 +4,29 @@ USE MCP MEMORY SERVER AND SEQUENTIAL THINKING
 
 READ logs/keepercheky-dev.log AFTER CHANGES, VISIT URLS, AND READ logs/keepercheky-dev.log AND INSPECT FILES IF NEEDED
 
+
+⛔️ ⛔️ ⛔️ CRITICAL RULE - NEVER VIOLATE ⛔️ ⛔️ ⛔️
+
+**YOU MUST NEVER, UNDER ANY CIRCUMSTANCES:**
+- Run `make dev` or `make run` or ANY make command that starts services
+- Run `docker-compose up` or `docker-compose down` or `docker-compose restart` or `docker-compose stop`
+- Run `docker start` or `docker stop` or `docker restart` or `docker kill` or `docker rm`
+- Execute ANY command that starts, stops, restarts, kills, or removes Docker containers
+- Use `run_in_terminal` with `isBackground: true` for ANY command that starts servers or services
+
+**ONLY THE USER CAN START, STOP, OR RESTART SERVICES.**
+
+**WHAT YOU CAN DO:**
+- Read logs with `cat`, `tail`, `grep`, etc.
+- Execute commands INSIDE running containers (docker exec) for debugging
+- Inspect files and configurations
+- Make code changes
+- Run tests (but NOT start test servers)
+
+**IF YOU NEED TO TEST SOMETHING, ASK THE USER TO START/RESTART THE SERVICE.**
+
+⛔️ ⛔️ ⛔️ END OF CRITICAL RULE ⛔️ ⛔️ ⛔️
+
 > **Language Note**: This document is in English for consistency with code and technical documentation. However, **always communicate with users in Spanish** when responding to issues, pull requests, or user interactions.
 
 ## 🎯 Project Overview
