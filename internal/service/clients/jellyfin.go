@@ -73,15 +73,19 @@ type jellyfinItem struct {
 	Path        string    `json:"Path"`
 	DateCreated time.Time `json:"DateCreated"`
 	UserData    struct {
-		PlayCount        int       `json:"PlayCount"`
-		IsFavorite       bool      `json:"IsFavorite"`
-		LastPlayedDate   time.Time `json:"LastPlayedDate"`
-		PlaybackPosition int64     `json:"PlaybackPositionTicks"`
+		PlayCount         int       `json:"PlayCount"`
+		IsFavorite        bool      `json:"IsFavorite"`
+		LastPlayedDate    time.Time `json:"LastPlayedDate"`
+		PlaybackPosition  int64     `json:"PlaybackPositionTicks"`
+		UnplayedItemCount int       `json:"UnplayedItemCount"` // Episodios no vistos
 	} `json:"UserData"`
 	MediaSources []struct {
 		Size int64 `json:"Size"`
 	} `json:"MediaSources"`
 	ImageTags map[string]string `json:"ImageTags"`
+	// Series-specific fields
+	ChildCount         int `json:"ChildCount"`         // Número de temporadas (no episodios)
+	RecursiveItemCount int `json:"RecursiveItemCount"` // Total de episodios incluyendo sub-items
 }
 
 // jellyfinItemsResponse represents the response from items endpoint.
@@ -184,7 +188,7 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 				SetQueryParams(map[string]string{
 					"IncludeItemTypes": "Movie,Series",
 					"Recursive":        "true",
-					"Fields":           "Path,DateCreated,MediaSources,UserData", // Incluir UserData para playback
+					"Fields":           "Path,DateCreated,MediaSources,UserData,ChildCount,RecursiveItemCount", // Incluir RecursiveItemCount
 					"StartIndex":       fmt.Sprintf("%d", startIndex),
 					"Limit":            fmt.Sprintf("%d", pageSize),
 					"EnableImages":     "false", // Acelerar respuesta
@@ -217,7 +221,19 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 
 		// Convertir items de esta página
 		for i := range response.Items {
-			media := c.convertToMedia(&response.Items[i])
+			item := &response.Items[i]
+
+			// Log raw data for series to debug episode count
+			if item.Type == "Series" {
+				c.logger.Info("Jellyfin raw series data",
+					zap.String("name", item.Name),
+					zap.String("type", item.Type),
+					zap.Int("child_count", item.ChildCount),
+					zap.Int("recursive_item_count", item.RecursiveItemCount),
+				)
+			}
+
+			media := c.convertToMedia(item)
 			allMedia = append(allMedia, media)
 		}
 
@@ -367,6 +383,12 @@ func (c *JellyfinClient) convertToMedia(item *jellyfinItem) *models.Media {
 		Size:       size,
 		AddedDate:  item.DateCreated,
 		JellyfinID: &item.ID,
+	}
+
+	// For series, set episode count from RecursiveItemCount
+	if mediaType == "series" {
+		media.EpisodeFileCount = item.RecursiveItemCount
+		// RecursiveItemCount includes all child items (episodes) in Jellyfin
 	}
 
 	// Set last watched if available
