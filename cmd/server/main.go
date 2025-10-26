@@ -148,8 +148,8 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Post("/config", h.Settings.Update)
 		api.Post("/config/test/:service", h.Settings.TestConnection)
 
-		// Sync
-		api.Post("/sync", h.Sync.Sync)
+		// Sync - GET for SSE (Server-Sent Events)
+		api.Get("/sync", h.Sync.Sync)
 	}
 }
 

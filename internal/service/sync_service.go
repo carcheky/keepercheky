@@ -187,6 +187,193 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 	return nil
 }
 
+// SyncProgress representa un mensaje de progreso durante la sincronización
+type SyncProgress struct {
+	Step    string `json:"step"`
+	Message string `json:"message"`
+	Status  string `json:"status"` // "processing", "success", "error"
+	Data    any    `json:"data,omitempty"`
+}
+
+// SyncAllWithProgress synchronizes media from all configured services with progress reporting.
+func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan<- SyncProgress) error {
+	s.logger.Info("🔄 Starting FULL SYNC with progress reporting")
+
+	progressChan <- SyncProgress{
+		Step:    "clear_db",
+		Message: "🗑️  Limpiando base de datos existente...",
+		Status:  "processing",
+	}
+	s.logger.Info("Sent progress: clear_db")
+
+	// CRITICAL: Delete ALL existing media to ensure clean sync
+	if err := s.mediaRepo.DeleteAll(); err != nil {
+		s.logger.Error("❌ Failed to clear media database", zap.Error(err))
+		return fmt.Errorf("failed to clear database: %w", err)
+	}
+
+	progressChan <- SyncProgress{
+		Step:    "clear_db_complete",
+		Message: "✅ Base de datos limpiada",
+		Status:  "success",
+	}
+	s.logger.Info("Sent progress: clear_db_complete")
+
+	// Invalidate cache on all services before syncing
+	progressChan <- SyncProgress{
+		Step:    "invalidate_cache",
+		Message: "🔄 Invalidando cachés de servicios...",
+		Status:  "processing",
+	}
+	s.invalidateAllCaches(ctx)
+
+	// Map to track media by unique key (title + year) for merging
+	mediaMap := make(map[string]*models.Media)
+
+	// 1. Sync from Radarr (movies - primary source)
+	if s.radarrClient != nil {
+		progressChan <- SyncProgress{
+			Step:    "sync_radarr",
+			Message: "🎬 Sincronizando películas desde Radarr...",
+			Status:  "processing",
+		}
+
+		media, err := s.radarrClient.GetLibrary(ctx)
+		if err != nil {
+			s.logger.Error("Failed to sync Radarr", zap.Error(err))
+			progressChan <- SyncProgress{
+				Step:    "sync_radarr_error",
+				Message: fmt.Sprintf("⚠️ Error al sincronizar Radarr: %v", err),
+				Status:  "processing",
+			}
+		} else {
+			for _, m := range media {
+				key := m.Title
+				mediaMap[key] = m
+			}
+			progressChan <- SyncProgress{
+				Step:    "sync_radarr_complete",
+				Message: fmt.Sprintf("✅ Radarr: %d películas obtenidas", len(media)),
+				Status:  "success",
+			}
+		}
+	}
+
+	// 2. Sync from Sonarr (series - primary source)
+	if s.sonarrClient != nil {
+		progressChan <- SyncProgress{
+			Step:    "sync_sonarr",
+			Message: "📺 Sincronizando series desde Sonarr...",
+			Status:  "processing",
+		}
+
+		media, err := s.sonarrClient.GetLibrary(ctx)
+		if err != nil {
+			s.logger.Error("Failed to sync Sonarr", zap.Error(err))
+			progressChan <- SyncProgress{
+				Step:    "sync_sonarr_error",
+				Message: fmt.Sprintf("⚠️ Error al sincronizar Sonarr: %v", err),
+				Status:  "processing",
+			}
+		} else {
+			for _, m := range media {
+				key := m.Title
+				mediaMap[key] = m
+			}
+			progressChan <- SyncProgress{
+				Step:    "sync_sonarr_complete",
+				Message: fmt.Sprintf("✅ Sonarr: %d series obtenidas", len(media)),
+				Status:  "success",
+			}
+		}
+	}
+
+	// 3. Sync from Jellyfin (enrichment + additional media)
+	if s.jellyfinClient != nil {
+		progressChan <- SyncProgress{
+			Step:    "sync_jellyfin",
+			Message: "🎥 Sincronizando desde Jellyfin...",
+			Status:  "processing",
+		}
+
+		if err := s.syncJellyfin(ctx, mediaMap); err != nil {
+			s.logger.Error("Failed to sync Jellyfin", zap.Error(err))
+			progressChan <- SyncProgress{
+				Step:    "sync_jellyfin_error",
+				Message: fmt.Sprintf("⚠️ Error al sincronizar Jellyfin: %v", err),
+				Status:  "processing",
+			}
+		} else {
+			progressChan <- SyncProgress{
+				Step:    "sync_jellyfin_complete",
+				Message: "✅ Jellyfin sincronizado",
+				Status:  "success",
+			}
+		}
+	}
+
+	// 4. Save all media to database in batch
+	progressChan <- SyncProgress{
+		Step:    "save_db",
+		Message: fmt.Sprintf("💾 Guardando %d elementos en base de datos...", len(mediaMap)),
+		Status:  "processing",
+	}
+
+	savedCount := 0
+	errorCount := 0
+
+	for _, media := range mediaMap {
+		// Since we cleared the database, we can use Create instead of CreateOrUpdate
+		if err := s.mediaRepo.Create(media); err != nil {
+			s.logger.Error("Failed to save media",
+				zap.String("title", media.Title),
+				zap.Error(err),
+			)
+			errorCount++
+			continue
+		}
+		savedCount++
+	}
+
+	progressChan <- SyncProgress{
+		Step:    "save_db_complete",
+		Message: fmt.Sprintf("✅ Guardados: %d elementos (%d errores)", savedCount, errorCount),
+		Status:  "success",
+	}
+
+	// 4.5. Enrich with seeding status from qBittorrent
+	if s.qbittorrentClient != nil {
+		progressChan <- SyncProgress{
+			Step:    "enrich_torrents",
+			Message: "🌱 Enriqueciendo con estado de torrents...",
+			Status:  "processing",
+		}
+
+		if err := s.enrichWithSeedingStatus(ctx, mediaMap); err != nil {
+			s.logger.Error("Failed to enrich with seeding status", zap.Error(err))
+			progressChan <- SyncProgress{
+				Step:    "enrich_torrents_error",
+				Message: fmt.Sprintf("⚠️ Error al obtener estado de torrents: %v", err),
+				Status:  "processing",
+			}
+		} else {
+			progressChan <- SyncProgress{
+				Step:    "enrich_torrents_complete",
+				Message: "✅ Estado de torrents actualizado",
+				Status:  "success",
+			}
+		}
+	}
+
+	s.logger.Info("✅ Sync completed successfully",
+		zap.Int("total_synced", len(mediaMap)),
+		zap.Int("saved", savedCount),
+		zap.Int("errors", errorCount),
+	)
+
+	return nil
+}
+
 // syncRadarr syncs movies from Radarr.
 func (s *SyncService) syncRadarr(ctx context.Context) ([]*models.Media, error) {
 	s.logger.Info("Syncing from Radarr")

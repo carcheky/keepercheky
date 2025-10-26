@@ -5,21 +5,34 @@
             <h1 class="text-3xl font-bold text-gray-900">Media Management</h1>
             <p class="text-gray-600 mt-1">Browse and manage your media library</p>
         </div>
-        <button @click="syncMedia()" :disabled="syncing"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-            <svg x-show="!syncing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                </path>
-            </svg>
-            <svg x-show="syncing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-            </svg>
-            <span x-text="syncing ? 'Syncing...' : 'Sync Now'"></span>
-        </button>
+
+        <div class="flex items-center gap-4">
+            <!-- Sync Progress Messages -->
+            <div x-show="message" x-transition :class="{
+                    'bg-green-50 border-green-200 text-green-800': messageType === 'success',
+                    'bg-red-50 border-red-200 text-red-800': messageType === 'error',
+                    'bg-blue-50 border-blue-200 text-blue-800': messageType === 'info'
+                }" class="px-4 py-2 rounded-lg border text-sm max-w-md">
+                <p x-text="message" class="line-clamp-2"></p>
+            </div>
+
+            <!-- Sync Button -->
+            <button @click="syncMedia()" :disabled="syncing"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap">
+                <svg x-show="!syncing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                    </path>
+                </svg>
+                <svg x-show="syncing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span x-text="syncing ? 'Syncing...' : 'Sync Now'"></span>
+            </button>
+        </div>
     </div>
 
     <!-- Stats Cards -->
@@ -483,14 +496,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Success/Error Messages -->
-    <div x-show="message" x-transition :class="{
-            'bg-green-50 border-green-200 text-green-800': messageType === 'success',
-            'bg-red-50 border-red-200 text-red-800': messageType === 'error'
-        }" class="p-4 rounded-lg border">
-        <p x-text="message"></p>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -1039,21 +1044,55 @@
 
             async syncMedia() {
                 this.syncing = true;
-                try {
-                    const response = await fetch('/api/sync', { method: 'POST' });
-                    const data = await response.json();
+                this.message = '';
 
-                    if (data.status === 'success') {
-                        this.showMessage('Media synced successfully!', 'success');
-                        await this.loadStats();
-                        await this.loadMedia();
-                    } else {
-                        this.showMessage(data.message || 'Sync failed', 'error');
-                    }
+                try {
+                    // Create EventSource for Server-Sent Events
+                    const eventSource = new EventSource('/api/sync');
+
+                    eventSource.onmessage = (event) => {
+                        try {
+                            const progress = JSON.parse(event.data);
+
+                            // Determine message type based on status
+                            let msgType = 'info';  // Default: blue for processing
+                            if (progress.status === 'error') {
+                                msgType = 'error';  // Red for errors
+                            } else if (progress.step === 'complete' || progress.message.includes('✅')) {
+                                msgType = 'success';  // Green for success/complete
+                            }
+
+                            // Show progress message
+                            this.showMessage(progress.message, msgType);
+
+                            // If complete or error, close connection and reload
+                            if (progress.step === 'complete') {
+                                eventSource.close();
+                                this.syncing = false;
+                                // Reload data after successful sync
+                                setTimeout(async () => {
+                                    await this.loadStats();
+                                    await this.loadMedia();
+                                }, 500);
+                            } else if (progress.status === 'error') {
+                                eventSource.close();
+                                this.syncing = false;
+                            }
+                        } catch (err) {
+                            console.error('Error parsing SSE data:', err);
+                        }
+                    };
+
+                    eventSource.onerror = (error) => {
+                        console.error('SSE error:', error);
+                        eventSource.close();
+                        this.syncing = false;
+                        this.showMessage('Error durante sincronización', 'error');
+                    };
+
                 } catch (error) {
                     console.error('Error syncing media:', error);
                     this.showMessage('Failed to sync media', 'error');
-                } finally {
                     this.syncing = false;
                 }
             },
