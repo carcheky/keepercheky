@@ -170,13 +170,13 @@ func Load() (*Config, error) {
 
 	// Bind environment variables WITHOUT prefix (for external service credentials)
 	// These also take precedence over config file values
-	viper.BindEnv("clients.radarr.api_key", "RADARR_API_KEY")
-	viper.BindEnv("clients.sonarr.api_key", "SONARR_API_KEY")
-	viper.BindEnv("clients.jellyfin.api_key", "JELLYFIN_API_KEY")
-	viper.BindEnv("clients.jellyseerr.api_key", "JELLYSEERR_API_KEY")
-	viper.BindEnv("clients.jellystat.api_key", "JELLYSTAT_API_KEY")
-	viper.BindEnv("clients.qbittorrent.username", "QBITTORRENT_USERNAME")
-	viper.BindEnv("clients.qbittorrent.password", "QBITTORRENT_PASSWORD")
+	_ = viper.BindEnv("clients.radarr.api_key", "RADARR_API_KEY")
+	_ = viper.BindEnv("clients.sonarr.api_key", "SONARR_API_KEY")
+	_ = viper.BindEnv("clients.jellyfin.api_key", "JELLYFIN_API_KEY")
+	_ = viper.BindEnv("clients.jellyseerr.api_key", "JELLYSEERR_API_KEY")
+	_ = viper.BindEnv("clients.jellystat.api_key", "JELLYSTAT_API_KEY")
+	_ = viper.BindEnv("clients.qbittorrent.username", "QBITTORRENT_USERNAME")
+	_ = viper.BindEnv("clients.qbittorrent.password", "QBITTORRENT_PASSWORD")
 
 	// 3. Configure config file paths
 	viper.SetConfigName("config")

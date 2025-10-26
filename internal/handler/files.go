@@ -275,6 +275,7 @@ func (h *FilesHandler) getQBittorrentPaths(ctx context.Context) []PathInfo {
 }
 
 // mergePaths combines service paths and media paths, removing duplicates
+// nolint:unused // Reserved for future use
 func (h *FilesHandler) mergePaths(servicePaths, mediaPaths []PathInfo) []PathInfo {
 	pathMap := make(map[string]PathInfo)
 
@@ -305,6 +306,7 @@ func (h *FilesHandler) mergePaths(servicePaths, mediaPaths []PathInfo) []PathInf
 }
 
 // extractPathsFromMedia extracts unique directory paths from media files
+// nolint:unused // Reserved for future use
 func (h *FilesHandler) extractPathsFromMedia(media []MediaFileInfo) []PathInfo {
 	pathMap := make(map[string]PathInfo)
 

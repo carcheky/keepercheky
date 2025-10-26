@@ -570,6 +570,7 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 }
 
 // updateJellyfinPlayback updates playback information from Jellyfin for a single media item.
+// nolint:unused // Reserved for future use
 func (s *SyncService) updateJellyfinPlayback(ctx context.Context, media *models.Media) error {
 	if media.JellyfinID == nil {
 		return nil
@@ -739,6 +740,7 @@ func (s *SyncService) GetQBittorrentClient() *clients.QBittorrentClient {
 }
 
 // cleanupOrphanedMedia removes media from database that no longer exists in any service.
+// nolint:unused // Reserved for future use
 func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map[string]*models.Media) error {
 	s.logger.Info("Starting orphaned media cleanup")
 
@@ -988,6 +990,7 @@ func (s *SyncService) invalidateAllCaches(ctx context.Context, progressChan chan
 }
 
 // Helper functions for logging pointer values
+// nolint:unused // Reserved for future use
 func ptrIntValue(ptr *int) int {
 	if ptr == nil {
 		return 0
@@ -995,6 +998,7 @@ func ptrIntValue(ptr *int) int {
 	return *ptr
 }
 
+// nolint:unused // Reserved for future use
 func ptrStringValue(ptr *string) string {
 	if ptr == nil {
 		return ""

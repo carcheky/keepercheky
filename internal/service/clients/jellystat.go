@@ -37,6 +37,7 @@ func NewJellystatClient(config ClientConfig, logger *zap.Logger) *JellystatClien
 }
 
 // jellystatSystemInfo represents the system info response from Jellystat API.
+// nolint:unused // Reserved for future use
 type jellystatSystemInfo struct {
 	Version string `json:"version"`
 	Status  string `json:"status"`

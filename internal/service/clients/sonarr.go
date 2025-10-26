@@ -109,6 +109,7 @@ type sonarrSeries struct {
 }
 
 // sonarrEpisodeFile represents an episode file from Sonarr API.
+// nolint:unused // Reserved for future use
 type sonarrEpisodeFile struct {
 	ID       int    `json:"id"`
 	SeriesID int    `json:"seriesId"`
