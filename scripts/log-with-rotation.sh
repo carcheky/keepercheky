@@ -9,12 +9,11 @@ while IFS= read -r line; do
     echo "$line"
     echo "$line" >> "$LOG_FILE"
     
-    # Check line count and rotate if needed
+    # Check line count and clear if needed
     line_count=$(wc -l < "$LOG_FILE" 2>/dev/null || echo 0)
     if [ "$line_count" -ge "$MAX_LINES" ]; then
-        # Move old log
-        mv "$LOG_FILE" "${LOG_FILE}.old"
-        # Start fresh
+        # Clear the log file
+        > "$LOG_FILE"
         echo "$line" > "$LOG_FILE"
     fi
 done
