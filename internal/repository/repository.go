@@ -59,6 +59,14 @@ func (r *MediaRepository) Delete(id uint) error {
 	return r.db.Unscoped().Delete(&models.Media{}, id).Error
 }
 
+// DeleteAll permanently deletes ALL media from the database.
+// This is used for full sync to ensure clean state.
+// WARNING: This is a destructive operation!
+func (r *MediaRepository) DeleteAll() error {
+	// Use Unscoped() to permanently delete all records (hard delete)
+	return r.db.Unscoped().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Media{}).Error
+}
+
 // CreateOrUpdate creates or updates a media item based on external IDs.
 func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
 	// Try to find existing media by external IDs
@@ -90,22 +98,28 @@ func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
 // GetStats retrieves media statistics.
 func (r *MediaRepository) GetStats() (map[string]interface{}, error) {
 	var stats struct {
-		TotalMedia  int64
-		TotalMovies int64
-		TotalSeries int64
-		TotalSize   int64
+		TotalMedia            int64
+		TotalMovies           int64
+		TotalSeries           int64
+		TotalSize             int64
+		TotalEpisodes         int64
+		TotalEpisodesDownload int64
 	}
 
 	r.db.Model(&models.Media{}).Count(&stats.TotalMedia)
 	r.db.Model(&models.Media{}).Where("type = ?", "movie").Count(&stats.TotalMovies)
 	r.db.Model(&models.Media{}).Where("type = ?", "series").Count(&stats.TotalSeries)
 	r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&stats.TotalSize)
+	r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_count), 0)").Row().Scan(&stats.TotalEpisodes)
+	r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_file_count), 0)").Row().Scan(&stats.TotalEpisodesDownload)
 
 	return map[string]interface{}{
-		"total_media":  stats.TotalMedia,
-		"total_movies": stats.TotalMovies,
-		"total_series": stats.TotalSeries,
-		"total_size":   stats.TotalSize,
+		"total_media":             stats.TotalMedia,
+		"total_movies":            stats.TotalMovies,
+		"total_series":            stats.TotalSeries,
+		"total_size":              stats.TotalSize,
+		"total_episodes":          stats.TotalEpisodes,
+		"total_episodes_download": stats.TotalEpisodesDownload,
 	}, nil
 }
 
