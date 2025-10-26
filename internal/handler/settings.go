@@ -302,10 +302,25 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 			})
 		}
 
+		// Also get preferences (download paths)
+		prefs, err := h.syncService.GetQBittorrentPreferences(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get qBittorrent preferences",
+				"error", err,
+			)
+			// Return system info without preferences
+			return c.JSON(fiber.Map{
+				"success":     true,
+				"message":     "Connection successful",
+				"system_info": systemInfo,
+			})
+		}
+
 		return c.JSON(fiber.Map{
 			"success":     true,
 			"message":     "Connection successful",
 			"system_info": systemInfo,
+			"preferences": prefs,
 		})
 	}
 
