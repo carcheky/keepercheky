@@ -44,10 +44,17 @@ type Media struct {
 	Title       string     `json:"title" gorm:"not null;index"`
 	Type        string     `json:"type" gorm:"not null;index"` // "movie" or "series"
 	PosterURL   string     `json:"poster_url"`
-	FilePath    string     `json:"file_path" gorm:"not null"`
+	FilePath    string     `json:"file_path" gorm:"not null;uniqueIndex"` // Primary path (canonical)
 	Size        int64      `json:"size"`
 	AddedDate   time.Time  `json:"added_date" gorm:"index"`
 	LastWatched *time.Time `json:"last_watched"`
+
+	// Filesystem metadata (source of truth)
+	FileInode     uint64      `json:"file_inode" gorm:"index"`          // Inode number for hardlink detection
+	FileModTime   int64       `json:"file_mod_time"`                    // Last modification time (Unix timestamp)
+	IsHardlink    bool        `json:"is_hardlink" gorm:"default:false"` // Has hardlinks
+	HardlinkPaths StringSlice `json:"hardlink_paths" gorm:"type:text"`  // All hardlink paths
+	PrimaryPath   string      `json:"primary_path"`                     // Canonical path (same as FilePath but explicit)
 
 	// Series specific
 	EpisodeCount     int `json:"episode_count"`
@@ -67,6 +74,13 @@ type Media struct {
 	SonarrID     *int    `json:"sonarr_id" gorm:"index"`
 	JellyfinID   *string `json:"jellyfin_id" gorm:"index"`
 	JellyseerrID *int    `json:"jellyseerr_id" gorm:"index"`
+
+	// Service flags (filesystem-first approach)
+	InRadarr      bool `json:"in_radarr" gorm:"default:false;index"`
+	InSonarr      bool `json:"in_sonarr" gorm:"default:false;index"`
+	InJellyfin    bool `json:"in_jellyfin" gorm:"default:false;index"`
+	InJellyseerr  bool `json:"in_jellyseerr" gorm:"default:false;index"`
+	InQBittorrent bool `json:"in_qbittorrent" gorm:"default:false;index"`
 
 	// Metadata
 	Tags     StringSlice `json:"tags" gorm:"type:text"`

@@ -73,11 +73,12 @@ func GetEnvSourceMap() *EnvSourceMap {
 }
 
 type Config struct {
-	App      AppConfig      `mapstructure:"app" yaml:"app"`
-	Server   ServerConfig   `mapstructure:"server" yaml:"server"`
-	Database DatabaseConfig `mapstructure:"database" yaml:"database"`
-	Clients  ClientsConfig  `mapstructure:"clients" yaml:"clients"`
-	Cleanup  CleanupConfig  `mapstructure:"cleanup" yaml:"cleanup"`
+	App        AppConfig        `mapstructure:"app" yaml:"app"`
+	Server     ServerConfig     `mapstructure:"server" yaml:"server"`
+	Database   DatabaseConfig   `mapstructure:"database" yaml:"database"`
+	Clients    ClientsConfig    `mapstructure:"clients" yaml:"clients"`
+	Cleanup    CleanupConfig    `mapstructure:"cleanup" yaml:"cleanup"`
+	Filesystem FilesystemConfig `mapstructure:"filesystem" yaml:"filesystem"`
 }
 
 type AppConfig struct {
@@ -92,6 +93,16 @@ type CleanupConfig struct {
 	LeavingSoonDays   int      `mapstructure:"leaving_soon_days" yaml:"leaving_soon_days"`
 	ExclusionTags     []string `mapstructure:"exclusion_tags" yaml:"exclusion_tags"`
 	DeleteUnmonitored bool     `mapstructure:"delete_unmonitored" yaml:"delete_unmonitored"`
+}
+
+type FilesystemConfig struct {
+	ScanEnabled     bool     `mapstructure:"scan_enabled" yaml:"scan_enabled"`         // Enable filesystem scanning
+	RootPaths       []string `mapstructure:"root_paths" yaml:"root_paths"`             // Paths to scan
+	LibraryPaths    []string `mapstructure:"library_paths" yaml:"library_paths"`       // Priority paths (libraries)
+	DownloadPaths   []string `mapstructure:"download_paths" yaml:"download_paths"`     // Download paths (lower priority)
+	VideoExtensions []string `mapstructure:"video_extensions" yaml:"video_extensions"` // Video file extensions
+	MinSizeMB       int64    `mapstructure:"min_size_mb" yaml:"min_size_mb"`           // Minimum file size in MB
+	SkipHidden      bool     `mapstructure:"skip_hidden" yaml:"skip_hidden"`           // Skip hidden files/dirs
 }
 
 type ServerConfig struct {
@@ -433,4 +444,19 @@ func setDefaults() {
 	viper.SetDefault("clients.jellyfin.enabled", false)
 	viper.SetDefault("clients.jellyseerr.enabled", false)
 	viper.SetDefault("clients.qbittorrent.enabled", false)
+
+	// Filesystem defaults
+	viper.SetDefault("filesystem.scan_enabled", false)
+	viper.SetDefault("filesystem.root_paths", []string{"/BibliotecaMultimedia"})
+	viper.SetDefault("filesystem.library_paths", []string{
+		"/BibliotecaMultimedia/Peliculas",
+		"/BibliotecaMultimedia/Series",
+	})
+	viper.SetDefault("filesystem.download_paths", []string{
+		"/BibliotecaMultimedia/Descargas/Peliculas",
+		"/BibliotecaMultimedia/Descargas/Series",
+	})
+	viper.SetDefault("filesystem.video_extensions", []string{".mkv", ".mp4", ".avi", ".m4v", ".ts", ".m2ts"})
+	viper.SetDefault("filesystem.min_size_mb", 100)
+	viper.SetDefault("filesystem.skip_hidden", true)
 }
