@@ -103,7 +103,7 @@ declare -a movie_mappings=(
 for mapping in "${movie_mappings[@]}"; do
     IFS='|' read -r download_name folder_name library_name <<< "$mapping"
     
-    source_file="$DOWNLOADS_DIR/$download_name"
+    source_file="$DOWNLOADS_MOVIES_DIR/$download_name"
     target_file="$MOVIES_DIR/$folder_name/$library_name"
     
     echo "  🔗 Hardlink: $folder_name"
@@ -144,7 +144,7 @@ declare -A downloaded_series=(
 
 for series_folder in "${!downloaded_series[@]}"; do
     num_episodes=${downloaded_series[$series_folder]}
-    series_path="$DOWNLOADS_DIR/$series_folder"
+    series_path="$DOWNLOADS_TV_DIR/$series_folder"
     mkdir -p "$series_path"
     
     echo "  📁 Serie: $series_folder ($num_episodes episodios)"
@@ -178,7 +178,7 @@ declare -a series_mappings=(
 for mapping in "${series_mappings[@]}"; do
     IFS='|' read -r download_folder library_name season_num <<< "$mapping"
     
-    source_dir="$DOWNLOADS_DIR/$download_folder"
+    source_dir="$DOWNLOADS_TV_DIR/$download_folder"
     target_dir="$TVSHOWS_DIR/$library_name/Season $(printf %02d $season_num)"
     
     mkdir -p "$target_dir"
