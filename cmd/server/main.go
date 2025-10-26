@@ -19,6 +19,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// Build-time variables injected via ldflags
+var (
+	Version   = "dev"
+	CommitSHA = "unknown"
+)
+
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
@@ -36,6 +42,7 @@ func main() {
 
 	appLogger.Info("Starting KeeperCheky",
 		"version", getVersion(),
+		"commit", CommitSHA,
 		"env", cfg.App.Environment,
 	)
 
@@ -173,6 +180,10 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 }
 
 func getVersion() string {
+	// Return build-time injected version, fallback to env var, then to "dev"
+	if Version != "" && Version != "dev" {
+		return Version
+	}
 	version := os.Getenv("VERSION")
 	if version == "" {
 		return "dev"

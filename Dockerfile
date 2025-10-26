@@ -4,6 +4,10 @@
 # Build stage
 FROM golang:1.25-alpine AS builder
 
+# Build arguments for versioning
+ARG VERSION=dev
+ARG COMMIT_SHA=unknown
+
 WORKDIR /app
 
 # Install build dependencies
@@ -29,8 +33,9 @@ COPY web/ ./web/
 # - CGO_ENABLED=0: Static binary (no C dependencies)
 # - -ldflags="-w -s": Strip debug information (-w) and symbol table (-s)
 # - -trimpath: Remove file system paths from binary
+# - -X: Inject version information at build time
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s" \
+    -ldflags="-w -s -X main.Version=${VERSION} -X main.CommitSHA=${COMMIT_SHA}" \
     -trimpath \
     -o /app/bin/keepercheky \
     ./cmd/server
