@@ -137,30 +137,30 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 		}
 	}
 
-	// 4. Update playback info from Jellyfin
-	if s.jellyfinClient != nil {
-		for _, media := range mediaMap {
-			if err := s.updateJellyfinPlayback(ctx, media); err != nil {
-				s.logger.Warn("Failed to update Jellyfin playback",
-					zap.String("title", media.Title),
-					zap.Error(err),
-				)
-			}
-		}
-	}
+	// 4. Save all media to database in batch
+	s.logger.Info("Saving media to database",
+		zap.Int("total_items", len(mediaMap)),
+	)
 
-	// 5. Save all media to database
+	savedCount := 0
+	errorCount := 0
+
 	for _, media := range mediaMap {
 		if err := s.mediaRepo.CreateOrUpdate(media); err != nil {
 			s.logger.Error("Failed to save media",
 				zap.String("title", media.Title),
 				zap.Error(err),
 			)
+			errorCount++
+		} else {
+			savedCount++
 		}
 	}
 
 	s.logger.Info("Sync completed",
 		zap.Int("total_synced", len(mediaMap)),
+		zap.Int("saved", savedCount),
+		zap.Int("errors", errorCount),
 	)
 
 	return nil
@@ -209,14 +209,27 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 
 	newFromJellyfin := 0
 	enriched := 0
+	skipped := 0
 
 	for _, jfMedia := range jellyfinMedia {
+		// Skip if no valid data
+		if jfMedia == nil || jfMedia.Title == "" {
+			skipped++
+			continue
+		}
+
 		key := jfMedia.Title
 
 		if existingMedia, exists := mediaMap[key]; exists {
 			// Media already exists from Radarr/Sonarr, enrich it with Jellyfin data
-			if existingMedia.JellyfinID == nil {
+			if existingMedia.JellyfinID == nil && jfMedia.JellyfinID != nil {
 				existingMedia.JellyfinID = jfMedia.JellyfinID
+
+				// También copiar playback info si está disponible
+				if jfMedia.LastWatched != nil {
+					existingMedia.LastWatched = jfMedia.LastWatched
+				}
+
 				enriched++
 			}
 		} else {
@@ -230,6 +243,7 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 		zap.Int("total_items", len(jellyfinMedia)),
 		zap.Int("enriched", enriched),
 		zap.Int("new_from_jellyfin", newFromJellyfin),
+		zap.Int("skipped", skipped),
 	)
 
 	return nil

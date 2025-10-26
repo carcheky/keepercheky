@@ -156,49 +156,85 @@ func (c *JellyfinClient) GetSystemInfo(ctx context.Context) (*JellyfinSystemInfo
 	return systemInfo, nil
 }
 
-// GetLibrary retrieves all media items from Jellyfin.
+// GetLibrary retrieves all media items from Jellyfin with pagination for better performance.
 func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error) {
-	var response jellyfinItemsResponse
+	const pageSize = 500 // Procesar en lotes de 500 items
 
-	err := c.callWithRetry(ctx, func() error {
-		resp, err := c.client.R().
-			SetContext(ctx).
-			SetResult(&response).
-			SetQueryParams(map[string]string{
-				"IncludeItemTypes": "Movie,Series",
-				"Recursive":        "true",
-				"Fields":           "Path,DateCreated,MediaSources,UserData",
-			}).
-			Get("/Items")
+	var allMedia []*models.Media
+	startIndex := 0
+	totalCount := 0
 
-		if err != nil {
-			return fmt.Errorf("failed to get library: %w", err)
-		}
-
-		if resp.StatusCode() != 200 {
-			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert Jellyfin items to internal Media model
-	mediaList := make([]*models.Media, 0, len(response.Items))
-	for _, item := range response.Items {
-		media := c.convertToMedia(&item)
-		mediaList = append(mediaList, media)
-	}
-
-	c.logger.Info("Retrieved Jellyfin library",
-		zap.Int("total_items", response.TotalCount),
-		zap.Int("retrieved", len(mediaList)),
+	c.logger.Info("Starting Jellyfin library retrieval with pagination",
+		zap.Int("page_size", pageSize),
 	)
 
-	return mediaList, nil
+	for {
+		var response jellyfinItemsResponse
+
+		err := c.callWithRetry(ctx, func() error {
+			resp, err := c.client.R().
+				SetContext(ctx).
+				SetResult(&response).
+				SetQueryParams(map[string]string{
+					"IncludeItemTypes": "Movie,Series",
+					"Recursive":        "true",
+					"Fields":           "Path,DateCreated,MediaSources,UserData", // Incluir UserData para playback
+					"StartIndex":       fmt.Sprintf("%d", startIndex),
+					"Limit":            fmt.Sprintf("%d", pageSize),
+					"EnableImages":     "false", // Acelerar respuesta
+				}).
+				Get("/Items")
+
+			if err != nil {
+				return fmt.Errorf("failed to get library page: %w", err)
+			}
+
+			if resp.StatusCode() != 200 {
+				return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Guardar total en primera iteración
+		if startIndex == 0 {
+			totalCount = response.TotalCount
+			allMedia = make([]*models.Media, 0, totalCount)
+			c.logger.Info("Jellyfin library total items",
+				zap.Int("total", totalCount),
+			)
+		}
+
+		// Convertir items de esta página
+		for i := range response.Items {
+			media := c.convertToMedia(&response.Items[i])
+			allMedia = append(allMedia, media)
+		}
+
+		c.logger.Info("Retrieved Jellyfin page",
+			zap.Int("start_index", startIndex),
+			zap.Int("items_in_page", len(response.Items)),
+			zap.Int("total_retrieved", len(allMedia)),
+			zap.Int("total_count", totalCount),
+		)
+
+		// Salir si no hay más items
+		if len(response.Items) < pageSize || len(allMedia) >= totalCount {
+			break
+		}
+
+		startIndex += pageSize
+	}
+
+	c.logger.Info("Jellyfin library retrieval complete",
+		zap.Int("total_items", len(allMedia)),
+	)
+
+	return allMedia, nil
 }
 
 // GetPlaybackInfo retrieves playback information for media.
