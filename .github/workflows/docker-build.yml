@@ -57,8 +57,8 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    # Only run lint on main, latest or stable branches
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable'
+    # Only run lint on main, latest or stable branches (push or PR targeting these branches)
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable')) || (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'latest' || github.base_ref == 'stable'))
 
     steps:
       - name: Checkout code
