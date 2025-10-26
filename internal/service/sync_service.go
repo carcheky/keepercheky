@@ -99,7 +99,18 @@ func NewSyncService(
 
 // SyncAll synchronizes media from all configured services.
 func (s *SyncService) SyncAll(ctx context.Context) error {
-	s.logger.Info("Starting full sync from all services")
+	s.logger.Info("🔄 Starting FULL SYNC from all services (this will replace ALL media)")
+
+	// CRITICAL: Delete ALL existing media to ensure clean sync
+	s.logger.Info("🗑️  Clearing existing media database...")
+	if err := s.mediaRepo.DeleteAll(); err != nil {
+		s.logger.Error("❌ Failed to clear media database", zap.Error(err))
+		return fmt.Errorf("failed to clear database: %w", err)
+	}
+	s.logger.Info("✅ Database cleared, starting fresh sync")
+
+	// Invalidate cache on all services before syncing
+	s.invalidateAllCaches(ctx)
 
 	// Map to track media by unique key (title + year) for merging
 	mediaMap := make(map[string]*models.Media)
@@ -138,7 +149,7 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 	}
 
 	// 4. Save all media to database in batch
-	s.logger.Info("Saving media to database",
+	s.logger.Info("💾 Saving media to database",
 		zap.Int("total_items", len(mediaMap)),
 	)
 
@@ -146,7 +157,8 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 	errorCount := 0
 
 	for _, media := range mediaMap {
-		if err := s.mediaRepo.CreateOrUpdate(media); err != nil {
+		// Since we cleared the database, we can use Create instead of CreateOrUpdate
+		if err := s.mediaRepo.Create(media); err != nil {
 			s.logger.Error("Failed to save media",
 				zap.String("title", media.Title),
 				zap.Error(err),
@@ -164,12 +176,9 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 		}
 	}
 
-	// 5. Clean up orphaned media (items that no longer exist in any service)
-	if err := s.cleanupOrphanedMedia(ctx, mediaMap); err != nil {
-		s.logger.Error("Failed to cleanup orphaned media", zap.Error(err))
-	}
+	// NOTE: No need to cleanup orphaned media since we cleared everything before sync
 
-	s.logger.Info("Sync completed",
+	s.logger.Info("✅ Sync completed successfully",
 		zap.Int("total_synced", len(mediaMap)),
 		zap.Int("saved", savedCount),
 		zap.Int("errors", errorCount),
@@ -222,6 +231,7 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 	newFromJellyfin := 0
 	enriched := 0
 	skipped := 0
+	totalJellyfinEpisodes := 0
 
 	for _, jfMedia := range jellyfinMedia {
 		// Skip if no valid data
@@ -230,20 +240,50 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 			continue
 		}
 
+		// Log episode count for series
+		if jfMedia.Type == "series" {
+			totalJellyfinEpisodes += jfMedia.EpisodeFileCount
+			s.logger.Info("Jellyfin series found",
+				zap.String("title", jfMedia.Title),
+				zap.Int("episodes", jfMedia.EpisodeFileCount),
+			)
+		}
+
 		key := jfMedia.Title
 
 		if existingMedia, exists := mediaMap[key]; exists {
 			// Media already exists from Radarr/Sonarr, enrich it with Jellyfin data
-			if existingMedia.JellyfinID == nil && jfMedia.JellyfinID != nil {
+
+			// Always update JellyfinID if available
+			if jfMedia.JellyfinID != nil {
 				existingMedia.JellyfinID = jfMedia.JellyfinID
-
-				// También copiar playback info si está disponible
-				if jfMedia.LastWatched != nil {
-					existingMedia.LastWatched = jfMedia.LastWatched
-				}
-
-				enriched++
 			}
+
+			// También copiar playback info si está disponible
+			if jfMedia.LastWatched != nil {
+				existingMedia.LastWatched = jfMedia.LastWatched
+			}
+
+			// Si Jellyfin tiene más episodios descargados que Sonarr, usar el de Jellyfin
+			// Esto puede pasar si Jellyfin tiene episodios que Sonarr no rastrea
+			if jfMedia.Type == "series" {
+				if jfMedia.EpisodeFileCount > existingMedia.EpisodeFileCount {
+					s.logger.Info("Updating episode count from Jellyfin",
+						zap.String("title", existingMedia.Title),
+						zap.Int("sonarr_count", existingMedia.EpisodeFileCount),
+						zap.Int("jellyfin_count", jfMedia.EpisodeFileCount),
+					)
+					existingMedia.EpisodeFileCount = jfMedia.EpisodeFileCount
+				} else {
+					s.logger.Info("Keeping Sonarr episode count (higher or equal)",
+						zap.String("title", existingMedia.Title),
+						zap.Int("sonarr_count", existingMedia.EpisodeFileCount),
+						zap.Int("jellyfin_count", jfMedia.EpisodeFileCount),
+					)
+				}
+			}
+
+			enriched++
 		} else {
 			// Media only exists in Jellyfin, add it to the map
 			mediaMap[key] = jfMedia
@@ -256,6 +296,7 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 		zap.Int("enriched", enriched),
 		zap.Int("new_from_jellyfin", newFromJellyfin),
 		zap.Int("skipped", skipped),
+		zap.Int("total_jellyfin_episodes", totalJellyfinEpisodes),
 	)
 
 	return nil
@@ -530,6 +571,28 @@ func (s *SyncService) enrichWithSeedingStatus(ctx context.Context, mediaMap map[
 	)
 
 	return nil
+}
+
+// invalidateAllCaches invalidates caches on all configured services to ensure fresh data.
+func (s *SyncService) invalidateAllCaches(ctx context.Context) {
+	s.logger.Info("Invalidating caches on all services before sync")
+
+	// Invalidate Jellyfin cache
+	if s.jellyfinClient != nil {
+		jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
+		if ok {
+			if err := jellyfinClient.InvalidateCache(ctx); err != nil {
+				s.logger.Warn("Failed to invalidate Jellyfin cache",
+					zap.Error(err),
+				)
+			}
+		}
+	}
+
+	// Note: Radarr and Sonarr already have Cache-Control headers in HTTP client
+	// so their requests are never cached. No additional action needed.
+
+	s.logger.Info("Cache invalidation complete")
 }
 
 // Helper functions for logging pointer values
