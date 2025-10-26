@@ -23,6 +23,12 @@ func NewSonarrClient(config ClientConfig, logger *zap.Logger) *SonarrClient {
 	client := resty.New()
 	client.SetBaseURL(config.BaseURL)
 	client.SetHeader("X-Api-Key", config.APIKey)
+
+	// Disable HTTP caching to always get fresh data
+	client.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+	client.SetHeader("Pragma", "no-cache")
+	client.SetHeader("Expires", "0")
+
 	client.SetTimeout(config.Timeout)
 
 	if config.Timeout == 0 {

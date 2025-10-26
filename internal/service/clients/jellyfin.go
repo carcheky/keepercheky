@@ -23,6 +23,12 @@ func NewJellyfinClient(config ClientConfig, logger *zap.Logger) *JellyfinClient 
 	client := resty.New()
 	client.SetBaseURL(config.BaseURL)
 	client.SetHeader("X-Emby-Token", config.APIKey) // Jellyfin uses X-Emby-Token header
+
+	// Disable HTTP caching to always get fresh data
+	client.SetHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+	client.SetHeader("Pragma", "no-cache")
+	client.SetHeader("Expires", "0")
+
 	client.SetTimeout(config.Timeout)
 
 	if config.Timeout == 0 {
@@ -281,7 +287,7 @@ func (c *JellyfinClient) GetPlaybackInfo(ctx context.Context, mediaID string) (*
 
 // DeleteItem removes a media item from Jellyfin.
 func (c *JellyfinClient) DeleteItem(ctx context.Context, id string) error {
-	return c.callWithRetry(ctx, func() error {
+	err := c.callWithRetry(ctx, func() error {
 		resp, err := c.client.R().
 			SetContext(ctx).
 			SetPathParam("id", id).
@@ -299,6 +305,45 @@ func (c *JellyfinClient) DeleteItem(ctx context.Context, id string) error {
 			zap.String("item_id", id),
 		)
 
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Invalidate Jellyfin cache after deletion
+	if err := c.InvalidateCache(ctx); err != nil {
+		c.logger.Warn("Failed to invalidate Jellyfin cache after deletion",
+			zap.String("item_id", id),
+			zap.Error(err),
+		)
+		// Don't fail the deletion if cache invalidation fails
+	}
+
+	return nil
+}
+
+// InvalidateCache forces Jellyfin to refresh its library cache.
+// This ensures that deleted items don't appear in subsequent library scans.
+func (c *JellyfinClient) InvalidateCache(ctx context.Context) error {
+	c.logger.Info("Invalidating Jellyfin cache")
+
+	return c.callWithRetry(ctx, func() error {
+		// POST to Library/Refresh to force a library scan
+		resp, err := c.client.R().
+			SetContext(ctx).
+			Post("/Library/Refresh")
+
+		if err != nil {
+			return fmt.Errorf("failed to refresh library: %w", err)
+		}
+
+		if resp.StatusCode() != 204 && resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		c.logger.Info("Jellyfin cache invalidated successfully")
 		return nil
 	})
 }

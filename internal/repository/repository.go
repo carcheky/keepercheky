@@ -55,7 +55,8 @@ func (r *MediaRepository) Update(media *models.Media) error {
 }
 
 func (r *MediaRepository) Delete(id uint) error {
-	return r.db.Delete(&models.Media{}, id).Error
+	// Use Unscoped() to permanently delete (hard delete) instead of soft delete
+	return r.db.Unscoped().Delete(&models.Media{}, id).Error
 }
 
 // CreateOrUpdate creates or updates a media item based on external IDs.
@@ -124,6 +125,118 @@ func (r *MediaRepository) GetPaginated(page, pageSize int, mediaType string) ([]
 	query.Count(&total)
 
 	// Apply pagination
+	offset := (page - 1) * pageSize
+	result := query.Offset(offset).Limit(pageSize).Order("added_date DESC").Find(&media)
+
+	return media, total, result.Error
+}
+
+// MediaFilters holds all available filter options
+type MediaFilters struct {
+	Type              string // movie, series, torrent, all
+	Status            string // active, excluded, seeding, all
+	Search            string // search by title
+	Service           string // radarr, sonarr, jellyfin, orphan, all
+	SizeRange         string // small, medium, large, xlarge, all
+	AddedDate         string // week, month, quarter, older, all
+	SeedRatio         string // low, medium, high, all
+	Quality           string // search by quality
+	EpisodeCompletion string // complete, incomplete, empty, all
+}
+
+// GetPaginatedWithFilters retrieves media with advanced filtering and pagination
+func (r *MediaRepository) GetPaginatedWithFilters(page, pageSize int, filters MediaFilters) ([]models.Media, int64, error) {
+	var media []models.Media
+	var total int64
+
+	query := r.db.Model(&models.Media{})
+
+	// Apply type filter
+	if filters.Type != "" && filters.Type != "all" {
+		query = query.Where("type = ?", filters.Type)
+	}
+
+	// Apply status filter
+	switch filters.Status {
+	case "excluded":
+		query = query.Where("excluded = ?", true)
+	case "active":
+		query = query.Where("excluded = ?", false)
+	case "seeding":
+		query = query.Where("is_seeding = ?", true)
+	}
+
+	// Apply search filter
+	if filters.Search != "" {
+		query = query.Where("title LIKE ?", "%"+filters.Search+"%")
+	}
+
+	// Apply service filter
+	switch filters.Service {
+	case "radarr":
+		query = query.Where("radarr_id IS NOT NULL")
+	case "sonarr":
+		query = query.Where("sonarr_id IS NOT NULL")
+	case "jellyfin":
+		query = query.Where("jellyfin_id IS NOT NULL")
+	case "orphan":
+		query = query.Where("type = ?", "torrent")
+	}
+
+	// Apply size range filter (in bytes)
+	switch filters.SizeRange {
+	case "small": // < 5 GB
+		query = query.Where("size < ?", int64(5*1024*1024*1024))
+	case "medium": // 5-20 GB
+		query = query.Where("size >= ? AND size < ?", int64(5*1024*1024*1024), int64(20*1024*1024*1024))
+	case "large": // 20-50 GB
+		query = query.Where("size >= ? AND size < ?", int64(20*1024*1024*1024), int64(50*1024*1024*1024))
+	case "xlarge": // > 50 GB
+		query = query.Where("size >= ?", int64(50*1024*1024*1024))
+	}
+
+	// Apply date filter
+	now := r.db.NowFunc()
+	switch filters.AddedDate {
+	case "week": // Last 7 days
+		query = query.Where("added_date >= ?", now.AddDate(0, 0, -7))
+	case "month": // Last 30 days
+		query = query.Where("added_date >= ?", now.AddDate(0, 0, -30))
+	case "quarter": // Last 90 days
+		query = query.Where("added_date >= ?", now.AddDate(0, 0, -90))
+	case "older": // Older than 90 days
+		query = query.Where("added_date < ?", now.AddDate(0, 0, -90))
+	}
+
+	// Apply seed ratio filter
+	switch filters.SeedRatio {
+	case "low": // < 1.0
+		query = query.Where("seed_ratio < ?", 1.0)
+	case "medium": // 1.0-2.0
+		query = query.Where("seed_ratio >= ? AND seed_ratio < ?", 1.0, 2.0)
+	case "high": // > 2.0
+		query = query.Where("seed_ratio >= ?", 2.0)
+	}
+
+	// Apply quality filter
+	if filters.Quality != "" {
+		query = query.Where("quality LIKE ?", "%"+filters.Quality+"%")
+	}
+
+	// Apply episode completion filter (for series)
+	switch filters.EpisodeCompletion {
+	case "complete": // Has all episodes
+		query = query.Where("type = ? AND episode_count > 0 AND episode_count = episode_file_count", "series")
+	case "incomplete": // Missing episodes
+		query = query.Where("type = ? AND episode_count > 0 AND episode_count > episode_file_count", "series")
+	case "empty": // No episode info
+		query = query.Where("type = ? AND (episode_count IS NULL OR episode_count = 0)", "series")
+	}
+
+	// Get total count
+	query.Count(&total)
+
+	// Apply pagination and ordering
 	offset := (page - 1) * pageSize
 	result := query.Offset(offset).Limit(pageSize).Order("added_date DESC").Find(&media)
 

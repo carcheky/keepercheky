@@ -34,8 +34,6 @@ func (h *MediaHandler) GetAll(c *fiber.Ctx) error {
 	// Get pagination parameters
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("pageSize", "20"))
-	mediaType := c.Query("type", "all")
-	search := c.Query("search", "")
 
 	// Validate pagination
 	if page < 1 {
@@ -45,17 +43,24 @@ func (h *MediaHandler) GetAll(c *fiber.Ctx) error {
 		pageSize = 20
 	}
 
+	// Build filters from query parameters
+	filters := repository.MediaFilters{
+		Type:              c.Query("type", "all"),
+		Status:            c.Query("status", "all"),
+		Search:            c.Query("search", ""),
+		Service:           c.Query("service", "all"),
+		SizeRange:         c.Query("sizeRange", "all"),
+		AddedDate:         c.Query("addedDate", "all"),
+		SeedRatio:         c.Query("seedRatio", "all"),
+		Quality:           c.Query("quality", ""),
+		EpisodeCompletion: c.Query("episodeCompletion", "all"),
+	}
+
 	var media []models.Media
 	var total int64
 	var err error
 
-	// If search query provided, use search
-	if search != "" {
-		media, err = h.repos.Media.Search(search)
-		total = int64(len(media))
-	} else {
-		media, total, err = h.repos.Media.GetPaginated(page, pageSize, mediaType)
-	}
+	media, total, err = h.repos.Media.GetPaginatedWithFilters(page, pageSize, filters)
 
 	if err != nil {
 		h.logger.Error("Failed to get media", "error", err)
@@ -199,4 +204,78 @@ func (h *MediaHandler) GetStats(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(stats)
+}
+
+// BulkDelete deletes multiple media items at once
+func (h *MediaHandler) BulkDelete(c *fiber.Ctx) error {
+	var request struct {
+		IDs     []uint                `json:"ids"`
+		Options cleanup.DeleteOptions `json:"options"`
+	}
+
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	if len(request.IDs) == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "No media IDs provided",
+		})
+	}
+
+	h.logger.Info("Bulk deleting media items",
+		"count", len(request.IDs),
+		"radarr", request.Options.Radarr,
+		"sonarr", request.Options.Sonarr,
+		"jellyfin", request.Options.Jellyfin,
+		"delete_files", request.Options.DeleteFiles,
+		"qbittorrent", request.Options.QBittorrent,
+	)
+
+	results := make(map[uint]interface{})
+	successCount := 0
+	failureCount := 0
+
+	// Process deletions
+	for _, id := range request.IDs {
+		media, err := h.repos.Media.GetByID(id)
+		if err != nil {
+			h.logger.Error("Failed to get media for bulk delete", "id", id, "error", err)
+			results[id] = fiber.Map{
+				"success": false,
+				"error":   "Media not found",
+			}
+			failureCount++
+			continue
+		}
+
+		result, err := h.cleanupService.DeleteMedia(c.Context(), media, request.Options)
+		if err != nil {
+			h.logger.Error("Failed to delete media in bulk operation", "id", id, "title", media.Title, "error", err)
+			results[id] = fiber.Map{
+				"success":      false,
+				"error":        err.Error(),
+				"deleted_from": result.DeletedFrom,
+				"errors":       result.Errors,
+			}
+			failureCount++
+		} else {
+			results[id] = fiber.Map{
+				"success":       true,
+				"deleted_from":  result.DeletedFrom,
+				"files_deleted": result.FilesDeleted,
+			}
+			successCount++
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message":       "Bulk delete completed",
+		"total":         len(request.IDs),
+		"success_count": successCount,
+		"failure_count": failureCount,
+		"results":       results,
+	})
 }

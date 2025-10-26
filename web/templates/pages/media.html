@@ -79,26 +79,68 @@
         </div>
     </div>
 
-    <!-- Filters -->
+    <!-- Advanced Filters -->
     <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Quick Actions Bar -->
+        <div class="flex justify-between items-center mb-4 pb-4 border-b">
+            <div class="flex items-center gap-3">
+                <!-- Bulk Selection -->
+                <div x-show="selectedItems.length > 0" class="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg">
+                    <span class="text-sm font-medium text-blue-900">
+                        <span x-text="selectedItems.length"></span> seleccionado(s)
+                    </span>
+                    <button @click="bulkDeleteModal.show = true"
+                        class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Eliminar selección
+                    </button>
+                    <button @click="selectedItems = []" class="text-sm text-gray-600 hover:text-gray-900">
+                        Deseleccionar todo
+                    </button>
+                </div>
+            </div>
+            <button @click="showAdvancedFilters = !showAdvancedFilters"
+                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span x-text="showAdvancedFilters ? 'Ocultar filtros' : 'Filtros avanzados'"></span>
+            </button>
+        </div>
+
+        <!-- Basic Filters (Always Visible) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input type="text" x-model="filters.search" @input.debounce.500ms="loadMedia()"
-                    placeholder="Search by title..."
+                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                <input type="text" x-model="filters.search" @input.debounce.500ms="loadMedia()" placeholder="Título..."
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                 <select x-model="filters.type" @change="loadMedia()"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="all">All Types</option>
-                    <option value="movie">Movies</option>
-                    <option value="series">TV Series</option>
+                    <option value="all">Todos</option>
+                    <option value="movie">Películas</option>
+                    <option value="series">Series</option>
+                    <option value="torrent">Torrents huérfanos</option>
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Items per page</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select x-model="filters.status" @change="loadMedia()"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">Todos</option>
+                    <option value="active">Activos</option>
+                    <option value="excluded">Excluidos</option>
+                    <option value="seeding">Seeding</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Por página</label>
                 <select x-model="filters.pageSize" @change="loadMedia()"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="10">10</option>
@@ -107,11 +149,115 @@
                     <option value="100">100</option>
                 </select>
             </div>
-            <div class="flex items-end">
-                <button @click="resetFilters()"
-                    class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                    Reset Filters
-                </button>
+        </div>
+
+        <!-- Advanced Filters (Collapsible) -->
+        <div x-show="showAdvancedFilters" x-transition class="space-y-4 pt-4 border-t">
+            <!-- Row 1: Services -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Servicios</label>
+                    <select x-model="filters.service" @change="loadMedia()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Todos</option>
+                        <option value="radarr">Solo Radarr</option>
+                        <option value="sonarr">Solo Sonarr</option>
+                        <option value="jellyfin">Solo Jellyfin</option>
+                        <option value="orphan">Sin servicios</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tamaño</label>
+                    <select x-model="filters.sizeRange" @change="loadMedia()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Todos</option>
+                        <option value="small">&lt; 5 GB</option>
+                        <option value="medium">5-20 GB</option>
+                        <option value="large">20-50 GB</option>
+                        <option value="xlarge">&gt; 50 GB</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Agregado</label>
+                    <select x-model="filters.addedDate" @change="loadMedia()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Cualquier fecha</option>
+                        <option value="last7">Últimos 7 días</option>
+                        <option value="last30">Últimos 30 días</option>
+                        <option value="last90">Últimos 90 días</option>
+                        <option value="older">Más de 90 días</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Seed Ratio</label>
+                    <select x-model="filters.seedRatio" @change="loadMedia()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Todos</option>
+                        <option value="low">&lt; 1.0</option>
+                        <option value="good">1.0 - 2.0</option>
+                        <option value="high">&gt; 2.0</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Quality & Episodes -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Calidad</label>
+                    <input type="text" x-model="filters.quality" @input.debounce.500ms="loadMedia()"
+                        placeholder="Ej: 1080p, 4K..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Series: Episodios</label>
+                    <select x-model="filters.episodeCompletion" @change="loadMedia()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">Todos</option>
+                        <option value="complete">Completas (100%)</option>
+                        <option value="incomplete">Incompletas (&lt;100%)</option>
+                        <option value="empty">Sin episodios</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button @click="resetFilters()"
+                        class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                        Resetear filtros
+                    </button>
+
+                    <!-- Cargar preset dropdown -->
+                    <div class="relative flex-1" x-data="{ showPresets: false }">
+                        <button @click="showPresets = !showPresets"
+                            class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-between">
+                            <span>Cargar preset</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="showPresets" @click.away="showPresets = false"
+                            class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+                            <template x-for="(filters, name) in getSavedPresets()" :key="name">
+                                <div class="flex items-center justify-between px-4 py-2 hover:bg-gray-100">
+                                    <button @click="loadFilterPreset(name); showPresets = false"
+                                        class="flex-1 text-left" x-text="name"></button>
+                                    <button @click.stop="deletePreset(name)"
+                                        class="text-red-600 hover:text-red-800 ml-2">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </template>
+                            <div x-show="Object.keys(getSavedPresets()).length === 0"
+                                class="px-4 py-2 text-gray-500 text-sm">
+                                No hay presets guardados
+                            </div>
+                        </div>
+                    </div>
+
+                    <button @click="saveCurrentFilters()"
+                        class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Guardar preset
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -126,8 +272,23 @@
         </svg>
     </div>
 
+    <!-- Bulk Deleting State -->
+    <div x-show="bulkDeleteModal.deleting"
+        class="flex justify-center items-center py-12 bg-red-50 rounded-lg border-2 border-red-200">
+        <div class="text-center">
+            <svg class="animate-spin h-10 w-10 text-red-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <p class="text-red-700 font-medium">Eliminando elementos seleccionados...</p>
+            <p class="text-red-600 text-sm mt-1">Por favor espera, no cierres esta página</p>
+        </div>
+    </div>
+
     <!-- Media List -->
-    <div x-show="!loading" class="bg-white rounded-lg shadow overflow-hidden">
+    <div x-show="!loading && !bulkDeleteModal.deleting" class="bg-white rounded-lg shadow overflow-hidden">
         <!-- Empty State -->
         <div x-show="media.length === 0" class="text-center py-12">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,6 +305,11 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-6 py-3 text-left">
+                            <input type="checkbox" @change="toggleSelectAll()"
+                                :checked="selectedItems.length === media.length && media.length > 0"
+                                class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Title
                         </th>
@@ -169,7 +335,12 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <template x-for="item in media" :key="item.id">
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50" :class="selectedItems.includes(item.id) ? 'bg-blue-50' : ''">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" :value="item.id" @change="toggleSelection(item.id)"
+                                    :checked="selectedItems.includes(item.id)"
+                                    class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div
@@ -634,6 +805,120 @@
             </div>
         </div>
     </div>
+
+    <!-- Bulk Delete Modal -->
+    <div x-show="bulkDeleteModal.show"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4" @click.away="bulkDeleteModal.show = false">
+            <div class="p-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Eliminar en Bulk</h3>
+                    <button @click="bulkDeleteModal.show = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Info -->
+                <p class="text-gray-600 mb-6">
+                    Vas a eliminar <span class="font-bold text-red-600" x-text="selectedItems.length"></span> elementos.
+                    Selecciona de dónde quieres eliminarlos:
+                </p>
+
+                <!-- Options -->
+                <div class="space-y-3 mb-6">
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="checkbox" x-model="bulkDeleteModal.options.radarr"
+                            class="w-5 h-5 text-blue-600 rounded">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium">Radarr</span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    style="background-color: #ffc230; color: #000000;">Radarr</span>
+                            </div>
+                            <p class="text-xs text-gray-500">Eliminar de Radarr</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="checkbox" x-model="bulkDeleteModal.options.sonarr"
+                            class="w-5 h-5 text-blue-600 rounded">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium">Sonarr</span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    style="background-color: #35c5f4; color: #000000;">Sonarr</span>
+                            </div>
+                            <p class="text-xs text-gray-500">Eliminar de Sonarr</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="checkbox" x-model="bulkDeleteModal.options.jellyfin"
+                            class="w-5 h-5 text-blue-600 rounded">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium">Jellyfin</span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    style="background-color: #aa5cc3; color: #ffffff;">Jellyfin</span>
+                            </div>
+                            <p class="text-xs text-gray-500">Eliminar de Jellyfin</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="checkbox" x-model="bulkDeleteModal.options.qbittorrent"
+                            class="w-5 h-5 text-blue-600 rounded">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium">qBittorrent</span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    style="background-color: #3a91d4; color: #ffffff;">qBittorrent</span>
+                            </div>
+                            <p class="text-xs text-gray-500">Eliminar torrent</p>
+                        </div>
+                    </label>
+
+                    <label
+                        class="flex items-center gap-3 p-3 border border-red-200 rounded-lg cursor-pointer hover:bg-red-50">
+                        <input type="checkbox" x-model="bulkDeleteModal.options.deleteFiles"
+                            class="w-5 h-5 text-red-600 rounded">
+                        <div class="flex-1">
+                            <span class="font-medium text-red-700">Eliminar archivos del disco</span>
+                            <p class="text-xs text-red-600">⚠️ Esto eliminará los archivos permanentemente</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3">
+                    <button @click="bulkDeleteModal.show = false"
+                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                        Cancelar
+                    </button>
+                    <button @click="confirmBulkDelete()" :disabled="bulkDeleteModal.deleting"
+                        class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!bulkDeleteModal.deleting">Eliminar Todo</span>
+                        <span x-show="bulkDeleteModal.deleting" class="flex items-center justify-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            Eliminando...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -648,10 +933,30 @@
             currentPage: 1,
             totalPages: 1,
             total: 0,
+            selectedItems: [],
+            showAdvancedFilters: false,
             filters: {
                 search: '',
                 type: 'all',
+                status: 'all',
+                service: 'all',
+                sizeRange: 'all',
+                addedDate: 'all',
+                seedRatio: 'all',
+                quality: '',
+                episodeCompletion: 'all',
                 pageSize: 20
+            },
+            bulkDeleteModal: {
+                show: false,
+                deleting: false,
+                options: {
+                    radarr: true,
+                    sonarr: true,
+                    jellyfin: true,
+                    deleteFiles: true,
+                    qbittorrent: false
+                }
             },
             deleteModal: {
                 show: false,
@@ -693,7 +998,14 @@
                         page: this.currentPage,
                         pageSize: this.filters.pageSize,
                         type: this.filters.type,
-                        search: this.filters.search
+                        status: this.filters.status,
+                        search: this.filters.search,
+                        service: this.filters.service,
+                        sizeRange: this.filters.sizeRange,
+                        addedDate: this.filters.addedDate,
+                        seedRatio: this.filters.seedRatio,
+                        quality: this.filters.quality,
+                        episodeCompletion: this.filters.episodeCompletion
                     });
 
                     const response = await fetch(`/api/media?${params}`);
@@ -890,10 +1202,127 @@
                 this.filters = {
                     search: '',
                     type: 'all',
+                    status: 'all',
+                    service: 'all',
+                    sizeRange: 'all',
+                    addedDate: 'all',
+                    seedRatio: 'all',
+                    quality: '',
+                    episodeCompletion: 'all',
                     pageSize: 20
                 };
                 this.currentPage = 1;
+                this.selectedItems = [];
                 this.loadMedia();
+            },
+
+            toggleSelection(itemId) {
+                const index = this.selectedItems.indexOf(itemId);
+                if (index > -1) {
+                    this.selectedItems.splice(index, 1);
+                } else {
+                    this.selectedItems.push(itemId);
+                }
+            },
+
+            toggleSelectAll() {
+                if (this.selectedItems.length === this.media.length) {
+                    this.selectedItems = [];
+                } else {
+                    this.selectedItems = this.media.map(item => item.id);
+                }
+            },
+
+            async confirmBulkDelete() {
+                if (this.selectedItems.length === 0) {
+                    this.showMessage('No hay elementos seleccionados', 'error');
+                    return;
+                }
+
+                // Close modal and start deletion
+                this.bulkDeleteModal.show = false;
+                this.bulkDeleteModal.deleting = true;
+
+                // Show progress message
+                this.showMessage(`Eliminando ${this.selectedItems.length} elementos...`, 'info');
+
+                try {
+                    const response = await fetch('/api/media/bulk-delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ids: this.selectedItems,
+                            options: this.bulkDeleteModal.options
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+
+                        // Show detailed results
+                        const successMsg = `✓ Eliminados exitosamente: ${result.success_count}`;
+                        const errorMsg = result.failure_count > 0 ? `\n✗ Errores: ${result.failure_count}` : '';
+
+                        this.showMessage(
+                            successMsg + errorMsg,
+                            result.failure_count > 0 ? 'warning' : 'success'
+                        );
+
+                        // Log details in console
+                        console.log('Bulk delete results:', result);
+                    } else {
+                        this.showMessage('Error al eliminar elementos', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error en bulk delete:', error);
+                    this.showMessage('Error de conexión al eliminar elementos', 'error');
+                }
+
+                this.bulkDeleteModal.deleting = false;
+                this.selectedItems = [];
+                await this.loadMedia();
+                await this.loadStats();
+            },
+
+            saveCurrentFilters() {
+                const presetName = prompt('Nombre del preset de filtros:');
+                if (presetName) {
+                    const presets = this.getSavedPresets();
+                    presets[presetName] = { ...this.filters };
+                    localStorage.setItem('filter_presets', JSON.stringify(presets));
+                    this.showMessage(`Preset "${presetName}" guardado`, 'success');
+                }
+            },
+
+            loadFilterPreset(presetName) {
+                const presets = this.getSavedPresets();
+                if (presets[presetName]) {
+                    this.filters = { ...this.filters, ...presets[presetName] };
+                    this.currentPage = 1;
+                    this.loadMedia();
+                    this.showMessage(`Preset "${presetName}" cargado`, 'success');
+                }
+            },
+
+            getSavedPresets() {
+                try {
+                    const saved = localStorage.getItem('filter_presets');
+                    return saved ? JSON.parse(saved) : {};
+                } catch (error) {
+                    console.error('Error loading presets:', error);
+                    return {};
+                }
+            },
+
+            deletePreset(presetName) {
+                if (confirm(`¿Eliminar preset "${presetName}"?`)) {
+                    const presets = this.getSavedPresets();
+                    delete presets[presetName];
+                    localStorage.setItem('filter_presets', JSON.stringify(presets));
+                    this.showMessage(`Preset "${presetName}" eliminado`, 'success');
+                }
             },
 
             formatSize(bytes) {
