@@ -364,6 +364,10 @@ func (r *SettingsRepository) Get(key string) (string, error) {
 }
 
 func (r *SettingsRepository) Set(key, value string) error {
-	setting := models.Settings{Key: key, Value: value}
-	return r.db.Save(&setting).Error
+	// Update if exists, create if not (upsert)
+	return r.db.
+		Where("key = ?", key).
+		Assign(models.Settings{Value: value}).
+		FirstOrCreate(&models.Settings{Key: key}).
+		Error
 }

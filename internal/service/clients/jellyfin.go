@@ -186,9 +186,9 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 				SetContext(ctx).
 				SetResult(&response).
 				SetQueryParams(map[string]string{
-					"IncludeItemTypes": "Movie,Series",
+					"IncludeItemTypes": "Movie,Series,Season,Episode", // Incluir Episodes y Seasons
 					"Recursive":        "true",
-					"Fields":           "Path,DateCreated,MediaSources,UserData,ChildCount,RecursiveItemCount", // Incluir RecursiveItemCount
+					"Fields":           "Path,DateCreated,MediaSources,UserData,ChildCount,RecursiveItemCount,ParentId,SeriesId,SeriesName,SeasonId,SeasonName,IndexNumber,ParentIndexNumber", // Más campos para episodes
 					"StartIndex":       fmt.Sprintf("%d", startIndex),
 					"Limit":            fmt.Sprintf("%d", pageSize),
 					"EnableImages":     "false", // Acelerar respuesta
