@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/carcheky/keepercheky/internal/config"
@@ -110,7 +112,7 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 	s.logger.Info("✅ Database cleared, starting fresh sync")
 
 	// Invalidate cache on all services before syncing
-	s.invalidateAllCaches(ctx)
+	s.invalidateAllCaches(ctx, nil)
 
 	// Map to track media by unique key (title + year) for merging
 	mediaMap := make(map[string]*models.Media)
@@ -143,7 +145,7 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 
 	// 3. Sync from Jellyfin (enrichment + additional media)
 	if s.jellyfinClient != nil {
-		if err := s.syncJellyfin(ctx, mediaMap); err != nil {
+		if err := s.syncJellyfin(ctx, mediaMap, nil); err != nil {
 			s.logger.Error("Failed to sync Jellyfin", zap.Error(err))
 		}
 	}
@@ -225,7 +227,16 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Message: "🔄 Invalidando cachés de servicios...",
 		Status:  "processing",
 	}
-	s.invalidateAllCaches(ctx)
+	s.logger.Info("Sent progress: invalidate_cache")
+
+	s.invalidateAllCaches(ctx, progressChan)
+
+	progressChan <- SyncProgress{
+		Step:    "invalidate_cache_complete",
+		Message: "✅ Cachés invalidados",
+		Status:  "success",
+	}
+	s.logger.Info("Sent progress: invalidate_cache_complete")
 
 	// Map to track media by unique key (title + year) for merging
 	mediaMap := make(map[string]*models.Media)
@@ -296,7 +307,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 			Status:  "processing",
 		}
 
-		if err := s.syncJellyfin(ctx, mediaMap); err != nil {
+		if err := s.syncJellyfin(ctx, mediaMap, progressChan); err != nil {
 			s.logger.Error("Failed to sync Jellyfin", zap.Error(err))
 			progressChan <- SyncProgress{
 				Step:    "sync_jellyfin_error",
@@ -312,36 +323,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		}
 	}
 
-	// 4. Save all media to database in batch
-	progressChan <- SyncProgress{
-		Step:    "save_db",
-		Message: fmt.Sprintf("💾 Guardando %d elementos en base de datos...", len(mediaMap)),
-		Status:  "processing",
-	}
-
-	savedCount := 0
-	errorCount := 0
-
-	for _, media := range mediaMap {
-		// Since we cleared the database, we can use Create instead of CreateOrUpdate
-		if err := s.mediaRepo.Create(media); err != nil {
-			s.logger.Error("Failed to save media",
-				zap.String("title", media.Title),
-				zap.Error(err),
-			)
-			errorCount++
-			continue
-		}
-		savedCount++
-	}
-
-	progressChan <- SyncProgress{
-		Step:    "save_db_complete",
-		Message: fmt.Sprintf("✅ Guardados: %d elementos (%d errores)", savedCount, errorCount),
-		Status:  "success",
-	}
-
-	// 4.5. Enrich with seeding status from qBittorrent
+	// 4. Enrich with seeding status from qBittorrent (BEFORE saving to DB)
 	if s.qbittorrentClient != nil {
 		progressChan <- SyncProgress{
 			Step:    "enrich_torrents",
@@ -365,11 +347,63 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		}
 	}
 
+	// 5. Save all media to database in batch (AFTER enrichment)
+	progressChan <- SyncProgress{
+		Step:    "save_db",
+		Message: fmt.Sprintf("💾 Guardando %d elementos en base de datos...", len(mediaMap)),
+		Status:  "processing",
+	}
+	s.logger.Info("Sent progress: save_db")
+
+	savedCount := 0
+	errorCount := 0
+	totalItems := len(mediaMap)
+	progressInterval := max(totalItems/10, 1) // Reportar cada 10% o cada item si hay pocos
+
+	itemCount := 0
+	for _, media := range mediaMap {
+		itemCount++
+
+		// Report progress every interval
+		if itemCount%progressInterval == 0 || itemCount == totalItems {
+			progressChan <- SyncProgress{
+				Step:    "save_db_progress",
+				Message: fmt.Sprintf("💾 Guardando... %d/%d (%d%%)", itemCount, totalItems, (itemCount*100)/totalItems),
+				Status:  "processing",
+			}
+		}
+
+		// Since we cleared the database, we can use Create instead of CreateOrUpdate
+		if err := s.mediaRepo.Create(media); err != nil {
+			s.logger.Error("Failed to save media",
+				zap.String("title", media.Title),
+				zap.Error(err),
+			)
+			errorCount++
+			continue
+		}
+		savedCount++
+	}
+
+	progressChan <- SyncProgress{
+		Step:    "save_db_complete",
+		Message: fmt.Sprintf("✅ Guardados: %d elementos (%d errores)", savedCount, errorCount),
+		Status:  "success",
+	}
+	s.logger.Info("Sent progress: save_db_complete")
+
 	s.logger.Info("✅ Sync completed successfully",
 		zap.Int("total_synced", len(mediaMap)),
 		zap.Int("saved", savedCount),
 		zap.Int("errors", errorCount),
 	)
+
+	// Send final completion message
+	progressChan <- SyncProgress{
+		Step:    "complete",
+		Message: "✅ Sincronización completada exitosamente",
+		Status:  "success",
+	}
 
 	return nil
 }
@@ -407,20 +441,46 @@ func (s *SyncService) syncSonarr(ctx context.Context) ([]*models.Media, error) {
 }
 
 // syncJellyfin syncs media from Jellyfin and merges with existing data.
-func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*models.Media) error {
+func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*models.Media, progressChan chan<- SyncProgress) error {
 	s.logger.Info("Syncing from Jellyfin")
+
+	sendProgress := func(progress SyncProgress) {
+		if progressChan != nil {
+			progressChan <- progress
+		}
+	}
 
 	jellyfinMedia, err := s.jellyfinClient.GetLibrary(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get Jellyfin library: %w", err)
 	}
 
+	sendProgress(SyncProgress{
+		Step:    "merge_jellyfin",
+		Message: fmt.Sprintf("🔄 Procesando %d items de Jellyfin...", len(jellyfinMedia)),
+		Status:  "processing",
+	})
+
 	newFromJellyfin := 0
 	enriched := 0
 	skipped := 0
 	totalJellyfinEpisodes := 0
+	processedCount := 0
+	totalItems := len(jellyfinMedia)
+	progressInterval := max(totalItems/10, 1) // Reportar cada 10%
 
 	for _, jfMedia := range jellyfinMedia {
+		processedCount++
+
+		// Report progress every interval
+		if processedCount%progressInterval == 0 || processedCount == totalItems {
+			sendProgress(SyncProgress{
+				Step:    "merge_jellyfin_progress",
+				Message: fmt.Sprintf("🔄 Fusionando datos de Jellyfin... %d/%d (%d%%)", processedCount, totalItems, (processedCount*100)/totalItems),
+				Status:  "processing",
+			})
+		}
+
 		// Skip if no valid data
 		if jfMedia == nil || jfMedia.Title == "" {
 			skipped++
@@ -444,6 +504,14 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 			// Always update JellyfinID if available
 			if jfMedia.JellyfinID != nil {
 				existingMedia.JellyfinID = jfMedia.JellyfinID
+				s.logger.Debug("Enriched media with Jellyfin ID",
+					zap.String("title", existingMedia.Title),
+					zap.String("jellyfin_id", *jfMedia.JellyfinID),
+				)
+			} else {
+				s.logger.Debug("Jellyfin media has no ID",
+					zap.String("title", jfMedia.Title),
+				)
 			}
 
 			// También copiar playback info si está disponible
@@ -716,11 +784,32 @@ func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map
 }
 
 // enrichWithSeedingStatus enriches media with seeding status from qBittorrent.
+// This function only updates the mediaMap in memory, it does NOT save to database.
+// The save happens later in the sync flow.
 func (s *SyncService) enrichWithSeedingStatus(ctx context.Context, mediaMap map[string]*models.Media) error {
 	s.logger.Info("Enriching media with seeding status from qBittorrent")
 
+	// Get ALL torrents at once - much more efficient!
+	torrentMap, err := s.qbittorrentClient.GetAllTorrentsMap(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get torrents map: %w", err)
+	}
+
+	s.logger.Info("Torrent map loaded",
+		zap.Int("total_torrents", len(torrentMap)),
+	)
+
+	// Log first 3 torrent paths for debugging
+	debugCount := 0
+	for torrentPath := range torrentMap {
+		if debugCount < 3 {
+			s.logger.Debug("Sample torrent path", zap.String("path", torrentPath))
+			debugCount++
+		}
+	}
+
 	enrichedCount := 0
-	errorCount := 0
+	notFoundCount := 0
 
 	for _, media := range mediaMap {
 		// Skip if media has no file path
@@ -728,56 +817,131 @@ func (s *SyncService) enrichWithSeedingStatus(ctx context.Context, mediaMap map[
 			continue
 		}
 
-		// Try to get torrent info by file path
-		torrentInfo, err := s.qbittorrentClient.GetTorrentByPath(ctx, media.FilePath)
-		if err != nil {
-			// Not an error if torrent doesn't exist - media might not be from torrent
+		// Try exact match first (content_path or save_path)
+		torrentInfo, found := torrentMap[media.FilePath]
+
+		// If not found, try fuzzy matching with disambiguation
+		// This handles hardlinks where Radarr/Sonarr copy from /Descargas to /Peliculas
+		if !found {
+			mediaBaseName := filepath.Base(media.FilePath)
+			normalizedMedia := normalizeName(mediaBaseName)
+
+			// Collect all potential matches
+			var candidates []*models.TorrentInfo
+
+			for torrentPath, tInfo := range torrentMap {
+				torrentBaseName := filepath.Base(torrentPath)
+				normalizedTorrent := normalizeName(torrentBaseName)
+
+				// Check if names are similar (case-insensitive, ignoring dots/spaces/special chars)
+				if strings.Contains(normalizedTorrent, normalizedMedia) ||
+					strings.Contains(normalizedMedia, normalizedTorrent) {
+					candidates = append(candidates, tInfo)
+				}
+			}
+
+			// If we have candidates, disambiguate
+			if len(candidates) > 0 {
+				if len(candidates) == 1 {
+					// Single match - use it
+					torrentInfo = candidates[0]
+					found = true
+					s.logger.Debug("Fuzzy match found (single candidate)",
+						zap.String("media_basename", mediaBaseName),
+						zap.String("title", media.Title),
+						zap.String("hash", torrentInfo.Hash),
+					)
+				} else {
+					// Multiple matches - disambiguate by size
+					// Choose the torrent closest in size to the media file
+					torrentInfo = s.findBestTorrentMatch(media, candidates)
+					found = true
+					s.logger.Debug("Fuzzy match found (multiple candidates, chose best by size)",
+						zap.String("media_basename", mediaBaseName),
+						zap.String("title", media.Title),
+						zap.Int("candidates", len(candidates)),
+						zap.String("chosen_hash", torrentInfo.Hash),
+						zap.Int64("media_size", media.Size),
+						zap.Int64("torrent_size", torrentInfo.Size),
+					)
+				}
+			}
+		}
+
+		// If still not found, log for debugging
+		if !found {
+			notFoundCount++
+			if notFoundCount <= 5 { // Log first 5 for debugging
+				s.logger.Debug("No torrent match",
+					zap.String("title", media.Title),
+					zap.String("file_path", media.FilePath),
+					zap.String("basename", filepath.Base(media.FilePath)),
+				)
+			}
 			continue
 		}
 
-		// Update media with torrent info
+		// Update media IN MEMORY with torrent info (will be saved to DB later)
 		media.TorrentHash = torrentInfo.Hash
 		media.IsSeeding = torrentInfo.IsSeeding
 		media.SeedRatio = torrentInfo.Ratio
-
-		// Save updated media
-		if err := s.mediaRepo.CreateOrUpdate(media); err != nil {
-			s.logger.Error("Failed to update media with seeding status",
-				zap.String("title", media.Title),
-				zap.Error(err),
-			)
-			errorCount++
-		} else {
-			enrichedCount++
-		}
+		media.TorrentCategory = torrentInfo.Category
+		media.TorrentTags = torrentInfo.Tags
+		media.TorrentState = torrentInfo.State
+		enrichedCount++
 	}
 
 	s.logger.Info("Seeding status enrichment complete",
+		zap.Int("total_torrents", len(torrentMap)),
+		zap.Int("total_media", len(mediaMap)),
 		zap.Int("enriched", enrichedCount),
-		zap.Int("errors", errorCount),
+		zap.Int("not_found", notFoundCount),
 	)
 
 	return nil
 }
 
 // invalidateAllCaches invalidates caches on all configured services to ensure fresh data.
-func (s *SyncService) invalidateAllCaches(ctx context.Context) {
+func (s *SyncService) invalidateAllCaches(ctx context.Context, progressChan chan<- SyncProgress) {
 	s.logger.Info("Invalidating caches on all services before sync")
+
+	sendProgress := func(progress SyncProgress) {
+		if progressChan != nil {
+			progressChan <- progress
+		}
+	}
 
 	// Invalidate Jellyfin cache
 	if s.jellyfinClient != nil {
+		sendProgress(SyncProgress{
+			Step:    "invalidate_jellyfin",
+			Message: "🔄 Invalidando caché de Jellyfin...",
+			Status:  "processing",
+		})
+
 		jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
 		if ok {
 			if err := jellyfinClient.InvalidateCache(ctx); err != nil {
 				s.logger.Warn("Failed to invalidate Jellyfin cache",
 					zap.Error(err),
 				)
+			} else {
+				sendProgress(SyncProgress{
+					Step:    "invalidate_jellyfin_complete",
+					Message: "✅ Caché de Jellyfin invalidado",
+					Status:  "success",
+				})
 			}
 		}
 	}
 
 	// Note: Radarr and Sonarr already have Cache-Control headers in HTTP client
 	// so their requests are never cached. No additional action needed.
+	sendProgress(SyncProgress{
+		Step:    "invalidate_radarr_sonarr",
+		Message: "ℹ️  Radarr y Sonarr: sin caché (Cache-Control headers)",
+		Status:  "info",
+	})
 
 	s.logger.Info("Cache invalidation complete")
 }
@@ -795,4 +959,93 @@ func ptrStringValue(ptr *string) string {
 		return ""
 	}
 	return *ptr
+}
+
+// normalizeName normalizes a filename for fuzzy matching by:
+// - Converting to lowercase
+// - Replacing dots, underscores, and multiple spaces with single space
+// - Removing special characters
+// - Trimming whitespace
+func normalizeName(name string) string {
+	// Convert to lowercase
+	normalized := strings.ToLower(name)
+
+	// Replace dots and underscores with spaces
+	normalized = strings.ReplaceAll(normalized, ".", " ")
+	normalized = strings.ReplaceAll(normalized, "_", " ")
+	normalized = strings.ReplaceAll(normalized, "-", " ")
+
+	// Remove common release group brackets/parentheses content
+	// e.g., "[HDO]", "(2021)", etc. - but keep years for movies
+	normalized = strings.TrimSpace(normalized)
+
+	// Collapse multiple spaces into one
+	for strings.Contains(normalized, "  ") {
+		normalized = strings.ReplaceAll(normalized, "  ", " ")
+	}
+
+	return normalized
+}
+
+// findBestTorrentMatch selects the best torrent from multiple candidates.
+// Strategy:
+// 1. If media has size info, choose torrent closest in size (within 10% tolerance)
+// 2. If sizes don't match or no size info, choose torrent with highest seed ratio
+// 3. As last resort, choose first candidate
+func (s *SyncService) findBestTorrentMatch(media *models.Media, candidates []*models.TorrentInfo) *models.TorrentInfo {
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	if len(candidates) == 1 {
+		return candidates[0]
+	}
+
+	// If media has size information, try to match by size
+	if media.Size > 0 {
+		var bestMatch *models.TorrentInfo
+		smallestDiff := int64(^uint64(0) >> 1) // Max int64
+
+		for _, candidate := range candidates {
+			if candidate.Size == 0 {
+				continue
+			}
+
+			// Calculate size difference
+			diff := media.Size - candidate.Size
+			if diff < 0 {
+				diff = -diff
+			}
+
+			// Check if within 10% tolerance
+			tolerance := media.Size / 10
+			if diff <= tolerance && diff < smallestDiff {
+				smallestDiff = diff
+				bestMatch = candidate
+			}
+		}
+
+		if bestMatch != nil {
+			s.logger.Debug("Matched torrent by size",
+				zap.Int64("media_size", media.Size),
+				zap.Int64("torrent_size", bestMatch.Size),
+				zap.Int64("difference", smallestDiff),
+			)
+			return bestMatch
+		}
+	}
+
+	// Fallback: Choose torrent with highest seed ratio (most likely the active one)
+	bestMatch := candidates[0]
+	for _, candidate := range candidates[1:] {
+		if candidate.Ratio > bestMatch.Ratio {
+			bestMatch = candidate
+		}
+	}
+
+	s.logger.Debug("Matched torrent by ratio",
+		zap.Float64("chosen_ratio", bestMatch.Ratio),
+	)
+
+	return bestMatch
 }
