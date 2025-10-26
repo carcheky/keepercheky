@@ -238,12 +238,15 @@ func (c *QBittorrentClient) GetTorrentByPath(ctx context.Context, filePath strin
 		// Check if the file path matches this torrent's save path or content path
 		if strings.Contains(filePath, t.SavePath) || strings.Contains(filePath, t.ContentPath) {
 			// Get tracker information for this torrent
-			tracker, err := c.GetPrimaryTracker(ctx, t.Hash)
+			tracker := ""
+			trackerInfo, err := c.GetPrimaryTracker(ctx, t.Hash)
 			if err != nil {
 				c.logger.Warn("Failed to get tracker info",
 					zap.String("hash", t.Hash),
 					zap.Error(err),
 				)
+			} else {
+				tracker = trackerInfo
 			}
 
 			info := &models.TorrentInfo{
@@ -455,7 +458,7 @@ func (c *QBittorrentClient) GetPrimaryTracker(ctx context.Context, hash string) 
 
 	// Find the working tracker with the lowest tier (primary)
 	var primaryTracker string
-	lowestTier := 999999
+	lowestTier := int(^uint(0) >> 1) // Max int value
 	
 	for _, tracker := range trackers {
 		// Skip the DHT/PEX/LSD pseudo-trackers

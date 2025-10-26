@@ -430,9 +430,9 @@
                                                     <span class="text-gray-400">Estado:</span>
                                                     <span class="font-medium" x-text="item.is_seeding ? '🌱 Seeding' : '⏸️ Pausado'"></span>
                                                 </div>
-                                                <div x-show="item.torrent_hash && item.torrent_hash !== ''" class="flex justify-between text-gray-500 text-xxs pt-1.5 border-t border-gray-700">
-                                                    <span>Hash:</span>
-                                                    <span class="font-mono" x-text="item.torrent_hash?.substring(0, 12) + '...'"></span>
+                                                <div x-show="item.torrent_hash && item.torrent_hash !== ''" class="flex justify-between text-gray-500 pt-1.5 border-t border-gray-700">
+                                                    <span class="text-xs">Hash:</span>
+                                                    <span class="font-mono text-xs" x-text="item.torrent_hash?.substring(0, 12) + '...'"></span>
                                                 </div>
                                             </div>
                                             <!-- Tooltip arrow -->
