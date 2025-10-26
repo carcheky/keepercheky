@@ -22,6 +22,7 @@ type SyncService struct {
 	sonarrClient      clients.MediaClient
 	jellyfinClient    clients.StreamingClient
 	jellyseerrClient  clients.RequestClient
+	jellystatClient   *clients.JellystatClient
 	qbittorrentClient *clients.QBittorrentClient
 	logger            *zap.Logger
 	config            *config.Config
@@ -81,6 +82,17 @@ func NewSyncService(
 			clients.ClientConfig{
 				BaseURL: cfg.Clients.Jellyseerr.URL,
 				APIKey:  cfg.Clients.Jellyseerr.APIKey,
+				Timeout: 30 * time.Second,
+			},
+			zapLogger,
+		)
+	}
+
+	if cfg.Clients.Jellystat.Enabled {
+		svc.jellystatClient = clients.NewJellystatClient(
+			clients.ClientConfig{
+				BaseURL: cfg.Clients.Jellystat.URL,
+				APIKey:  cfg.Clients.Jellystat.APIKey,
 				Timeout: 30 * time.Second,
 			},
 			zapLogger,
@@ -602,6 +614,12 @@ func (s *SyncService) TestConnection(ctx context.Context, service string) error 
 		}
 		return s.jellyseerrClient.TestConnection(ctx)
 
+	case "jellystat":
+		if s.jellystatClient == nil {
+			return fmt.Errorf("Jellystat not configured")
+		}
+		return s.jellystatClient.TestConnection(ctx)
+
 	case "qbittorrent":
 		if s.qbittorrentClient == nil {
 			return fmt.Errorf("qBittorrent not configured")
@@ -671,6 +689,15 @@ func (s *SyncService) GetJellyseerrSystemInfo(ctx context.Context) (*clients.Jel
 	}
 
 	return jellyseerrClient.GetSystemInfo(ctx)
+}
+
+// GetJellystatSystemInfo returns complete system information from Jellystat.
+func (s *SyncService) GetJellystatSystemInfo(ctx context.Context) (*clients.JellystatSystemInfo, error) {
+	if s.jellystatClient == nil {
+		return nil, fmt.Errorf("Jellystat not configured")
+	}
+
+	return s.jellystatClient.GetSystemInfo(ctx)
 }
 
 // GetQBittorrentSystemInfo returns complete system information from qBittorrent.

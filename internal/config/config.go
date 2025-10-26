@@ -31,6 +31,11 @@ type EnvSourceMap struct {
 		APIKey  bool `json:"api_key"`
 		URL     bool `json:"url"`
 	} `json:"jellyseerr"`
+	Jellystat struct {
+		Enabled bool `json:"enabled"`
+		URL     bool `json:"url"`
+		APIKey  bool `json:"api_key"`
+	} `json:"jellystat"`
 	QBittorrent struct {
 		Enabled  bool `json:"enabled"`
 		Username bool `json:"username"`
@@ -62,6 +67,11 @@ func GetEnvSourceMap() *EnvSourceMap {
 	envMap.Jellyseerr.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED") != ""
 	envMap.Jellyseerr.URL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_URL") != ""
 	envMap.Jellyseerr.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY") != ""
+
+	// Check Jellystat
+	envMap.Jellystat.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_ENABLED") != ""
+	envMap.Jellystat.URL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_URL") != ""
+	envMap.Jellystat.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_API_KEY") != ""
 
 	// Check qBittorrent
 	envMap.QBittorrent.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED") != ""
@@ -125,6 +135,7 @@ type ClientsConfig struct {
 	Sonarr      ServiceClient     `mapstructure:"sonarr" yaml:"sonarr"`
 	Jellyfin    ServiceClient     `mapstructure:"jellyfin" yaml:"jellyfin"`
 	Jellyseerr  ServiceClient     `mapstructure:"jellyseerr" yaml:"jellyseerr"`
+	Jellystat   JellystatClient   `mapstructure:"jellystat" yaml:"jellystat"`
 	QBittorrent QBittorrentClient `mapstructure:"qbittorrent" yaml:"qbittorrent"`
 }
 
@@ -139,6 +150,12 @@ type QBittorrentClient struct {
 	URL      string `mapstructure:"url" yaml:"url"`
 	Username string `mapstructure:"username" yaml:"username"`
 	Password string `mapstructure:"password" yaml:"password"`
+}
+
+type JellystatClient struct {
+	Enabled bool   `mapstructure:"enabled" yaml:"enabled"`
+	URL     string `mapstructure:"url" yaml:"url"`
+	APIKey  string `mapstructure:"api_key" yaml:"api_key"`
 }
 
 func Load() (*Config, error) {
@@ -157,6 +174,7 @@ func Load() (*Config, error) {
 	viper.BindEnv("clients.sonarr.api_key", "SONARR_API_KEY")
 	viper.BindEnv("clients.jellyfin.api_key", "JELLYFIN_API_KEY")
 	viper.BindEnv("clients.jellyseerr.api_key", "JELLYSEERR_API_KEY")
+	viper.BindEnv("clients.jellystat.api_key", "JELLYSTAT_API_KEY")
 	viper.BindEnv("clients.qbittorrent.username", "QBITTORRENT_USERNAME")
 	viper.BindEnv("clients.qbittorrent.password", "QBITTORRENT_PASSWORD")
 
@@ -290,6 +308,19 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 		return true
 	}
 
+	if envSources.Jellystat.Enabled && original.Clients.Jellystat.Enabled != merged.Clients.Jellystat.Enabled {
+		fmt.Printf("  📝 Change detected: jellystat.enabled (%v → %v)\n", original.Clients.Jellystat.Enabled, merged.Clients.Jellystat.Enabled)
+		return true
+	}
+	if envSources.Jellystat.URL && original.Clients.Jellystat.URL != merged.Clients.Jellystat.URL {
+		fmt.Printf("  📝 Change detected: jellystat.url (%s → %s)\n", original.Clients.Jellystat.URL, merged.Clients.Jellystat.URL)
+		return true
+	}
+	if envSources.Jellystat.APIKey && original.Clients.Jellystat.APIKey != merged.Clients.Jellystat.APIKey {
+		fmt.Printf("  📝 Change detected: jellystat.api_key (****** → ******)\n")
+		return true
+	}
+
 	if envSources.QBittorrent.Enabled && original.Clients.QBittorrent.Enabled != merged.Clients.QBittorrent.Enabled {
 		fmt.Printf("  📝 Change detected: qbittorrent.enabled (%v → %v)\n", original.Clients.QBittorrent.Enabled, merged.Clients.QBittorrent.Enabled)
 		return true
@@ -315,6 +346,7 @@ func hasAnyEnvVars(envMap *EnvSourceMap) bool {
 		envMap.Sonarr.Enabled || envMap.Sonarr.URL || envMap.Sonarr.APIKey ||
 		envMap.Jellyfin.Enabled || envMap.Jellyfin.URL || envMap.Jellyfin.APIKey ||
 		envMap.Jellyseerr.Enabled || envMap.Jellyseerr.URL || envMap.Jellyseerr.APIKey ||
+		envMap.Jellystat.Enabled || envMap.Jellystat.URL || envMap.Jellystat.APIKey ||
 		envMap.QBittorrent.Enabled || envMap.QBittorrent.URL || envMap.QBittorrent.Username || envMap.QBittorrent.Password
 }
 
@@ -355,6 +387,15 @@ func logEnvOverrides(envMap *EnvSourceMap) {
 	}
 	if envMap.Jellyseerr.APIKey {
 		fmt.Println("  - clients.jellyseerr.api_key (from JELLYSEERR_API_KEY)")
+	}
+	if envMap.Jellystat.Enabled {
+		fmt.Println("  - clients.jellystat.enabled (from KEEPERCHEKY_CLIENTS_JELLYSTAT_ENABLED)")
+	}
+	if envMap.Jellystat.URL {
+		fmt.Println("  - clients.jellystat.url (from KEEPERCHEKY_CLIENTS_JELLYSTAT_URL)")
+	}
+	if envMap.Jellystat.APIKey {
+		fmt.Println("  - clients.jellystat.api_key (from JELLYSTAT_API_KEY)")
 	}
 	if envMap.QBittorrent.Enabled {
 		fmt.Println("  - clients.qbittorrent.enabled (from KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED)")
@@ -443,6 +484,7 @@ func setDefaults() {
 	viper.SetDefault("clients.sonarr.enabled", false)
 	viper.SetDefault("clients.jellyfin.enabled", false)
 	viper.SetDefault("clients.jellyseerr.enabled", false)
+	viper.SetDefault("clients.jellystat.enabled", false)
 	viper.SetDefault("clients.qbittorrent.enabled", false)
 
 	// Filesystem defaults
