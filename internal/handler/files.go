@@ -101,6 +101,18 @@ func (h *FilesHandler) RenderFilesPage(c *fiber.Ctx) error {
 func (h *FilesHandler) getServicePaths(ctx context.Context) []PathInfo {
 	var paths []PathInfo
 
+	// Get qBittorrent save paths FIRST (origin/source)
+	if h.config.Clients.QBittorrent.Enabled && h.syncService.GetQBittorrentClient() != nil {
+		qbittorrentPaths := h.getQBittorrentPaths(ctx)
+		paths = append(paths, qbittorrentPaths...)
+	}
+
+	// Get Jellyfin library paths (destination)
+	if h.config.Clients.Jellyfin.Enabled && h.syncService.GetJellyfinClient() != nil {
+		jellyfinPaths := h.getJellyfinPaths(ctx)
+		paths = append(paths, jellyfinPaths...)
+	}
+
 	// Get Radarr root folders
 	if h.config.Clients.Radarr.Enabled && h.syncService.GetRadarrClient() != nil {
 		radarrPaths := h.getRadarrPaths(ctx)
@@ -111,18 +123,6 @@ func (h *FilesHandler) getServicePaths(ctx context.Context) []PathInfo {
 	if h.config.Clients.Sonarr.Enabled && h.syncService.GetSonarrClient() != nil {
 		sonarrPaths := h.getSonarrPaths(ctx)
 		paths = append(paths, sonarrPaths...)
-	}
-
-	// Get Jellyfin library paths
-	if h.config.Clients.Jellyfin.Enabled && h.syncService.GetJellyfinClient() != nil {
-		jellyfinPaths := h.getJellyfinPaths(ctx)
-		paths = append(paths, jellyfinPaths...)
-	}
-
-	// Get qBittorrent save paths
-	if h.config.Clients.QBittorrent.Enabled && h.syncService.GetQBittorrentClient() != nil {
-		qbittorrentPaths := h.getQBittorrentPaths(ctx)
-		paths = append(paths, qbittorrentPaths...)
 	}
 
 	return paths
@@ -212,49 +212,25 @@ func (h *FilesHandler) getQBittorrentPaths(ctx context.Context) []PathInfo {
 		return paths
 	}
 
-	// Get all torrents and extract unique SavePath directories
-	torrentMap, err := client.GetAllTorrentsMap(ctx)
+	// Get qBittorrent preferences (configuration) for default save path (completed downloads)
+	prefs, err := client.GetPreferences(ctx)
 	if err != nil {
-		h.logger.Error("Failed to get qBittorrent torrents for paths",
+		h.logger.Error("Failed to get qBittorrent preferences",
 			zap.Error(err),
 		)
 		return paths
 	}
 
-	h.logger.Info("Retrieved qBittorrent torrents for paths",
-		zap.Int("torrent_count", len(torrentMap)),
-	)
-
-	// Use a map to deduplicate SavePath directories
-	savePathSet := make(map[string]bool)
-
-	for _, torrent := range torrentMap {
-		// Use SavePath as the base download directory
-		if torrent.SavePath != "" {
-			savePathSet[torrent.SavePath] = true
-			h.logger.Debug("Found SavePath from qBittorrent",
-				zap.String("save_path", torrent.SavePath),
-				zap.String("category", torrent.Category),
-			)
-		}
-	}
-
-	h.logger.Info("Unique SavePaths from qBittorrent",
-		zap.Int("unique_paths", len(savePathSet)),
-	)
-
-	// Convert to PathInfo slice
-	for savePath := range savePathSet {
-		label := "⬇️ qBittorrent: Descargas"
+	// Add default save path (completed downloads path)
+	if prefs.SavePath != "" {
 		paths = append(paths, PathInfo{
 			Service: "qbittorrent",
 			Type:    "download",
-			Path:    savePath,
-			Label:   label,
+			Path:    prefs.SavePath,
+			Label:   "⬇️ qBittorrent: Descargas completadas",
 		})
-		h.logger.Info("Added qBittorrent path",
-			zap.String("path", savePath),
-			zap.String("label", label),
+		h.logger.Info("Added qBittorrent completed downloads path",
+			zap.String("path", prefs.SavePath),
 		)
 	}
 
