@@ -293,3 +293,118 @@ func (c *QBittorrentClient) isStateSeeding(state string) bool {
 
 	return seedingStates[state]
 }
+
+// GetAllTorrents retrieves all torrents as Media items (for orphaned torrents not in Radarr/Sonarr).
+func (c *QBittorrentClient) GetAllTorrents(ctx context.Context) ([]*models.Media, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	var torrents []qbTorrent
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&torrents).
+		Get("/api/v2/torrents/info")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get torrents: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	mediaList := make([]*models.Media, 0, len(torrents))
+	for _, t := range torrents {
+		media := &models.Media{
+			Title:       t.Name,
+			Type:        "torrent", // Special type for standalone torrents
+			FilePath:    t.ContentPath,
+			Size:        t.Size,
+			AddedDate:   time.Now(), // qBittorrent API doesn't provide this easily
+			TorrentHash: t.Hash,
+			IsSeeding:   c.isStateSeeding(t.State),
+			SeedRatio:   t.Ratio,
+			Quality:     t.Category, // Use category as quality indicator
+			Tags:        []string{t.Tags},
+		}
+
+		mediaList = append(mediaList, media)
+	}
+
+	c.logger.Info("Retrieved all torrents from qBittorrent",
+		zap.Int("total_torrents", len(mediaList)),
+	)
+
+	return mediaList, nil
+}
+
+// GetSeedingStatus checks the seeding status of a torrent by hash.
+func (c *QBittorrentClient) GetSeedingStatus(ctx context.Context, hash string) (bool, float64, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return false, 0, err
+		}
+	}
+
+	var torrents []qbTorrent
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&torrents).
+		SetQueryParam("hashes", hash).
+		Get("/api/v2/torrents/info")
+
+	if err != nil {
+		return false, 0, fmt.Errorf("failed to get torrent info: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return false, 0, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	if len(torrents) == 0 {
+		return false, 0, fmt.Errorf("torrent not found: %s", hash)
+	}
+
+	torrent := torrents[0]
+	isSeeding := c.isStateSeeding(torrent.State)
+
+	return isSeeding, torrent.Ratio, nil
+}
+
+// DeleteTorrent removes a torrent from qBittorrent.
+func (c *QBittorrentClient) DeleteTorrent(ctx context.Context, hash string, deleteFiles bool) error {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return err
+		}
+	}
+
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{
+			"hashes":      hash,
+			"deleteFiles": fmt.Sprintf("%t", deleteFiles),
+		}).
+		Post("/api/v2/torrents/delete")
+
+	if err != nil {
+		return fmt.Errorf("failed to delete torrent: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	c.logger.Info("Deleted torrent from qBittorrent",
+		zap.String("hash", hash),
+		zap.Bool("deleted_files", deleteFiles),
+	)
+
+	return nil
+}

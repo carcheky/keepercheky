@@ -157,6 +157,13 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 		}
 	}
 
+	// 4.5. Enrich with seeding status from qBittorrent
+	if s.qbittorrentClient != nil {
+		if err := s.enrichWithSeedingStatus(ctx, mediaMap); err != nil {
+			s.logger.Error("Failed to enrich with seeding status", zap.Error(err))
+		}
+	}
+
 	// 5. Clean up orphaned media (items that no longer exist in any service)
 	if err := s.cleanupOrphanedMedia(ctx, mediaMap); err != nil {
 		s.logger.Error("Failed to cleanup orphaned media", zap.Error(err))
@@ -414,7 +421,7 @@ func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map
 
 	// Track which media to delete
 	var toDelete []uint
-	
+
 	for _, media := range allMedia {
 		// Check if media exists in current sync
 		if validIDs[media.ID] {
@@ -475,6 +482,51 @@ func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map
 		zap.Int("total_checked", len(allMedia)),
 		zap.Int("orphaned_found", len(toDelete)),
 		zap.Int("deleted", deletedCount),
+	)
+
+	return nil
+}
+
+// enrichWithSeedingStatus enriches media with seeding status from qBittorrent.
+func (s *SyncService) enrichWithSeedingStatus(ctx context.Context, mediaMap map[string]*models.Media) error {
+	s.logger.Info("Enriching media with seeding status from qBittorrent")
+
+	enrichedCount := 0
+	errorCount := 0
+
+	for _, media := range mediaMap {
+		// Skip if media has no file path
+		if media.FilePath == "" {
+			continue
+		}
+
+		// Try to get torrent info by file path
+		torrentInfo, err := s.qbittorrentClient.GetTorrentByPath(ctx, media.FilePath)
+		if err != nil {
+			// Not an error if torrent doesn't exist - media might not be from torrent
+			continue
+		}
+
+		// Update media with torrent info
+		media.TorrentHash = torrentInfo.Hash
+		media.IsSeeding = torrentInfo.IsSeeding
+		media.SeedRatio = torrentInfo.Ratio
+
+		// Save updated media
+		if err := s.mediaRepo.CreateOrUpdate(media); err != nil {
+			s.logger.Error("Failed to update media with seeding status",
+				zap.String("title", media.Title),
+				zap.Error(err),
+			)
+			errorCount++
+		} else {
+			enrichedCount++
+		}
+	}
+
+	s.logger.Info("Seeding status enrichment complete",
+		zap.Int("enriched", enrichedCount),
+		zap.Int("errors", errorCount),
 	)
 
 	return nil

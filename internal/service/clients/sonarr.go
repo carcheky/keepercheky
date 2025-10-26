@@ -89,8 +89,12 @@ type sonarrSeries struct {
 	Added      time.Time `json:"added"`
 	Tags       []int     `json:"tags"`
 	Statistics struct {
-		EpisodeFileCount int   `json:"episodeFileCount"`
-		SizeOnDisk       int64 `json:"sizeOnDisk"`
+		SeasonCount       int     `json:"seasonCount"`
+		EpisodeCount      int     `json:"episodeCount"`
+		EpisodeFileCount  int     `json:"episodeFileCount"`
+		TotalEpisodeCount int     `json:"totalEpisodeCount"`
+		SizeOnDisk        int64   `json:"sizeOnDisk"`
+		PercentOfEpisodes float64 `json:"percentOfEpisodes"`
 	} `json:"statistics"`
 	Images []struct {
 		CoverType string `json:"coverType"`
@@ -355,12 +359,15 @@ func (c *SonarrClient) GetTags(ctx context.Context) ([]models.Tag, error) {
 // convertToMedia converts a Sonarr series to internal Media model.
 func (c *SonarrClient) convertToMedia(series *sonarrSeries) *models.Media {
 	media := &models.Media{
-		Title:     series.Title,
-		Type:      "series",
-		FilePath:  series.Path,
-		Size:      series.Statistics.SizeOnDisk,
-		AddedDate: series.Added,
-		SonarrID:  &series.ID,
+		Title:            series.Title,
+		Type:             "series",
+		FilePath:         series.Path,
+		Size:             series.Statistics.SizeOnDisk,
+		AddedDate:        series.Added,
+		SonarrID:         &series.ID,
+		EpisodeCount:     series.Statistics.TotalEpisodeCount,
+		SeasonCount:      series.Statistics.SeasonCount,
+		EpisodeFileCount: series.Statistics.EpisodeFileCount,
 		// Quality will be determined from episode files
 		Quality: "Unknown",
 	}

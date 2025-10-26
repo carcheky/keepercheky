@@ -21,6 +21,16 @@ type Media struct {
 	AddedDate   time.Time  `json:"added_date" gorm:"index"`
 	LastWatched *time.Time `json:"last_watched"`
 
+	// Series specific
+	EpisodeCount     int `json:"episode_count"`
+	SeasonCount      int `json:"season_count"`
+	EpisodeFileCount int `json:"episode_file_count"` // Downloaded episodes
+
+	// Torrent status
+	IsSeeding   bool    `json:"is_seeding" gorm:"default:false"`
+	TorrentHash string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
+	SeedRatio   float64 `json:"seed_ratio"`
+
 	// Service IDs
 	RadarrID     *int    `json:"radarr_id" gorm:"index"`
 	SonarrID     *int    `json:"sonarr_id" gorm:"index"`
@@ -47,12 +57,12 @@ type Schedule struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 
-	Name        string    `json:"name" gorm:"not null"`
-	Enabled     bool      `json:"enabled" gorm:"default:true"`
-	CronExpr    string    `json:"cron_expr" gorm:"not null"`
+	Name        string     `json:"name" gorm:"not null"`
+	Enabled     bool       `json:"enabled" gorm:"default:true"`
+	CronExpr    string     `json:"cron_expr" gorm:"not null"`
 	LastRun     *time.Time `json:"last_run"`
 	NextRun     *time.Time `json:"next_run"`
-	Description string    `json:"description"`
+	Description string     `json:"description"`
 
 	// Rules (stored as JSON for now, can be normalized later)
 	Rules string `json:"rules" gorm:"type:json"`
