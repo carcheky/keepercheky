@@ -1,10 +1,38 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
 )
+
+// StringSlice is a custom type for string slices that can be serialized to JSON
+type StringSlice []string
+
+// Scan implements the sql.Scanner interface
+func (s *StringSlice) Scan(value interface{}) error {
+	if value == nil {
+		*s = []string{}
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return nil
+	}
+
+	return json.Unmarshal(bytes, s)
+}
+
+// Value implements the driver.Valuer interface
+func (s StringSlice) Value() (driver.Value, error) {
+	if len(s) == 0 {
+		return "[]", nil
+	}
+	return json.Marshal(s)
+}
 
 // Media represents a media item (movie or TV show)
 type Media struct {
@@ -27,9 +55,12 @@ type Media struct {
 	EpisodeFileCount int `json:"episode_file_count"` // Downloaded episodes
 
 	// Torrent status
-	IsSeeding   bool    `json:"is_seeding" gorm:"default:false"`
-	TorrentHash string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
-	SeedRatio   float64 `json:"seed_ratio"`
+	IsSeeding       bool    `json:"is_seeding" gorm:"default:false"`
+	TorrentHash     string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
+	SeedRatio       float64 `json:"seed_ratio"`
+	TorrentCategory string  `json:"torrent_category"` // Category in qBittorrent
+	TorrentTags     string  `json:"torrent_tags"`     // Tags in qBittorrent
+	TorrentState    string  `json:"torrent_state"`    // State (uploading, stalledUP, etc.)
 
 	// Service IDs
 	RadarrID     *int    `json:"radarr_id" gorm:"index"`
@@ -38,9 +69,9 @@ type Media struct {
 	JellyseerrID *int    `json:"jellyseerr_id" gorm:"index"`
 
 	// Metadata
-	Tags     []string `json:"tags" gorm:"type:json"`
-	Quality  string   `json:"quality"`
-	Excluded bool     `json:"excluded" gorm:"default:false;index"`
+	Tags     StringSlice `json:"tags" gorm:"type:text"`
+	Quality  string      `json:"quality"`
+	Excluded bool        `json:"excluded" gorm:"default:false;index"`
 
 	// Relationships
 	History []History `json:"history,omitempty" gorm:"foreignKey:MediaID"`
