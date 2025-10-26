@@ -12,6 +12,8 @@ set -e
 # Directorios principales
 MEDIA_BASE="./volumes/media-library"
 DOWNLOADS_DIR="$MEDIA_BASE/downloads/complete"
+DOWNLOADS_MOVIES_DIR="$DOWNLOADS_DIR/movies"
+DOWNLOADS_TV_DIR="$DOWNLOADS_DIR/tv"
 LIBRARY_DIR="$MEDIA_BASE/library"
 MOVIES_DIR="$LIBRARY_DIR/movies"
 TVSHOWS_DIR="$LIBRARY_DIR/tv"
@@ -20,7 +22,8 @@ echo "🎬 Creando biblioteca de medios simulada..."
 echo ""
 
 # Crear directorios si no existen (no borramos nada, solo sobreescribimos)
-mkdir -p "$DOWNLOADS_DIR"
+mkdir -p "$DOWNLOADS_MOVIES_DIR"
+mkdir -p "$DOWNLOADS_TV_DIR"
 mkdir -p "$MOVIES_DIR"
 mkdir -p "$TVSHOWS_DIR"
 
@@ -54,7 +57,7 @@ create_hardlink() {
 }
 
 echo ""
-echo "� Creando archivos en downloads/complete/..."
+echo "🎬 Creando archivos en downloads/complete/movies/..."
 
 # Archivos de películas en downloads (nombres típicos de torrents)
 declare -A downloaded_movies=(
@@ -76,7 +79,7 @@ declare -A downloaded_movies=(
 
 for movie in "${!downloaded_movies[@]}"; do
     size=${downloaded_movies[$movie]}
-    filepath="$DOWNLOADS_DIR/$movie"
+    filepath="$DOWNLOADS_MOVIES_DIR/$movie"
     echo "  ✓ Descarga: $movie ($size MB)"
     create_file "$filepath" $size
 done
