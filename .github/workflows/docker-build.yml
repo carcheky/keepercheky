@@ -85,8 +85,10 @@ jobs:
       always() && 
       (needs.test.result == 'success' || needs.test.result == 'skipped') &&
       (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
-      (github.event_name == 'push' || github.event_name == 'pull_request') &&
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta' || github.event_name == 'pull_request')
+      (
+        github.event_name == 'pull_request' ||
+        (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta'))
+      )
     permissions:
       contents: write
       issues: write
