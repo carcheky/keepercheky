@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
@@ -51,6 +52,15 @@ func main() {
 	// Initialize template engine
 	engine := html.New("./web/templates", ".html")
 	engine.Reload(cfg.App.Environment == "development")
+
+	// Add custom template functions
+	engine.AddFunc("toJSON", func(v interface{}) string {
+		bytes, err := json.Marshal(v)
+		if err != nil {
+			return "[]"
+		}
+		return string(bytes)
+	})
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -125,6 +135,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 	// Web UI routes
 	app.Get("/", h.Dashboard.Index)
 	app.Get("/media", h.Media.List)
+	app.Get("/files", h.Files.RenderFilesPage)
 	app.Get("/schedules", h.Schedule.List)
 	app.Get("/settings", h.Settings.Index)
 	app.Get("/logs", h.Logs.Index)
@@ -139,6 +150,9 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Delete("/media/:id", h.Media.Delete)
 		api.Post("/media/bulk-delete", h.Media.BulkDelete)
 		api.Post("/media/:id/exclude", h.Media.Exclude)
+
+		// Files
+		api.Get("/files", h.Files.GetFilesAPI)
 
 		// Stats
 		api.Get("/stats", h.Dashboard.Stats)

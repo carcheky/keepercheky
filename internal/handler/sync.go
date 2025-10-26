@@ -12,12 +12,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// SyncService interface defines the contract for sync services
+type SyncService interface {
+	SyncAllWithProgress(ctx context.Context, progressChan chan<- service.SyncProgress) error
+}
+
 type SyncHandler struct {
-	syncService *service.SyncService
+	syncService SyncService
 	logger      *logger.Logger
 }
 
-func NewSyncHandler(syncService *service.SyncService, logger *logger.Logger) *SyncHandler {
+func NewSyncHandler(syncService SyncService, logger *logger.Logger) *SyncHandler {
 	return &SyncHandler{
 		syncService: syncService,
 		logger:      logger,

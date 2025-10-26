@@ -80,7 +80,7 @@ type Media struct {
 	InSonarr      bool `json:"in_sonarr" gorm:"default:false;index"`
 	InJellyfin    bool `json:"in_jellyfin" gorm:"default:false;index"`
 	InJellyseerr  bool `json:"in_jellyseerr" gorm:"default:false;index"`
-	InQBittorrent bool `json:"in_qbittorrent" gorm:"default:false;index"`
+	InQBittorrent bool `json:"in_qbittorrent" gorm:"column:in_q_bittorrent;default:false;index"`
 
 	// Metadata
 	Tags     StringSlice `json:"tags" gorm:"type:text"`

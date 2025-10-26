@@ -697,6 +697,11 @@ func (s *SyncService) GetJellyfinClient() clients.StreamingClient {
 	return s.jellyfinClient
 }
 
+// GetQBittorrentClient returns the qBittorrent client instance.
+func (s *SyncService) GetQBittorrentClient() *clients.QBittorrentClient {
+	return s.qbittorrentClient
+}
+
 // cleanupOrphanedMedia removes media from database that no longer exists in any service.
 func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map[string]*models.Media) error {
 	s.logger.Info("Starting orphaned media cleanup")

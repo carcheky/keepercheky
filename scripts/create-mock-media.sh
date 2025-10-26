@@ -2,16 +2,25 @@
 
 # Script para crear una biblioteca de medios simulada para desarrollo/testing
 # Crea archivos vacíos que simulan películas y series
+# Incluye:
+#   - downloads/complete/ - Archivos descargados por qBittorrent
+#   - library/ - Archivos organizados (algunos hardlinkeados desde downloads)
+#   - Archivos huérfanos en downloads (sin hardlink en library)
 
 set -e
 
-MEDIA_DIR="./volumes/media-library/library"
-MOVIES_DIR="$MEDIA_DIR/movies"
-TVSHOWS_DIR="$MEDIA_DIR/tv"
+# Directorios principales
+MEDIA_BASE="./volumes/media-library"
+DOWNLOADS_DIR="$MEDIA_BASE/downloads/complete"
+LIBRARY_DIR="$MEDIA_BASE/library"
+MOVIES_DIR="$LIBRARY_DIR/movies"
+TVSHOWS_DIR="$LIBRARY_DIR/tv"
 
 echo "🎬 Creando biblioteca de medios simulada..."
+echo ""
 
-# Crear directorios si no existen
+# Crear directorios si no existen (no borramos nada, solo sobreescribimos)
+mkdir -p "$DOWNLOADS_DIR"
 mkdir -p "$MOVIES_DIR"
 mkdir -p "$TVSHOWS_DIR"
 
@@ -27,63 +36,187 @@ create_file() {
     truncate -s "${size_mb}M" "$filepath"
 }
 
-echo ""
-echo "📽️  Creando películas..."
+# Función para crear un hardlink
+create_hardlink() {
+    local source="$1"
+    local target="$2"
+    
+    # Crear el directorio padre del target si no existe
+    mkdir -p "$(dirname "$target")"
+    
+    # Si el target ya existe, eliminarlo primero
+    if [ -e "$target" ]; then
+        rm -f "$target"
+    fi
+    
+    # Crear hardlink
+    ln "$source" "$target"
+}
 
-# Películas de ejemplo con tamaños realistas
-declare -A movies=(
-    ["The Matrix (1999)/The Matrix (1999) - 1080p.mkv"]=2048
-    ["Inception (2010)/Inception (2010) - 1080p.mkv"]=2560
-    ["The Shawshank Redemption (1994)/The Shawshank Redemption (1994) - 1080p.mkv"]=1920
-    ["Pulp Fiction (1994)/Pulp Fiction (1994) - 1080p.mkv"]=2304
-    ["The Dark Knight (2008)/The Dark Knight (2008) - 1080p.mkv"]=2688
-    ["Forrest Gump (1994)/Forrest Gump (1994) - 1080p.mkv"]=2176
-    ["Fight Club (1999)/Fight Club (1999) - 1080p.mkv"]=2432
-    ["Goodfellas (1990)/Goodfellas (1990) - 1080p.mkv"]=2240
-    ["The Godfather (1972)/The Godfather (1972) - 1080p.mkv"]=2816
-    ["The Lord of the Rings The Fellowship of the Ring (2001)/The Fellowship of the Ring (2001) - 1080p.mkv"]=3072
+echo ""
+echo "� Creando archivos en downloads/complete/..."
+
+# Archivos de películas en downloads (nombres típicos de torrents)
+declare -A downloaded_movies=(
+    ["The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv"]=2048
+    ["Inception.2010.1080p.BluRay.x264-SPARKS.mkv"]=2560
+    ["The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY.mkv"]=1920
+    ["Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD.mkv"]=2304
+    ["The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7.mkv"]=2688
+    ["Forrest.Gump.1994.1080p.BluRay.x264-YIFY.mkv"]=2176
+    ["Fight.Club.1999.1080p.BluRay.x264-LEVERAGE.mkv"]=2432
+    ["Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE.mkv"]=2240
+    ["The.Godfather.1972.1080p.BluRay.x264-SiNNERS.mkv"]=2816
+    ["The.Lord.of.the.Rings.The.Fellowship.of.the.Ring.2001.EXTENDED.1080p.BluRay.x264-SECTOR7.mkv"]=3072
+    # Películas huérfanas (sin hardlink en library) - Simulan descargas no procesadas
+    ["Interstellar.2014.1080p.BluRay.x264-SPARKS.mkv"]=2944
+    ["The.Prestige.2006.1080p.BluRay.x264-SECTOR7.mkv"]=2112
+    ["Memento.2000.1080p.BluRay.x264-CiNEFiLE.mkv"]=1856
 )
 
-for movie in "${!movies[@]}"; do
-    size=${movies[$movie]}
-    filepath="$MOVIES_DIR/$movie"
-    echo "  ✓ Creando: $movie ($size MB)"
+for movie in "${!downloaded_movies[@]}"; do
+    size=${downloaded_movies[$movie]}
+    filepath="$DOWNLOADS_DIR/$movie"
+    echo "  ✓ Descarga: $movie ($size MB)"
     create_file "$filepath" $size
 done
 
 echo ""
-echo "📺 Creando series..."
+echo "📽️  Creando películas en library/ (con hardlinks)..."
 
-# Series de ejemplo con temporadas y episodios
-declare -a series=(
-    "Breaking Bad"
-    "Game of Thrones"
-    "The Office"
-    "Friends"
-    "Stranger Things"
+# Mapeo de archivos descargados a su ubicación organizada en library
+# Formato: "nombre_en_downloads|nombre_carpeta|nombre_en_library"
+declare -a movie_mappings=(
+    "The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv|The Matrix (1999)|The Matrix (1999) - 1080p.mkv"
+    "Inception.2010.1080p.BluRay.x264-SPARKS.mkv|Inception (2010)|Inception (2010) - 1080p.mkv"
+    "The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY.mkv|The Shawshank Redemption (1994)|The Shawshank Redemption (1994) - 1080p.mkv"
+    "Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD.mkv|Pulp Fiction (1994)|Pulp Fiction (1994) - 1080p.mkv"
+    "The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7.mkv|The Dark Knight (2008)|The Dark Knight (2008) - 1080p.mkv"
+    "Forrest.Gump.1994.1080p.BluRay.x264-YIFY.mkv|Forrest Gump (1994)|Forrest Gump (1994) - 1080p.mkv"
+    "Fight.Club.1999.1080p.BluRay.x264-LEVERAGE.mkv|Fight Club (1999)|Fight Club (1999) - 1080p.mkv"
+    "Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE.mkv|Goodfellas (1990)|Goodfellas (1990) - 1080p.mkv"
 )
 
-for show in "${series[@]}"; do
-    echo "  📁 Serie: $show"
+for mapping in "${movie_mappings[@]}"; do
+    IFS='|' read -r download_name folder_name library_name <<< "$mapping"
     
-    # Crear 2-3 temporadas por serie
-    num_seasons=$((RANDOM % 2 + 2))
+    source_file="$DOWNLOADS_DIR/$download_name"
+    target_file="$MOVIES_DIR/$folder_name/$library_name"
     
-    for season in $(seq 1 $num_seasons); do
-        season_dir="$TVSHOWS_DIR/$show/Season $(printf %02d $season)"
-        mkdir -p "$season_dir"
-        
-        # Crear 8-12 episodios por temporada
-        num_episodes=$((RANDOM % 5 + 8))
-        
-        for episode in $(seq 1 $num_episodes); do
-            episode_file="$season_dir/${show} - S$(printf %02d $season)E$(printf %02d $episode) - 1080p.mkv"
-            # Episodios de ~800MB - 1.2GB
+    echo "  🔗 Hardlink: $folder_name"
+    create_hardlink "$source_file" "$target_file"
+done
+
+# Algunas películas solo en library (sin hardlink) - Simulan imports antiguos
+declare -A library_only_movies=(
+    ["The Godfather (1972)/The Godfather (1972) - 1080p.mkv"]=2816
+    ["The.Lord.of.the.Rings.The.Fellowship.of.the.Ring (2001)/The Fellowship of the Ring (2001) - 1080p.mkv"]=3072
+)
+
+echo ""
+echo "📁 Creando películas solo en library (sin hardlink)..."
+
+for movie in "${!library_only_movies[@]}"; do
+    size=${library_only_movies[$movie]}
+    filepath="$MOVIES_DIR/$movie"
+    echo "  ✓ Solo library: $movie ($size MB)"
+    create_file "$filepath" $size
+done
+
+echo ""
+echo "📺 Creando series en downloads/complete/..."
+
+# Series descargadas (nombres de carpetas de torrent típicos)
+declare -A downloaded_series=(
+    ["Breaking.Bad.S01.1080p.BluRay.x264-ROVERS"]=5
+    ["Breaking.Bad.S02.1080p.BluRay.x264-ROVERS"]=5
+    ["Game.of.Thrones.S01.1080p.BluRay.x264-DEMAND"]=10
+    ["The.Office.US.S01.1080p.WEB-DL.DD5.1.H264-NTb"]=6
+    ["Friends.S01.1080p.BluRay.x264-PSYCHD"]=24
+    ["Stranger.Things.S01.1080p.NF.WEB-DL.DD5.1.x264-NTb"]=8
+    # Series huérfanas (carpetas completas sin procesar)
+    ["The.Wire.S01.1080p.BluRay.x264-PSYCHD"]=13
+    ["Better.Call.Saul.S01.1080p.BluRay.x264-ROVERS"]=10
+)
+
+for series_folder in "${!downloaded_series[@]}"; do
+    num_episodes=${downloaded_series[$series_folder]}
+    series_path="$DOWNLOADS_DIR/$series_folder"
+    mkdir -p "$series_path"
+    
+    echo "  📁 Serie: $series_folder ($num_episodes episodios)"
+    
+    for episode in $(seq 1 $num_episodes); do
+        # Extraer nombre de la serie y temporada del nombre de carpeta
+        if [[ $series_folder =~ ^(.+)\.S([0-9]+)\. ]]; then
+            series_name="${BASH_REMATCH[1]}"
+            season_num="${BASH_REMATCH[2]}"
+            
+            episode_file="$series_path/${series_name}.S${season_num}E$(printf %02d $episode).1080p.mkv"
             size=$((RANDOM % 400 + 800))
             create_file "$episode_file" $size
-        done
-        
-        echo "    ✓ Temporada $season: $num_episodes episodios"
+        fi
+    done
+done
+
+echo ""
+echo "📺 Creando series en library/ (con hardlinks)..."
+
+# Mapeo de series descargadas a library
+# Solo algunas series se procesan a library, otras quedan huérfanas
+declare -a series_mappings=(
+    "Breaking.Bad.S01.1080p.BluRay.x264-ROVERS|Breaking Bad|1"
+    "Breaking.Bad.S02.1080p.BluRay.x264-ROVERS|Breaking Bad|2"
+    "Game.of.Thrones.S01.1080p.BluRay.x264-DEMAND|Game of Thrones|1"
+    "The.Office.US.S01.1080p.WEB-DL.DD5.1.H264-NTb|The Office|1"
+    "Friends.S01.1080p.BluRay.x264-PSYCHD|Friends|1"
+)
+
+for mapping in "${series_mappings[@]}"; do
+    IFS='|' read -r download_folder library_name season_num <<< "$mapping"
+    
+    source_dir="$DOWNLOADS_DIR/$download_folder"
+    target_dir="$TVSHOWS_DIR/$library_name/Season $(printf %02d $season_num)"
+    
+    mkdir -p "$target_dir"
+    
+    # Crear hardlinks para todos los episodios de esa temporada
+    episode_count=$(find "$source_dir" -type f -name "*.mkv" 2>/dev/null | wc -l)
+    echo "  🔗 Hardlink: $library_name - Temporada $season_num ($episode_count episodios)"
+    
+    for source_file in "$source_dir"/*.mkv; do
+        if [ -f "$source_file" ]; then
+            # Extraer número de episodio del nombre del archivo
+            if [[ $(basename "$source_file") =~ E([0-9]+) ]]; then
+                ep_num="${BASH_REMATCH[1]}"
+                target_file="$target_dir/${library_name} - S$(printf %02d $season_num)E${ep_num} - 1080p.mkv"
+                create_hardlink "$source_file" "$target_file"
+            fi
+        fi
+    done
+done
+
+# Series adicionales solo en library (sin hardlink) - Temporadas adicionales
+echo ""
+echo "📁 Creando series adicionales solo en library..."
+
+declare -a library_only_series=(
+    "Stranger Things|1|8"
+    "Stranger Things|2|9"
+)
+
+for series_info in "${library_only_series[@]}"; do
+    IFS='|' read -r show_name season_num num_episodes <<< "$series_info"
+    
+    season_dir="$TVSHOWS_DIR/$show_name/Season $(printf %02d $season_num)"
+    mkdir -p "$season_dir"
+    
+    echo "  ✓ $show_name - Temporada $season_num ($num_episodes episodios)"
+    
+    for episode in $(seq 1 $num_episodes); do
+        episode_file="$season_dir/${show_name} - S$(printf %02d $season_num)E$(printf %02d $episode) - 1080p.mkv"
+        size=$((RANDOM % 400 + 800))
+        create_file "$episode_file" $size
     done
 done
 
@@ -91,23 +224,45 @@ echo ""
 echo "📊 Estadísticas de la biblioteca:"
 echo ""
 
-# Calcular tamaños
+# Calcular tamaños y archivos
+downloads_count=$(find "$DOWNLOADS_DIR" -type f -name "*.mkv" 2>/dev/null | wc -l)
+downloads_size=$(du -sh "$DOWNLOADS_DIR" 2>/dev/null | cut -f1)
+
 movies_count=$(find "$MOVIES_DIR" -type f -name "*.mkv" 2>/dev/null | wc -l)
 movies_size=$(du -sh "$MOVIES_DIR" 2>/dev/null | cut -f1)
 
 tvshows_count=$(find "$TVSHOWS_DIR" -type f -name "*.mkv" 2>/dev/null | wc -l)
 tvshows_size=$(du -sh "$TVSHOWS_DIR" 2>/dev/null | cut -f1)
 
-total_size=$(du -sh "$MEDIA_DIR/library" 2>/dev/null | cut -f1)
+total_size=$(du -sh "$MEDIA_BASE" 2>/dev/null | cut -f1)
 
-echo "  Películas: $movies_count archivos ($movies_size)"
-echo "  Series: $tvshows_count episodios ($tvshows_size)"
-echo "  Total: $total_size"
+# Contar archivos con múltiples hardlinks (más simple y rápido)
+hardlinked_count=$(find "$DOWNLOADS_DIR" -type f -name "*.mkv" -links +1 2>/dev/null | wc -l)
+orphaned_downloads=$((downloads_count - hardlinked_count))
+
+echo "  📥 Downloads (downloads/complete/):"
+echo "     - Total: $downloads_count archivos ($downloads_size)"
+echo "     - Con hardlink en library: $hardlinked_count"
+echo "     - Huérfanos (sin hardlink): $orphaned_downloads"
+echo ""
+echo "  📁 Library (library/):"
+echo "     - Películas: $movies_count archivos ($movies_size)"
+echo "     - Series: $tvshows_count episodios ($tvshows_size)"
+echo ""
+echo "  💾 Total: $total_size"
 
 echo ""
 echo "✅ Biblioteca de medios simulada creada exitosamente!"
 echo ""
-echo "📍 Ubicación: $MEDIA_DIR/"
+echo "📍 Estructura creada:"
+echo "   - $DOWNLOADS_DIR/     (archivos descargados)"
+echo "   - $LIBRARY_DIR/movies/ (películas organizadas)"
+echo "   - $LIBRARY_DIR/tv/     (series organizadas)"
+echo ""
+echo "💡 Casos de prueba incluidos:"
+echo "   ✓ Archivos con hardlink (downloads ↔ library)"
+echo "   ✓ Archivos huérfanos en downloads (no procesados)"
+echo "   ✓ Archivos solo en library (imports antiguos)"
 echo ""
 
 # Leer configuración para obtener URLs y API keys
@@ -138,16 +293,18 @@ if [ -f "$CONFIG_FILE" ]; then
     # Escanear Radarr
     if [ -n "$RADARR_URL" ] && [ -n "$RADARR_API_KEY" ]; then
         echo "📽️  Escaneando biblioteca de Radarr..."
-        RADARR_RESPONSE=$(curl -s -X POST \
+        RADARR_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "X-Api-Key: $RADARR_API_KEY" \
             -H "Content-Type: application/json" \
             "$RADARR_URL/api/v3/command" \
             -d '{"name": "RefreshMovie"}' 2>/dev/null)
         
-        if [ $? -eq 0 ]; then
-            echo "  ✓ Escaneo de Radarr iniciado"
+        HTTP_CODE=$(echo "$RADARR_RESPONSE" | tail -n1)
+        
+        if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "200" ]; then
+            echo "  ✓ Escaneo de Radarr iniciado exitosamente (HTTP $HTTP_CODE)"
         else
-            echo "  ⚠️  No se pudo conectar con Radarr (¿está corriendo?)"
+            echo "  ⚠️  No se pudo conectar con Radarr (HTTP $HTTP_CODE)"
         fi
     else
         echo "  ⚠️  Radarr no configurado en $CONFIG_FILE"
@@ -156,16 +313,18 @@ if [ -f "$CONFIG_FILE" ]; then
     # Escanear Sonarr
     if [ -n "$SONARR_URL" ] && [ -n "$SONARR_API_KEY" ]; then
         echo "📺 Escaneando biblioteca de Sonarr..."
-        SONARR_RESPONSE=$(curl -s -X POST \
+        SONARR_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "X-Api-Key: $SONARR_API_KEY" \
             -H "Content-Type: application/json" \
             "$SONARR_URL/api/v3/command" \
             -d '{"name": "RefreshSeries"}' 2>/dev/null)
         
-        if [ $? -eq 0 ]; then
-            echo "  ✓ Escaneo de Sonarr iniciado"
+        HTTP_CODE=$(echo "$SONARR_RESPONSE" | tail -n1)
+        
+        if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "200" ]; then
+            echo "  ✓ Escaneo de Sonarr iniciado exitosamente (HTTP $HTTP_CODE)"
         else
-            echo "  ⚠️  No se pudo conectar con Sonarr (¿está corriendo?)"
+            echo "  ⚠️  No se pudo conectar con Sonarr (HTTP $HTTP_CODE)"
         fi
     else
         echo "  ⚠️  Sonarr no configurado en $CONFIG_FILE"
@@ -174,14 +333,33 @@ if [ -f "$CONFIG_FILE" ]; then
     # Escanear Jellyfin
     if [ -n "$JELLYFIN_URL" ] && [ -n "$JELLYFIN_API_KEY" ]; then
         echo "🟣 Escaneando biblioteca de Jellyfin..."
-        JELLYFIN_RESPONSE=$(curl -s -X POST \
-            -H "X-Emby-Token: $JELLYFIN_API_KEY" \
-            "$JELLYFIN_URL/Library/Refresh" 2>/dev/null)
         
-        if [ $? -eq 0 ]; then
-            echo "  ✓ Escaneo de Jellyfin iniciado"
+        # Primero verificar conectividad
+        if curl -s -f -H "X-Emby-Token: $JELLYFIN_API_KEY" "$JELLYFIN_URL/System/Info" > /dev/null 2>&1; then
+            # Iniciar escaneo
+            JELLYFIN_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+                -H "X-Emby-Token: $JELLYFIN_API_KEY" \
+                "$JELLYFIN_URL/Library/Refresh" 2>/dev/null)
+            
+            HTTP_CODE=$(echo "$JELLYFIN_RESPONSE" | tail -n1)
+            
+            if [ "$HTTP_CODE" = "204" ] || [ "$HTTP_CODE" = "200" ]; then
+                echo "  ✓ Escaneo de Jellyfin iniciado exitosamente (HTTP $HTTP_CODE)"
+                
+                # Mostrar conteo actual de items
+                ITEMS=$(curl -s -H "X-Emby-Token: $JELLYFIN_API_KEY" "$JELLYFIN_URL/Items/Counts" 2>/dev/null)
+                if [ -n "$ITEMS" ]; then
+                    MOVIE_COUNT=$(echo "$ITEMS" | grep -o '"MovieCount":[0-9]*' | grep -o '[0-9]*' || echo "0")
+                    SERIES_COUNT=$(echo "$ITEMS" | grep -o '"SeriesCount":[0-9]*' | grep -o '[0-9]*' || echo "0")
+                    EPISODE_COUNT=$(echo "$ITEMS" | grep -o '"EpisodeCount":[0-9]*' | grep -o '[0-9]*' || echo "0")
+                    echo "  📊 Contenido actual: $MOVIE_COUNT películas, $SERIES_COUNT series, $EPISODE_COUNT episodios"
+                fi
+            else
+                echo "  ⚠️  Respuesta inesperada de Jellyfin (HTTP $HTTP_CODE)"
+            fi
         else
             echo "  ⚠️  No se pudo conectar con Jellyfin (¿está corriendo?)"
+            echo "      URL: $JELLYFIN_URL"
         fi
     else
         echo "  ⚠️  Jellyfin no configurado en $CONFIG_FILE"

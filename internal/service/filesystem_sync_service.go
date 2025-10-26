@@ -106,7 +106,7 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 		} else {
 			enricher := filesystem.NewEnricher(s.logger)
 			count := enricher.EnrichWithRadarr(ctx, enrichedFiles, radarrMedia)
-			
+
 			progressChan <- SyncProgress{
 				Step:    "enrich_radarr_complete",
 				Message: fmt.Sprintf("✅ Radarr: %d archivos enriquecidos", count),
@@ -129,7 +129,7 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 		} else {
 			enricher := filesystem.NewEnricher(s.logger)
 			count := enricher.EnrichWithSonarr(ctx, enrichedFiles, sonarrMedia)
-			
+
 			progressChan <- SyncProgress{
 				Step:    "enrich_sonarr_complete",
 				Message: fmt.Sprintf("✅ Sonarr: %d archivos enriquecidos", count),
@@ -152,7 +152,7 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 		} else {
 			enricher := filesystem.NewEnricher(s.logger)
 			count := enricher.EnrichWithJellyfin(ctx, enrichedFiles, jellyfinMedia)
-			
+
 			progressChan <- SyncProgress{
 				Step:    "enrich_jellyfin_complete",
 				Message: fmt.Sprintf("✅ Jellyfin: %d archivos enriquecidos", count),
@@ -175,7 +175,7 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 		} else {
 			enricher := filesystem.NewEnricher(s.logger)
 			count := enricher.EnrichWithQBittorrent(ctx, enrichedFiles, torrentMap)
-			
+
 			progressChan <- SyncProgress{
 				Step:    "enrich_qbittorrent_complete",
 				Message: fmt.Sprintf("✅ qBittorrent: %d archivos enriquecidos", count),
@@ -206,7 +206,7 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 
 	for _, enrichedFile := range enrichedFiles {
 		media := s.convertToMedia(enrichedFile)
-		
+
 		if err := s.mediaRepo.Create(media); err != nil {
 			s.logger.Error("Failed to save media",
 				zap.String("path", media.FilePath),

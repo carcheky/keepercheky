@@ -1,5 +1,9 @@
 # GitHub Copilot Instructions - KeeperCheky Project
 
+USE MCP MEMORY SERVER AND SEQUENTIAL THINKING
+
+READ logs/keepercheky-dev.log AFTER CHANGES, VISIT URLS, AND READ logs/keepercheky-dev.log AND INSPECT FILES IF NEEDED
+
 > **Language Note**: This document is in English for consistency with code and technical documentation. However, **always communicate with users in Spanish** when responding to issues, pull requests, or user interactions.
 
 ## 🎯 Project Overview

@@ -130,7 +130,7 @@ keepercheky/
 ├── config/                       # Configuration files
 │   └── config.example.yaml
 ├── .air.toml                     # Air configuration
-├── docker-compose.dev.yml        # Development compose file
+├── docker-compose.yml        # Development compose file
 ├── Dockerfile.dev                # Development Dockerfile
 ├── Makefile                      # Development commands
 └── README.md

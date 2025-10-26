@@ -17,20 +17,33 @@ type Handlers struct {
 	Settings  *SettingsHandler
 	Logs      *LogsHandler
 	Sync      *SyncHandler
+	Files     *FilesHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
-	// Initialize SyncService
-	syncService := service.NewSyncService(repos.Media, logger, cfg)
+	// Initialize OLD SyncService (for client access and backward compatibility)
+	oldSyncService := service.NewSyncService(repos.Media, logger, cfg)
+
+	// Initialize NEW FilesystemSyncService (filesystem-first approach)
+	filesystemSyncService := service.NewFilesystemSyncService(
+		repos.Media,
+		oldSyncService.GetRadarrClient(),
+		oldSyncService.GetSonarrClient(),
+		oldSyncService.GetJellyfinClient(),
+		nil, // Jellyseerr not needed for filesystem sync
+		oldSyncService.GetQBittorrentClient(),
+		logger.Desugar(),
+		cfg,
+	)
 
 	// Initialize CleanupService
 	cleanupService := cleanup.NewCleanupService(
 		repos.Media,
 		repos.History,
-		syncService.GetRadarrClient(),
-		syncService.GetSonarrClient(),
-		syncService.GetJellyfinClient(),
-		nil, // qBittorrent client not yet implemented
+		oldSyncService.GetRadarrClient(),
+		oldSyncService.GetSonarrClient(),
+		oldSyncService.GetJellyfinClient(),
+		oldSyncService.GetQBittorrentClient(),
 		logger.Desugar(),
 	)
 
@@ -39,8 +52,9 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Dashboard: NewDashboardHandler(repos, logger),
 		Media:     NewMediaHandler(repos, cleanupService, logger),
 		Schedule:  NewScheduleHandler(repos, logger),
-		Settings:  NewSettingsHandler(repos, logger, cfg, syncService),
+		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),
 		Logs:      NewLogsHandler(repos, logger),
-		Sync:      NewSyncHandler(syncService, logger),
+		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
+		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService),
 	}
 }

@@ -36,7 +36,7 @@ type ScanOptions struct {
 type Scanner struct {
 	options ScanOptions
 	logger  *zap.Logger
-	
+
 	// Internal state
 	inodeMap map[uint64][]*FileEntry // Map of inode -> list of paths (for hardlink detection)
 	mu       sync.RWMutex
@@ -51,7 +51,7 @@ func NewScanner(options ScanOptions, logger *zap.Logger) *Scanner {
 	if options.MinSize == 0 {
 		options.MinSize = 100 * 1024 * 1024 // 100MB default
 	}
-	
+
 	return &Scanner{
 		options:  options,
 		logger:   logger,
@@ -65,9 +65,9 @@ func (s *Scanner) Scan() (map[string]*FileEntry, error) {
 		zap.Strings("root_paths", s.options.RootPaths),
 		zap.Int64("min_size", s.options.MinSize),
 	)
-	
+
 	result := make(map[string]*FileEntry)
-	
+
 	for _, rootPath := range s.options.RootPaths {
 		if err := s.scanPath(rootPath, result); err != nil {
 			s.logger.Error("Failed to scan path",
@@ -77,15 +77,15 @@ func (s *Scanner) Scan() (map[string]*FileEntry, error) {
 			return nil, err
 		}
 	}
-	
+
 	// Second pass: detect hardlinks and set primary paths
 	s.detectHardlinks(result)
-	
+
 	s.logger.Info("Filesystem scan complete",
 		zap.Int("total_files", len(result)),
 		zap.Int("total_inodes", len(s.inodeMap)),
 	)
-	
+
 	return result, nil
 }
 
@@ -99,7 +99,7 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 			)
 			return nil // Continue scanning
 		}
-		
+
 		// Skip hidden files/directories if configured
 		if s.options.SkipHidden && strings.HasPrefix(d.Name(), ".") {
 			if d.IsDir() {
@@ -107,17 +107,17 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 			}
 			return nil
 		}
-		
+
 		// Skip directories
 		if d.IsDir() {
 			return nil
 		}
-		
+
 		// Check if file has video extension
 		if !s.isVideoFile(path) {
 			return nil
 		}
-		
+
 		// Get file info
 		info, err := d.Info()
 		if err != nil {
@@ -127,12 +127,12 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 			)
 			return nil
 		}
-		
+
 		// Skip small files
 		if info.Size() < s.options.MinSize {
 			return nil
 		}
-		
+
 		// Get inode (Unix-specific)
 		stat, ok := info.Sys().(*syscall.Stat_t)
 		if !ok {
@@ -141,7 +141,7 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 			)
 			return nil
 		}
-		
+
 		// Create file entry
 		entry := &FileEntry{
 			Path:        path,
@@ -151,15 +151,15 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 			MediaType:   s.inferMediaType(path),
 			PrimaryPath: path, // Will be updated in second pass
 		}
-		
+
 		// Add to result
 		result[path] = entry
-		
+
 		// Add to inode map for hardlink detection
 		s.mu.Lock()
 		s.inodeMap[stat.Ino] = append(s.inodeMap[stat.Ino], entry)
 		s.mu.Unlock()
-		
+
 		return nil
 	})
 }
@@ -178,21 +178,21 @@ func (s *Scanner) isVideoFile(path string) bool {
 // inferMediaType infers whether a file is a movie or series based on path
 func (s *Scanner) inferMediaType(path string) string {
 	lower := strings.ToLower(path)
-	
+
 	// Check if path contains known series indicators
-	if strings.Contains(lower, "/series/") || 
-	   strings.Contains(lower, "/tv/") ||
-	   strings.Contains(lower, "/shows/") {
+	if strings.Contains(lower, "/series/") ||
+		strings.Contains(lower, "/tv/") ||
+		strings.Contains(lower, "/shows/") {
 		return "series"
 	}
-	
+
 	// Check if path contains known movie indicators
 	if strings.Contains(lower, "/peliculas/") ||
-	   strings.Contains(lower, "/movies/") ||
-	   strings.Contains(lower, "/films/") {
+		strings.Contains(lower, "/movies/") ||
+		strings.Contains(lower, "/films/") {
 		return "movie"
 	}
-	
+
 	// Check filename for series patterns (S01E01, 1x01, etc.)
 	base := filepath.Base(lower)
 	if strings.Contains(base, "s0") && strings.Contains(base, "e0") {
@@ -201,7 +201,7 @@ func (s *Scanner) inferMediaType(path string) string {
 	if matched, _ := filepath.Match("*[0-9]x[0-9]*", base); matched {
 		return "series"
 	}
-	
+
 	// Default to movie
 	return "movie"
 }
@@ -209,30 +209,30 @@ func (s *Scanner) inferMediaType(path string) string {
 // detectHardlinks detects hardlinks and sets primary paths
 func (s *Scanner) detectHardlinks(entries map[string]*FileEntry) {
 	hardlinkCount := 0
-	
+
 	for inode, files := range s.inodeMap {
 		if len(files) <= 1 {
 			continue // Not a hardlink
 		}
-		
+
 		// Multiple files with same inode = hardlinks
 		hardlinkCount++
-		
+
 		// Determine primary path (prioritize library over downloads)
 		primaryPath := s.choosePrimaryPath(files)
-		
+
 		// Update all entries
 		var allPaths []string
 		for _, entry := range files {
 			allPaths = append(allPaths, entry.Path)
 		}
-		
+
 		for _, entry := range files {
 			entry.IsHardlink = true
 			entry.HardlinkPaths = allPaths
 			entry.PrimaryPath = primaryPath
 		}
-		
+
 		s.logger.Debug("Detected hardlink group",
 			zap.Uint64("inode", inode),
 			zap.Int("count", len(files)),
@@ -240,7 +240,7 @@ func (s *Scanner) detectHardlinks(entries map[string]*FileEntry) {
 			zap.Strings("all_paths", allPaths),
 		)
 	}
-	
+
 	s.logger.Info("Hardlink detection complete",
 		zap.Int("hardlink_groups", hardlinkCount),
 	)
@@ -252,7 +252,7 @@ func (s *Scanner) choosePrimaryPath(files []*FileEntry) string {
 	if len(files) == 0 {
 		return ""
 	}
-	
+
 	// First priority: Library paths
 	for _, libraryPath := range s.options.LibraryPaths {
 		for _, entry := range files {
@@ -261,7 +261,7 @@ func (s *Scanner) choosePrimaryPath(files []*FileEntry) string {
 			}
 		}
 	}
-	
+
 	// Second priority: Non-download paths
 	for _, entry := range files {
 		isDownload := false
@@ -275,7 +275,7 @@ func (s *Scanner) choosePrimaryPath(files []*FileEntry) string {
 			return entry.Path
 		}
 	}
-	
+
 	// Fallback: First path alphabetically
 	primaryPath := files[0].Path
 	for _, entry := range files[1:] {
@@ -283,7 +283,7 @@ func (s *Scanner) choosePrimaryPath(files []*FileEntry) string {
 			primaryPath = entry.Path
 		}
 	}
-	
+
 	return primaryPath
 }
 
@@ -291,18 +291,18 @@ func (s *Scanner) choosePrimaryPath(files []*FileEntry) string {
 func (s *Scanner) GetStats() map[string]interface{} {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	totalFiles := 0
 	totalHardlinks := 0
 	movieCount := 0
 	seriesCount := 0
-	
+
 	for _, files := range s.inodeMap {
 		totalFiles += len(files)
 		if len(files) > 1 {
 			totalHardlinks += len(files)
 		}
-		
+
 		if len(files) > 0 {
 			if files[0].MediaType == "movie" {
 				movieCount++
@@ -311,13 +311,13 @@ func (s *Scanner) GetStats() map[string]interface{} {
 			}
 		}
 	}
-	
+
 	return map[string]interface{}{
-		"total_files":      totalFiles,
-		"unique_inodes":    len(s.inodeMap),
-		"total_hardlinks":  totalHardlinks,
-		"hardlink_groups":  totalHardlinks / 2, // Approximate
-		"movies":           movieCount,
-		"series":           seriesCount,
+		"total_files":     totalFiles,
+		"unique_inodes":   len(s.inodeMap),
+		"total_hardlinks": totalHardlinks,
+		"hardlink_groups": totalHardlinks / 2, // Approximate
+		"movies":          movieCount,
+		"series":          seriesCount,
 	}
 }
