@@ -74,12 +74,14 @@ type Media struct {
 	SonarrID     *int    `json:"sonarr_id" gorm:"index"`
 	JellyfinID   *string `json:"jellyfin_id" gorm:"index"`
 	JellyseerrID *int    `json:"jellyseerr_id" gorm:"index"`
+	JellystatID  *string `json:"jellystat_id" gorm:"index"`
 
 	// Service flags (filesystem-first approach)
 	InRadarr      bool `json:"in_radarr" gorm:"default:false;index"`
 	InSonarr      bool `json:"in_sonarr" gorm:"default:false;index"`
 	InJellyfin    bool `json:"in_jellyfin" gorm:"default:false;index"`
 	InJellyseerr  bool `json:"in_jellyseerr" gorm:"default:false;index"`
+	InJellystat   bool `json:"in_jellystat" gorm:"default:false;index"`
 	InQBittorrent bool `json:"in_qbittorrent" gorm:"column:in_q_bittorrent;default:false;index"`
 
 	// Metadata

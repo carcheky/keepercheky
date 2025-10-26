@@ -259,7 +259,7 @@
                                     <!-- Primary path -->
                                     <div class="text-sm font-mono text-slate-300 mb-2" x-text="file.file_path"></div>
                                     
-                                    <div class="flex gap-4 text-xs mt-2">
+                                    <div class="flex gap-2 text-xs mt-2 flex-wrap">
                                         <span class="text-dark-muted">
                                             💾 <span x-text="formatBytes(file.size)"></span>
                                         </span>
@@ -267,7 +267,7 @@
                                         <span x-show="file.is_hardlink" class="relative" x-data="{ showTooltip: false }"
                                             @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
                                             <span class="text-green-400 cursor-help">
-                                                🔗 Hardlink (<span x-text="(file.hardlink_paths || '').split('|').filter(p => p.trim()).length"></span> rutas)
+                                                🔗 Hardlink (<span x-text="(file.hardlink_paths || '').split('|').filter(p => p.trim()).length"></span>)
                                             </span>
                                             <!-- Tooltip with all hardlink paths -->
                                             <div x-show="showTooltip" 
@@ -283,13 +283,24 @@
                                                 </div>
                                             </div>
                                         </span>
-                                        <span x-show="file.in_jellyfin" class="text-purple-400">
-                                            📺 Jellyfin
-                                        </span>
-                                        <span x-show="file.in_radarr" class="text-yellow-400">
+                                        
+                                        <!-- Service badges -->
+                                        <span x-show="file.in_radarr" class="px-2 py-0.5 rounded bg-yellow-900/40 border border-yellow-600/50 text-yellow-300">
                                             🎬 Radarr
                                         </span>
-                                        <span x-show="file.in_qbittorrent" class="text-indigo-400">
+                                        <span x-show="file.in_sonarr" class="px-2 py-0.5 rounded bg-blue-900/40 border border-blue-600/50 text-blue-300">
+                                            📺 Sonarr
+                                        </span>
+                                        <span x-show="file.in_jellyfin" class="px-2 py-0.5 rounded bg-purple-900/40 border border-purple-600/50 text-purple-300">
+                                            🎥 Jellyfin
+                                        </span>
+                                        <span x-show="file.in_jellyseerr" class="px-2 py-0.5 rounded bg-pink-900/40 border border-pink-600/50 text-pink-300">
+                                            📝 Jellyseerr
+                                        </span>
+                                        <span x-show="file.in_jellystat" class="px-2 py-0.5 rounded bg-cyan-900/40 border border-cyan-600/50 text-cyan-300">
+                                            📊 Jellystat
+                                        </span>
+                                        <span x-show="file.in_qbittorrent" class="px-2 py-0.5 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-300">
                                             🧲 qBittorrent
                                         </span>
                                     </div>
@@ -343,7 +354,7 @@
                                         <!-- Primary path -->
                                         <div class="text-sm font-mono text-slate-300 mb-2" x-text="file.file_path"></div>
                                         
-                                        <div class="flex gap-4 text-xs mt-2">
+                                        <div class="flex gap-2 text-xs mt-2 flex-wrap">
                                             <span class="text-dark-muted">
                                                 💾 <span x-text="formatBytes(file.size)"></span>
                                             </span>
@@ -351,7 +362,7 @@
                                             <span x-show="file.is_hardlink" class="relative" x-data="{ showTooltip: false }"
                                                 @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
                                                 <span class="text-green-400 cursor-help">
-                                                    🔗 Hardlink (<span x-text="(file.hardlink_paths || '').split('|').filter(p => p.trim()).length"></span> rutas)
+                                                    🔗 Hardlink (<span x-text="(file.hardlink_paths || '').split('|').filter(p => p.trim()).length"></span>)
                                                 </span>
                                                 <!-- Tooltip with all hardlink paths -->
                                                 <div x-show="showTooltip" 
@@ -367,13 +378,24 @@
                                                     </div>
                                                 </div>
                                             </span>
-                                            <span x-show="file.in_jellyfin" class="text-purple-400">
-                                                📺 Jellyfin
+                                            
+                                            <!-- Service badges -->
+                                            <span x-show="file.in_radarr" class="px-2 py-0.5 rounded bg-yellow-900/40 border border-yellow-600/50 text-yellow-300">
+                                                🎬 Radarr
                                             </span>
-                                            <span x-show="file.in_sonarr" class="text-yellow-400">
+                                            <span x-show="file.in_sonarr" class="px-2 py-0.5 rounded bg-blue-900/40 border border-blue-600/50 text-blue-300">
                                                 📺 Sonarr
                                             </span>
-                                            <span x-show="file.in_qbittorrent" class="text-indigo-400">
+                                            <span x-show="file.in_jellyfin" class="px-2 py-0.5 rounded bg-purple-900/40 border border-purple-600/50 text-purple-300">
+                                                🎥 Jellyfin
+                                            </span>
+                                            <span x-show="file.in_jellyseerr" class="px-2 py-0.5 rounded bg-pink-900/40 border border-pink-600/50 text-pink-300">
+                                                📝 Jellyseerr
+                                            </span>
+                                            <span x-show="file.in_jellystat" class="px-2 py-0.5 rounded bg-cyan-900/40 border border-cyan-600/50 text-cyan-300">
+                                                � Jellystat
+                                            </span>
+                                            <span x-show="file.in_qbittorrent" class="px-2 py-0.5 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-300">
                                                 🧲 qBittorrent
                                             </span>
                                         </div>
