@@ -682,6 +682,15 @@ func (s *SyncService) GetQBittorrentSystemInfo(ctx context.Context) (*clients.QB
 	return s.qbittorrentClient.GetSystemInfo(ctx)
 }
 
+// GetQBittorrentPreferences retrieves qBittorrent preferences including download paths.
+func (s *SyncService) GetQBittorrentPreferences(ctx context.Context) (*clients.QBittorrentPreferences, error) {
+	if s.qbittorrentClient == nil {
+		return nil, fmt.Errorf("qBittorrent not configured")
+	}
+
+	return s.qbittorrentClient.GetPreferences(ctx)
+}
+
 // GetRadarrClient returns the Radarr client instance.
 func (s *SyncService) GetRadarrClient() clients.MediaClient {
 	return s.radarrClient
