@@ -41,27 +41,57 @@ type PathInfo struct {
 	Label   string `json:"label"` // Human-readable label
 }
 
+// UserViewInfo represents user viewing information
+type UserViewInfo struct {
+	UserID     string `json:"user_id"`
+	Username   string `json:"username"`
+	PlayCount  int    `json:"play_count"`
+	LastPlayed string `json:"last_played"`
+}
+
 // MediaFileInfo represents media file information for display
 type MediaFileInfo struct {
-	ID              uint    `json:"id" gorm:"column:id"`
-	Title           string  `json:"title" gorm:"column:title"`
-	Type            string  `json:"type" gorm:"column:type"`
-	FilePath        string  `json:"file_path" gorm:"column:file_path"`
-	Size            int64   `json:"size" gorm:"column:size"`
-	PosterURL       string  `json:"poster_url" gorm:"column:poster_url"`
-	IsHardlink      bool    `json:"is_hardlink" gorm:"column:is_hardlink"`
-	HardlinkPaths   string  `json:"hardlink_paths" gorm:"column:hardlink_paths"`
-	PrimaryPath     string  `json:"primary_path" gorm:"column:primary_path"`
-	InRadarr        bool    `json:"in_radarr" gorm:"column:in_radarr"`
-	InSonarr        bool    `json:"in_sonarr" gorm:"column:in_sonarr"`
-	InJellyfin      bool    `json:"in_jellyfin" gorm:"column:in_jellyfin"`
-	InJellyseerr    bool    `json:"in_jellyseerr" gorm:"column:in_jellyseerr"`
-	InQBittorrent   bool    `json:"in_qbittorrent" gorm:"column:in_qbittorrent"`
+	ID            uint   `json:"id" gorm:"column:id"`
+	Title         string `json:"title" gorm:"column:title"`
+	Type          string `json:"type" gorm:"column:type"`
+	FilePath      string `json:"file_path" gorm:"column:file_path"`
+	Size          int64  `json:"size" gorm:"column:size"`
+	PosterURL     string `json:"poster_url" gorm:"column:poster_url"`
+	Quality       string `json:"quality" gorm:"column:quality"`
+	IsHardlink    bool   `json:"is_hardlink" gorm:"column:is_hardlink"`
+	HardlinkPaths string `json:"hardlink_paths" gorm:"column:hardlink_paths"`
+	PrimaryPath   string `json:"primary_path" gorm:"column:primary_path"`
+
+	// Service flags
+	InRadarr      bool `json:"in_radarr" gorm:"column:in_radarr"`
+	InSonarr      bool `json:"in_sonarr" gorm:"column:in_sonarr"`
+	InJellyfin    bool `json:"in_jellyfin" gorm:"column:in_jellyfin"`
+	InJellyseerr  bool `json:"in_jellyseerr" gorm:"column:in_jellyseerr"`
+	InQBittorrent bool `json:"in_qbittorrent" gorm:"column:in_qbittorrent"`
+
+	// Service IDs
+	RadarrID     *int    `json:"radarr_id" gorm:"column:radarr_id"`
+	SonarrID     *int    `json:"sonarr_id" gorm:"column:sonarr_id"`
+	JellyfinID   *string `json:"jellyfin_id" gorm:"column:jellyfin_id"`
+	JellyseerrID *int    `json:"jellyseerr_id" gorm:"column:jellyseerr_id"`
+
+	// Torrent info
 	TorrentHash     string  `json:"torrent_hash" gorm:"column:torrent_hash"`
 	TorrentCategory string  `json:"torrent_category" gorm:"column:torrent_category"`
 	TorrentState    string  `json:"torrent_state" gorm:"column:torrent_state"`
+	TorrentTags     string  `json:"torrent_tags" gorm:"column:torrent_tags"`
 	IsSeeding       bool    `json:"is_seeding" gorm:"column:is_seeding"`
 	SeedRatio       float64 `json:"seed_ratio" gorm:"column:seed_ratio"`
+
+	// Viewing information (not stored in DB, calculated on-the-fly)
+	HasBeenWatched  bool           `json:"has_been_watched" gorm:"-"`
+	WatchedByUsers  []UserViewInfo `json:"watched_by_users" gorm:"-"`
+	TotalPlayCount  int            `json:"total_play_count" gorm:"-"`
+	LastWatchedDate string         `json:"last_watched_date" gorm:"-"`
+
+	// Metadata
+	Tags     []string `json:"tags" gorm:"-"`
+	Excluded bool     `json:"excluded" gorm:"column:excluded"`
 }
 
 // RenderFilesPage renders the files listing page
@@ -378,6 +408,8 @@ func (h *FilesHandler) extractPathsFromMedia(media []MediaFileInfo) []PathInfo {
 
 // scanFilesystemFromPaths scans the filesystem from service paths and returns unified files
 func (h *FilesHandler) scanFilesystemFromPaths(servicePaths []PathInfo) ([]MediaFileInfo, error) {
+	ctx := context.Background()
+
 	// Extract unique root paths and categorize them
 	var rootPaths []string
 	var libraryPaths []string
@@ -422,61 +454,89 @@ func (h *FilesHandler) scanFilesystemFromPaths(servicePaths []PathInfo) ([]Media
 		return nil, fmt.Errorf("filesystem scan failed: %w", err)
 	}
 
+	// Convert FileEntry map to EnrichedFile map for enrichment
+	enrichedFiles := make(map[string]*filesystem.EnrichedFile)
+	for path, entry := range fileEntries {
+		enrichedFiles[path] = &filesystem.EnrichedFile{
+			FileEntry: entry,
+			ModTime:   entry.ModTime,
+		}
+	}
+
+	// Enrich with service data
+	h.enrichWithServices(ctx, enrichedFiles)
+
 	// Convert to MediaFileInfo, grouping hardlinks
-	mediaFiles := make([]MediaFileInfo, 0, len(fileEntries))
+	mediaFiles := make([]MediaFileInfo, 0, len(enrichedFiles))
 	processedInodes := make(map[uint64]bool)
 
-	for _, entry := range fileEntries {
+	for _, enrichedFile := range enrichedFiles {
 		// Skip if we already processed this inode (hardlink group)
-		if entry.IsHardlink && processedInodes[entry.Inode] {
+		if enrichedFile.IsHardlink && processedInodes[enrichedFile.Inode] {
 			continue
 		}
 
 		// Mark inode as processed
-		if entry.IsHardlink {
-			processedInodes[entry.Inode] = true
+		if enrichedFile.IsHardlink {
+			processedInodes[enrichedFile.Inode] = true
 		}
 
-		// Infer title from filename
-		title := h.inferTitleFromPath(entry.PrimaryPath)
+		// Use enriched title if available, otherwise infer from filename
+		title := enrichedFile.Title
+		if title == "" {
+			title = h.inferTitleFromPath(enrichedFile.PrimaryPath)
+		}
 
 		// Build hardlink paths string
 		hardlinkPathsStr := ""
-		if entry.IsHardlink && len(entry.HardlinkPaths) > 0 {
-			hardlinkPathsStr = strings.Join(entry.HardlinkPaths, "|")
+		if enrichedFile.IsHardlink && len(enrichedFile.HardlinkPaths) > 0 {
+			hardlinkPathsStr = strings.Join(enrichedFile.HardlinkPaths, "|")
 		}
 
-		// Determine source (qBittorrent, Jellyfin, etc.)
-		inQBittorrent := false
-		inJellyfin := false
-		for _, downloadPath := range downloadPaths {
-			if strings.HasPrefix(entry.PrimaryPath, downloadPath) {
-				inQBittorrent = true
-				break
-			}
-		}
-		for _, libraryPath := range libraryPaths {
-			if strings.HasPrefix(entry.PrimaryPath, libraryPath) {
-				inJellyfin = true
-				break
-			}
+		// Convert tags
+		tags := enrichedFile.Tags
+		if tags == nil {
+			tags = []string{}
 		}
 
 		mediaFile := MediaFileInfo{
-			ID:            0, // No database ID since this is direct filesystem scan
-			Title:         title,
-			Type:          entry.MediaType,
-			FilePath:      entry.PrimaryPath,
-			Size:          entry.Size,
-			PosterURL:     "", // No poster for direct scan
-			IsHardlink:    entry.IsHardlink,
-			HardlinkPaths: hardlinkPathsStr,
-			PrimaryPath:   entry.PrimaryPath,
-			InQBittorrent: inQBittorrent,
-			InJellyfin:    inJellyfin,
-			InRadarr:      false, // Not available from filesystem scan
-			InSonarr:      false,
-			InJellyseerr:  false,
+			ID:              0, // No database ID since this is direct filesystem scan
+			Title:           title,
+			Type:            enrichedFile.MediaType,
+			FilePath:        enrichedFile.PrimaryPath,
+			Size:            enrichedFile.Size,
+			PosterURL:       enrichedFile.PosterURL,
+			Quality:         enrichedFile.Quality,
+			IsHardlink:      enrichedFile.IsHardlink,
+			HardlinkPaths:   hardlinkPathsStr,
+			PrimaryPath:     enrichedFile.PrimaryPath,
+			InRadarr:        enrichedFile.InRadarr,
+			InSonarr:        enrichedFile.InSonarr,
+			InJellyfin:      enrichedFile.InJellyfin,
+			InJellyseerr:    enrichedFile.InJellyseerr,
+			InQBittorrent:   enrichedFile.InQBittorrent,
+			RadarrID:        enrichedFile.RadarrID,
+			SonarrID:        enrichedFile.SonarrID,
+			JellyfinID:      enrichedFile.JellyfinID,
+			JellyseerrID:    enrichedFile.JellyseerrID,
+			TorrentHash:     enrichedFile.TorrentHash,
+			TorrentCategory: enrichedFile.TorrentCategory,
+			TorrentState:    enrichedFile.TorrentState,
+			TorrentTags:     enrichedFile.TorrentTags,
+			IsSeeding:       enrichedFile.IsSeeding,
+			SeedRatio:       enrichedFile.SeedRatio,
+			Tags:            tags,
+			Excluded:        enrichedFile.Excluded,
+			HasBeenWatched:  false,
+			WatchedByUsers:  []UserViewInfo{},
+			TotalPlayCount:  0,
+			LastWatchedDate: "",
+		}
+
+		// Add watching info if available
+		if enrichedFile.LastWatched != nil {
+			mediaFile.HasBeenWatched = true
+			// TODO: Get detailed user watching info from Jellyfin/Jellystat
 		}
 
 		mediaFiles = append(mediaFiles, mediaFile)
@@ -489,6 +549,59 @@ func (h *FilesHandler) scanFilesystemFromPaths(servicePaths []PathInfo) ([]Media
 	)
 
 	return mediaFiles, nil
+}
+
+// enrichWithServices enriches files with data from all configured services
+func (h *FilesHandler) enrichWithServices(ctx context.Context, files map[string]*filesystem.EnrichedFile) {
+	enricher := filesystem.NewEnricher(h.logger)
+
+	// Enrich with Radarr
+	if h.config.Clients.Radarr.Enabled && h.syncService.GetRadarrClient() != nil {
+		h.logger.Info("Enriching with Radarr data")
+		radarrMedia, err := h.syncService.GetRadarrClient().GetLibrary(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Radarr library", zap.Error(err))
+		} else {
+			count := enricher.EnrichWithRadarr(ctx, files, radarrMedia)
+			h.logger.Info("Radarr enrichment complete", zap.Int("enriched", count))
+		}
+	}
+
+	// Enrich with Sonarr
+	if h.config.Clients.Sonarr.Enabled && h.syncService.GetSonarrClient() != nil {
+		h.logger.Info("Enriching with Sonarr data")
+		sonarrMedia, err := h.syncService.GetSonarrClient().GetLibrary(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Sonarr library", zap.Error(err))
+		} else {
+			count := enricher.EnrichWithSonarr(ctx, files, sonarrMedia)
+			h.logger.Info("Sonarr enrichment complete", zap.Int("enriched", count))
+		}
+	}
+
+	// Enrich with Jellyfin
+	if h.config.Clients.Jellyfin.Enabled && h.syncService.GetJellyfinClient() != nil {
+		h.logger.Info("Enriching with Jellyfin data")
+		jellyfinMedia, err := h.syncService.GetJellyfinClient().GetLibrary(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Jellyfin library", zap.Error(err))
+		} else {
+			count := enricher.EnrichWithJellyfin(ctx, files, jellyfinMedia)
+			h.logger.Info("Jellyfin enrichment complete", zap.Int("enriched", count))
+		}
+	}
+
+	// Enrich with qBittorrent
+	if h.config.Clients.QBittorrent.Enabled && h.syncService.GetQBittorrentClient() != nil {
+		h.logger.Info("Enriching with qBittorrent data")
+		torrentMap, err := h.syncService.GetQBittorrentClient().GetAllTorrentsMap(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get qBittorrent torrents", zap.Error(err))
+		} else {
+			count := enricher.EnrichWithQBittorrent(ctx, files, torrentMap)
+			h.logger.Info("qBittorrent enrichment complete", zap.Int("enriched", count))
+		}
+	}
 }
 
 // inferTitleFromPath extracts a title from the file path
@@ -516,42 +629,28 @@ func (h *FilesHandler) inferTitleFromPath(path string) string {
 
 // GetFilesAPI returns files as JSON for API access
 func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
-	var media []struct {
-		ID        uint   `json:"id" gorm:"column:id"`
-		Title     string `json:"title" gorm:"column:title"`
-		Type      string `json:"type" gorm:"column:type"`
-		FilePath  string `json:"file_path" gorm:"column:file_path"`
-		Size      int64  `json:"size" gorm:"column:size"`
-		PosterURL string `json:"poster_url" gorm:"column:poster_url"`
-
-		// Filesystem
-		IsHardlink    bool   `json:"is_hardlink" gorm:"column:is_hardlink"`
-		HardlinkPaths string `json:"hardlink_paths" gorm:"column:hardlink_paths"`
-		PrimaryPath   string `json:"primary_path" gorm:"column:primary_path"`
-
-		// Service flags
-		InRadarr      bool `json:"in_radarr" gorm:"column:in_radarr"`
-		InSonarr      bool `json:"in_sonarr" gorm:"column:in_sonarr"`
-		InJellyfin    bool `json:"in_jellyfin" gorm:"column:in_jellyfin"`
-		InJellyseerr  bool `json:"in_jellyseerr" gorm:"column:in_jellyseerr"`
-		InQBittorrent bool `json:"in_qbittorrent" gorm:"column:in_qbittorrent"`
-
-		// Torrent info
-		TorrentHash     string  `json:"torrent_hash" gorm:"column:torrent_hash"`
-		TorrentCategory string  `json:"torrent_category" gorm:"column:torrent_category"`
-		TorrentState    string  `json:"torrent_state" gorm:"column:torrent_state"`
-		IsSeeding       bool    `json:"is_seeding" gorm:"column:is_seeding"`
-		SeedRatio       float64 `json:"seed_ratio" gorm:"column:seed_ratio"`
-	}
+	var media []MediaFileInfo
 
 	err := h.mediaRepo.GetDB().
 		Table("media").
+		Select(`
+			id, title, type, file_path, size, poster_url, quality,
+			is_hardlink, hardlink_paths, primary_path,
+			in_radarr, in_sonarr, in_jellyfin, in_jellyseerr, in_q_bittorrent,
+			radarr_id, sonarr_id, jellyfin_id, jellyseerr_id,
+			torrent_hash, torrent_category, torrent_state, torrent_tags,
+			is_seeding, seed_ratio, excluded
+		`).
 		Order("in_q_bittorrent DESC, in_jellyfin DESC, file_path ASC").
 		Find(&media).Error
 
 	if err != nil {
+		h.logger.Error("Failed to query media from database", zap.Error(err))
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+
+	// Enrich with viewing information if needed
+	// TODO: Add user viewing info from Jellyfin/Jellystat when available
 
 	// Get last sync time from settings
 	var lastSyncSetting struct {

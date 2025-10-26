@@ -300,9 +300,34 @@
                                         <span x-show="file.in_jellystat" class="px-2 py-0.5 rounded bg-cyan-900/40 border border-cyan-600/50 text-cyan-300">
                                             📊 Jellystat
                                         </span>
-                                        <span x-show="file.in_qbittorrent" class="px-2 py-0.5 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-300">
+                                        <span x-show="file.in_qbittorrent" class="px-2 py-0.5 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-300" x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
                                             🧲 qBittorrent
+                                            <div x-show="showTooltip" class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0" style="display: none;">
+                                                <div class="space-y-1">
+                                                    <div x-show="file.torrent_state"><span class="text-indigo-400">Estado:</span> <span x-text="file.torrent_state"></span></div>
+                                                    <div x-show="file.torrent_category"><span class="text-indigo-400">Categoría:</span> <span x-text="file.torrent_category"></span></div>
+                                                    <div x-show="file.seed_ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="file.seed_ratio ? file.seed_ratio.toFixed(2) : '0.00'"></span></div>
+                                                    <div x-show="file.torrent_tags"><span class="text-indigo-400">Tags:</span> <span x-text="file.torrent_tags"></span></div>
+                                                    <div x-show="file.is_seeding"><span class="text-green-400">⬆️ Seedeando</span></div>
+                                                </div>
+                                            </div>
                                         </span>
+                                        
+                                        <!-- Quality badge -->
+                                        <span x-show="file.quality" class="px-2 py-0.5 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-300" x-text="file.quality"></span>
+                                        
+                                        <!-- Tags -->
+                                        <template x-if="file.tags && file.tags.length > 0">
+                                            <span class="px-2 py-0.5 rounded bg-slate-700/60 border border-slate-500/50 text-slate-300">
+                                                🏷️ <span x-text="file.tags.join(', ')"></span>
+                                            </span>
+                                        </template>
+                                        
+                                        <!-- Watched status -->
+                                        <span x-show="file.has_been_watched" class="px-2 py-0.5 rounded bg-green-900/40 border border-green-600/50 text-green-300">
+                                            ✅ Visto
+                                        </span>
+
                                     </div>
                                 </div>
                             </div>
@@ -393,10 +418,34 @@
                                                 📝 Jellyseerr
                                             </span>
                                             <span x-show="file.in_jellystat" class="px-2 py-0.5 rounded bg-cyan-900/40 border border-cyan-600/50 text-cyan-300">
-                                                � Jellystat
+                                                📊 Jellystat
                                             </span>
-                                            <span x-show="file.in_qbittorrent" class="px-2 py-0.5 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-300">
+                                            <span x-show="file.in_qbittorrent" class="px-2 py-0.5 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-300" x-data="{ showTooltip: false }" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
                                                 🧲 qBittorrent
+                                                <div x-show="showTooltip" class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0" style="display: none;">
+                                                    <div class="space-y-1">
+                                                        <div x-show="file.torrent_state"><span class="text-indigo-400">Estado:</span> <span x-text="file.torrent_state"></span></div>
+                                                        <div x-show="file.torrent_category"><span class="text-indigo-400">Categoría:</span> <span x-text="file.torrent_category"></span></div>
+                                                        <div x-show="file.seed_ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="file.seed_ratio ? file.seed_ratio.toFixed(2) : '0.00'"></span></div>
+                                                        <div x-show="file.torrent_tags"><span class="text-indigo-400">Tags:</span> <span x-text="file.torrent_tags"></span></div>
+                                                        <div x-show="file.is_seeding"><span class="text-green-400">⬆️ Seedeando</span></div>
+                                                    </div>
+                                                </div>
+                                            </span>
+                                            
+                                            <!-- Quality badge -->
+                                            <span x-show="file.quality" class="px-2 py-0.5 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-300" x-text="file.quality"></span>
+                                            
+                                            <!-- Tags -->
+                                            <template x-if="file.tags && file.tags.length > 0">
+                                                <span class="px-2 py-0.5 rounded bg-slate-700/60 border border-slate-500/50 text-slate-300">
+                                                    🏷️ <span x-text="file.tags.join(', ')"></span>
+                                                </span>
+                                            </template>
+                                            
+                                            <!-- Watched status -->
+                                            <span x-show="file.has_been_watched" class="px-2 py-0.5 rounded bg-green-900/40 border border-green-600/50 text-green-300">
+                                                ✅ Visto
                                             </span>
                                         </div>
                                     </div>
