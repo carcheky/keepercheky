@@ -20,6 +20,14 @@ type DeleteOptions struct {
 	QBittorrent bool `json:"qbittorrent"`
 }
 
+// DeleteResult contains the result of a deletion operation.
+type DeleteResult struct {
+	Success      bool              `json:"success"`
+	DeletedFrom  []string          `json:"deleted_from"`
+	Errors       map[string]string `json:"errors"`
+	FilesDeleted bool              `json:"files_deleted"`
+}
+
 // CleanupService handles media cleanup operations.
 type CleanupService struct {
 	mediaRepo         *repository.MediaRepository
@@ -53,7 +61,7 @@ func NewCleanupService(
 }
 
 // DeleteMedia deletes media from selected services.
-func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, options DeleteOptions) error {
+func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, options DeleteOptions) (*DeleteResult, error) {
 	s.logger.Info("Starting media deletion",
 		zap.Uint("id", media.ID),
 		zap.String("title", media.Title),
@@ -65,8 +73,11 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, o
 		zap.Bool("qbittorrent", options.QBittorrent),
 	)
 
-	var errors []error
-	deletedFrom := []string{}
+	result := &DeleteResult{
+		Success:     true,
+		DeletedFrom: []string{},
+		Errors:      make(map[string]string),
+	}
 
 	// Delete from Radarr
 	if options.Radarr && media.RadarrID != nil && s.radarrClient != nil {
@@ -80,9 +91,10 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, o
 				zap.Int("radarr_id", *media.RadarrID),
 				zap.Error(err),
 			)
-			errors = append(errors, fmt.Errorf("Radarr: %w", err))
+			result.Errors["radarr"] = err.Error()
+			result.Success = false
 		} else {
-			deletedFrom = append(deletedFrom, "Radarr")
+			result.DeletedFrom = append(result.DeletedFrom, "radarr")
 			s.logger.Info("Successfully deleted from Radarr")
 		}
 	}
@@ -99,9 +111,10 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, o
 				zap.Int("sonarr_id", *media.SonarrID),
 				zap.Error(err),
 			)
-			errors = append(errors, fmt.Errorf("Sonarr: %w", err))
+			result.Errors["sonarr"] = err.Error()
+			result.Success = false
 		} else {
-			deletedFrom = append(deletedFrom, "Sonarr")
+			result.DeletedFrom = append(result.DeletedFrom, "sonarr")
 			s.logger.Info("Successfully deleted from Sonarr")
 		}
 	}
@@ -118,9 +131,10 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, o
 				zap.String("jellyfin_id", *media.JellyfinID),
 				zap.Error(err),
 			)
-			errors = append(errors, fmt.Errorf("Jellyfin: %w", err))
+			result.Errors["jellyfin"] = err.Error()
+			result.Success = false
 		} else {
-			deletedFrom = append(deletedFrom, "Jellyfin")
+			result.DeletedFrom = append(result.DeletedFrom, "jellyfin")
 			s.logger.Info("Successfully deleted from Jellyfin")
 		}
 	}
@@ -131,34 +145,30 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, o
 			zap.String("path", media.FilePath),
 		)
 
-		err := s.deleteFilesFromDisk(media.FilePath)
+		err := os.RemoveAll(media.FilePath)
 		if err != nil {
-			s.logger.Error("Failed to delete files from disk",
+			s.logger.Error("Failed to delete files",
 				zap.String("path", media.FilePath),
 				zap.Error(err),
 			)
-			errors = append(errors, fmt.Errorf("Disk: %w", err))
+			result.Errors["files"] = err.Error()
+			result.Success = false
 		} else {
-			deletedFrom = append(deletedFrom, "Disk")
+			result.FilesDeleted = true
 			s.logger.Info("Successfully deleted files from disk")
 		}
+	} else if options.DeleteFiles && (options.Radarr || options.Sonarr) {
+		// Files were deleted by Radarr/Sonarr
+		result.FilesDeleted = true
 	}
 
 	// Create history entry
-	status := "success"
-	message := fmt.Sprintf("Deleted from: %v", deletedFrom)
-
-	if len(errors) > 0 {
-		status = "partial"
-		message = fmt.Sprintf("Deleted from: %v. Errors: %d", deletedFrom, len(errors))
-	}
-
 	historyEntry := &models.History{
 		MediaID:    media.ID,
 		MediaTitle: media.Title,
 		Action:     "deleted",
-		Status:     status,
-		Message:    message,
+		Status:     "success",
+		Message:    fmt.Sprintf("Deleted from: %v. Errors: %v", result.DeletedFrom, result.Errors),
 		DryRun:     false,
 	}
 
@@ -168,44 +178,27 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media, o
 		)
 	}
 
-	// Return combined error if any deletion failed
-	if len(errors) > 0 {
-		return fmt.Errorf("deletion completed with errors: %v", errors)
+	// Delete from database if successfully deleted from at least one service
+	if len(result.DeletedFrom) > 0 || result.FilesDeleted {
+		if err := s.mediaRepo.Delete(media.ID); err != nil {
+			s.logger.Error("Failed to delete from database",
+				zap.Uint("id", media.ID),
+				zap.Error(err),
+			)
+			result.Errors["database"] = err.Error()
+			result.Success = false
+			return result, fmt.Errorf("failed to delete from database: %w", err)
+		}
+		s.logger.Info("Successfully deleted from database")
+	} // If we have any errors, return them
+	if len(result.Errors) > 0 {
+		return result, fmt.Errorf("deletion completed with errors")
 	}
 
 	s.logger.Info("Media deletion completed successfully",
 		zap.Uint("id", media.ID),
-		zap.String("title", media.Title),
-		zap.Strings("deleted_from", deletedFrom),
+		zap.Strings("deleted_from", result.DeletedFrom),
 	)
 
-	return nil
-}
-
-// deleteFilesFromDisk deletes files from the filesystem.
-func (s *CleanupService) deleteFilesFromDisk(path string) error {
-	// Check if path exists
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return fmt.Errorf("path does not exist: %s", path)
-	}
-
-	// Get file info
-	info, err := os.Stat(path)
-	if err != nil {
-		return fmt.Errorf("failed to stat path: %w", err)
-	}
-
-	// If it's a directory, remove all contents
-	if info.IsDir() {
-		s.logger.Info("Removing directory recursively",
-			zap.String("path", path),
-		)
-		return os.RemoveAll(path)
-	}
-
-	// If it's a file, remove it
-	s.logger.Info("Removing file",
-		zap.String("path", path),
-	)
-	return os.Remove(path)
+	return result, nil
 }

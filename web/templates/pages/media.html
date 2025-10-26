@@ -339,8 +339,8 @@
                     </div>
                 </div>
 
-                <!-- Options -->
-                <div class="space-y-3 mb-6">
+                <!-- Options (show when not deleting) -->
+                <div x-show="!deleteModal.deleting" class="space-y-3 mb-6">
                     <p class="text-sm font-medium text-gray-700">Selecciona qué deseas eliminar:</p>
 
                     <!-- Radarr option -->
@@ -417,6 +417,185 @@
                     </label>
                 </div>
 
+                <!-- Progress indicators (show when deleting) -->
+                <div x-show="deleteModal.deleting" class="space-y-3 mb-6">
+                    <p class="text-sm font-medium text-gray-700 mb-4">Progreso de eliminación:</p>
+
+                    <!-- Radarr progress -->
+                    <div x-show="deleteModal.options.radarr && deleteModal.media?.radarr_id"
+                        class="flex items-center gap-3 p-3 border rounded-lg transition-all"
+                        :class="deleteModal.progress.radarr === 'success' ? 'bg-green-50 border-green-300' : deleteModal.progress.radarr === 'error' ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'">
+                        <div class="flex-shrink-0">
+                            <!-- Loading spinner -->
+                            <svg x-show="deleteModal.progress.radarr === 'pending'"
+                                class="animate-spin h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <!-- Success checkmark -->
+                            <svg x-show="deleteModal.progress.radarr === 'success'" class="h-5 w-5 text-green-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <!-- Error X -->
+                            <svg x-show="deleteModal.progress.radarr === 'error'" class="h-5 w-5 text-red-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium"
+                                    :class="deleteModal.progress.radarr === 'success' ? 'text-green-900' : deleteModal.progress.radarr === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                    Radarr
+                                </span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    :class="deleteModal.progress.radarr === 'success' ? 'opacity-50 line-through' : ''"
+                                    style="background-color: #ffc230; color: #1f1f1f;">Radarr</span>
+                            </div>
+                            <p class="text-xs mt-0.5"
+                                :class="deleteModal.progress.radarr === 'success' ? 'text-green-600' : deleteModal.progress.radarr === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                <span
+                                    x-text="deleteModal.progress.radarr === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.radarr === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sonarr progress -->
+                    <div x-show="deleteModal.options.sonarr && deleteModal.media?.sonarr_id"
+                        class="flex items-center gap-3 p-3 border rounded-lg transition-all"
+                        :class="deleteModal.progress.sonarr === 'success' ? 'bg-green-50 border-green-300' : deleteModal.progress.sonarr === 'error' ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'">
+                        <div class="flex-shrink-0">
+                            <svg x-show="deleteModal.progress.sonarr === 'pending'"
+                                class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <svg x-show="deleteModal.progress.sonarr === 'success'" class="h-5 w-5 text-green-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <svg x-show="deleteModal.progress.sonarr === 'error'" class="h-5 w-5 text-red-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium"
+                                    :class="deleteModal.progress.sonarr === 'success' ? 'text-green-900' : deleteModal.progress.sonarr === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                    Sonarr
+                                </span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    :class="deleteModal.progress.sonarr === 'success' ? 'opacity-50 line-through' : ''"
+                                    style="background-color: #35c5f4; color: #1f1f1f;">Sonarr</span>
+                            </div>
+                            <p class="text-xs mt-0.5"
+                                :class="deleteModal.progress.sonarr === 'success' ? 'text-green-600' : deleteModal.progress.sonarr === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                <span
+                                    x-text="deleteModal.progress.sonarr === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.sonarr === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Jellyfin progress -->
+                    <div x-show="deleteModal.options.jellyfin && deleteModal.media?.jellyfin_id"
+                        class="flex items-center gap-3 p-3 border rounded-lg transition-all"
+                        :class="deleteModal.progress.jellyfin === 'success' ? 'bg-green-50 border-green-300' : deleteModal.progress.jellyfin === 'error' ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'">
+                        <div class="flex-shrink-0">
+                            <svg x-show="deleteModal.progress.jellyfin === 'pending'"
+                                class="animate-spin h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <svg x-show="deleteModal.progress.jellyfin === 'success'" class="h-5 w-5 text-green-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <svg x-show="deleteModal.progress.jellyfin === 'error'" class="h-5 w-5 text-red-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium"
+                                    :class="deleteModal.progress.jellyfin === 'success' ? 'text-green-900' : deleteModal.progress.jellyfin === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                    Jellyfin
+                                </span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded"
+                                    :class="deleteModal.progress.jellyfin === 'success' ? 'opacity-50 line-through' : ''"
+                                    style="background-color: #aa5cc3; color: #ffffff;">Jellyfin</span>
+                            </div>
+                            <p class="text-xs mt-0.5"
+                                :class="deleteModal.progress.jellyfin === 'success' ? 'text-green-600' : deleteModal.progress.jellyfin === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                <span
+                                    x-text="deleteModal.progress.jellyfin === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.jellyfin === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Files progress -->
+                    <div x-show="deleteModal.options.deleteFiles"
+                        class="flex items-center gap-3 p-3 border rounded-lg transition-all"
+                        :class="deleteModal.progress.files === 'success' ? 'bg-green-50 border-green-300' : deleteModal.progress.files === 'error' ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'">
+                        <div class="flex-shrink-0">
+                            <svg x-show="deleteModal.progress.files === 'pending'"
+                                class="animate-spin h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <svg x-show="deleteModal.progress.files === 'success'" class="h-5 w-5 text-green-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <svg x-show="deleteModal.progress.files === 'error'" class="h-5 w-5 text-red-600"
+                                fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-sm font-medium"
+                                :class="deleteModal.progress.files === 'success' ? 'text-green-900 line-through' : deleteModal.progress.files === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                Archivos del disco
+                            </span>
+                            <p class="text-xs mt-0.5"
+                                :class="deleteModal.progress.files === 'success' ? 'text-green-600' : deleteModal.progress.files === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                <span
+                                    x-text="deleteModal.progress.files === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.files === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="flex gap-3">
                     <button @click="deleteModal.show = false"
@@ -470,6 +649,12 @@
                     jellyfin: true,
                     deleteFiles: true,
                     qbittorrent: false
+                },
+                progress: {
+                    radarr: 'idle',      // 'idle', 'pending', 'success', 'error'
+                    sonarr: 'idle',
+                    jellyfin: 'idle',
+                    files: 'idle'
                 }
             },
 
@@ -569,10 +754,29 @@
                     deleteFiles: true,
                     qbittorrent: false
                 };
+
+                // Reset progress
+                this.deleteModal.progress = {
+                    radarr: 'idle',
+                    sonarr: 'idle',
+                    jellyfin: 'idle',
+                    files: 'idle'
+                };
             },
 
             async confirmDelete() {
                 this.deleteModal.deleting = true;
+
+                // Reset progress
+                this.deleteModal.progress = {
+                    radarr: this.deleteModal.options.radarr && this.deleteModal.media?.radarr_id ? 'pending' : 'idle',
+                    sonarr: this.deleteModal.options.sonarr && this.deleteModal.media?.sonarr_id ? 'pending' : 'idle',
+                    jellyfin: this.deleteModal.options.jellyfin && this.deleteModal.media?.jellyfin_id ? 'pending' : 'idle',
+                    files: this.deleteModal.options.deleteFiles ? 'pending' : 'idle'
+                };
+
+                // Small delay to show initial state
+                await new Promise(resolve => setTimeout(resolve, 300));
 
                 try {
                     const response = await fetch(`/api/media/${this.deleteModal.media.id}`, {
@@ -585,16 +789,69 @@
 
                     const data = await response.json();
 
+                    // Update progress based on response
                     if (response.ok) {
+                        // Mark services as success or error based on response
+                        const deletedFrom = data.deleted_from || [];
+                        const errors = data.errors || {};
+
+                        // Update Radarr status
+                        if (this.deleteModal.progress.radarr === 'pending') {
+                            this.deleteModal.progress.radarr = deletedFrom.includes('radarr') ? 'success' :
+                                errors.radarr ? 'error' : 'success';
+                        }
+
+                        // Update Sonarr status
+                        if (this.deleteModal.progress.sonarr === 'pending') {
+                            this.deleteModal.progress.sonarr = deletedFrom.includes('sonarr') ? 'success' :
+                                errors.sonarr ? 'error' : 'success';
+                        }
+
+                        // Update Jellyfin status
+                        if (this.deleteModal.progress.jellyfin === 'pending') {
+                            this.deleteModal.progress.jellyfin = deletedFrom.includes('jellyfin') ? 'success' :
+                                errors.jellyfin ? 'error' : 'success';
+                        }
+
+                        // Update files status
+                        if (this.deleteModal.progress.files === 'pending') {
+                            this.deleteModal.progress.files = data.files_deleted ? 'success' :
+                                errors.files ? 'error' : 'success';
+                        }
+
+                        // Wait a bit to show the final state
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+
                         this.showMessage(data.message || 'Media deleted successfully', 'success');
                         this.deleteModal.show = false;
                         await this.loadMedia();
                         await this.loadStats();
                     } else {
+                        // Mark all pending as error
+                        Object.keys(this.deleteModal.progress).forEach(key => {
+                            if (this.deleteModal.progress[key] === 'pending') {
+                                this.deleteModal.progress[key] = 'error';
+                            }
+                        });
+
+                        // Wait to show errors
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+
                         this.showMessage(data.error || 'Failed to delete media', 'error');
                     }
                 } catch (error) {
                     console.error('Error deleting media:', error);
+
+                    // Mark all pending as error
+                    Object.keys(this.deleteModal.progress).forEach(key => {
+                        if (this.deleteModal.progress[key] === 'pending') {
+                            this.deleteModal.progress[key] = 'error';
+                        }
+                    });
+
+                    // Wait to show errors
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+
                     this.showMessage('Failed to delete media', 'error');
                 } finally {
                     this.deleteModal.deleting = false;

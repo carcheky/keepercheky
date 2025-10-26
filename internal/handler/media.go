@@ -133,24 +133,28 @@ func (h *MediaHandler) Delete(c *fiber.Ctx) error {
 	)
 
 	// Use CleanupService to delete from services
-	if err := h.cleanupService.DeleteMedia(c.Context(), media, options); err != nil {
+	result, err := h.cleanupService.DeleteMedia(c.Context(), media, options)
+	if err != nil {
 		h.logger.Error("Failed to delete media from services", "id", id, "error", err)
+		// Return the detailed result even if there were errors
+		if result != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"error":        "Failed to delete media from some services",
+				"message":      err.Error(),
+				"deleted_from": result.DeletedFrom,
+				"errors":       result.Errors,
+			})
+		}
 		return c.Status(500).JSON(fiber.Map{
-			"error":   "Failed to delete media from some services",
+			"error":   "Failed to delete media",
 			"message": err.Error(),
 		})
 	}
 
-	// Finally, delete from local database
-	if err := h.repos.Media.Delete(uint(id)); err != nil {
-		h.logger.Error("Failed to delete media from database", "id", id, "error", err)
-		return c.Status(500).JSON(fiber.Map{
-			"error": "Failed to delete media from database",
-		})
-	}
-
 	return c.JSON(fiber.Map{
-		"message": "Media deleted successfully",
+		"message":       "Media deleted successfully",
+		"deleted_from":  result.DeletedFrom,
+		"files_deleted": result.FilesDeleted,
 	})
 }
 
