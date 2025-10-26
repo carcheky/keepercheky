@@ -168,6 +168,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 
 		// Sync - GET for SSE (Server-Sent Events)
 		api.Get("/sync", h.Sync.Sync)
+		api.Get("/sync/files", h.Sync.SyncFiles) // Filesystem-first sync for Files view
 	}
 }
 

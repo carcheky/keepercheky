@@ -109,3 +109,89 @@ func (h *SyncHandler) Sync(c *fiber.Ctx) error {
 
 	return nil
 }
+
+// SyncFiles triggers a filesystem-first synchronization with real-time progress updates.
+// This is designed for the Files view and shows detailed file discovery and enrichment.
+func (h *SyncHandler) SyncFiles(c *fiber.Ctx) error {
+	h.logger.Info("Filesystem sync triggered from Files view")
+
+	// Set headers for Server-Sent Events
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("X-Accel-Buffering", "no") // Disable nginx buffering
+
+	// Channel for progress updates
+	progressChan := make(chan service.SyncProgress, 100)
+
+	// Create context that won't be cancelled by defer
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+
+	// Run sync in goroutine
+	go func() {
+		// DON'T close the channel here - the service will close it
+		defer cancel()
+
+		progressChan <- service.SyncProgress{
+			Step:    "init",
+			Message: "🗂️  Iniciando sincronización de archivos...",
+			Status:  "processing",
+		}
+
+		// Check if we have a FilesystemSyncService
+		fsSync, ok := h.syncService.(*service.FilesystemSyncService)
+		if !ok {
+			progressChan <- service.SyncProgress{
+				Step:    "error",
+				Message: "❌ Servicio de filesystem no disponible. Usando sincronización estándar.",
+				Status:  "error",
+			}
+			close(progressChan) // Close only if we're not calling the service
+			return
+		}
+
+		// Execute filesystem-first sync with progress reporting
+		// The service will close the channel when done
+		if err := fsSync.SyncAllWithProgress(ctx, progressChan); err != nil {
+			// Error already sent by the service
+			return
+		}
+	}()
+
+	// Stream progress updates to client
+	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
+		for progress := range progressChan {
+			// Marshal to JSON
+			jsonData, err := json.Marshal(progress)
+			if err != nil {
+				h.logger.Error("Failed to marshal JSON", "error", err)
+				return
+			}
+
+			// Write SSE format
+			if _, err := fmt.Fprintf(w, "data: %s\n\n", jsonData); err != nil {
+				h.logger.Error("Failed to write SSE", "error", err)
+				return
+			}
+
+			if err := w.Flush(); err != nil {
+				h.logger.Error("Failed to flush", "error", err)
+				return
+			}
+
+			h.logger.Info("Sent SSE event",
+				"step", progress.Step,
+				"message", progress.Message,
+				"status", progress.Status,
+			)
+
+			// If error or complete, close stream after a delay
+			if progress.Status == "error" || progress.Step == "complete" {
+				time.Sleep(100 * time.Millisecond)
+				return
+			}
+		}
+	})
+
+	return nil
+}
