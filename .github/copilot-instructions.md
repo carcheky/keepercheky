@@ -8,6 +8,7 @@ READ logs/keepercheky-dev.log AFTER CHANGES, VISIT URLS, AND READ logs/keeperche
 ⛔️ ⛔️ ⛔️ CRITICAL RULE - NEVER VIOLATE ⛔️ ⛔️ ⛔️
 
 **YOU MUST NEVER, UNDER ANY CIRCUMSTANCES:**
+- never print the log, always read directly logs/keepercheky-dev.log
 - Run `make dev` or `make run` or ANY make command that starts services
 - Run `docker-compose up` or `docker-compose down` or `docker-compose restart` or `docker-compose stop`
 - Run `docker start` or `docker stop` or `docker restart` or `docker kill` or `docker rm`
