@@ -44,9 +44,12 @@ dev:
 	@echo "✅ Volume directories ready"
 	@echo ""
 	@echo "💡 Tip: Run './scripts/create-mock-media.sh' to create test media files"
-	@echo "📝 Logs: logs/keepercheky-dev.log (full output saved)"
+	@echo "📝 Logs: logs/keepercheky-dev.log (auto-rotates at 1000 lines)"
 	@echo ""
-	@docker compose up --build --watch 2>&1 | tee logs/keepercheky-dev.log
+	@chmod +x scripts/log-with-rotation.sh
+	@docker compose up --build --watch > /dev/null 2>&1 &
+	@sleep 5
+	@docker compose logs -f keepercheky 2>&1 | ./scripts/log-with-rotation.sh
 
 # Development with Docker Compose Watch (Docker 28+)
 dev-watch:
