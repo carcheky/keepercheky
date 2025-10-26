@@ -5,21 +5,34 @@
             <h1 class="text-3xl font-bold text-gray-900">Media Management</h1>
             <p class="text-gray-600 mt-1">Browse and manage your media library</p>
         </div>
-        <button @click="syncMedia()" :disabled="syncing"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-            <svg x-show="!syncing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                </path>
-            </svg>
-            <svg x-show="syncing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-            </svg>
-            <span x-text="syncing ? 'Syncing...' : 'Sync Now'"></span>
-        </button>
+
+        <div class="flex items-center gap-4">
+            <!-- Sync Progress Messages -->
+            <div x-show="message" x-transition :class="{
+                    'bg-green-50 border-green-200 text-green-800': messageType === 'success',
+                    'bg-red-50 border-red-200 text-red-800': messageType === 'error',
+                    'bg-blue-50 border-blue-200 text-blue-800': messageType === 'info'
+                }" class="px-4 py-2 rounded-lg border text-sm max-w-md">
+                <p x-text="message" class="line-clamp-2"></p>
+            </div>
+
+            <!-- Sync Button -->
+            <button @click="syncMedia()" :disabled="syncing"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap">
+                <svg x-show="!syncing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                    </path>
+                </svg>
+                <svg x-show="syncing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span x-text="syncing ? 'Syncing...' : 'Sync Now'"></span>
+            </button>
+        </div>
     </div>
 
     <!-- Stats Cards -->
@@ -157,17 +170,17 @@
 
         <!-- Advanced Filters (Collapsible) -->
         <div x-show="showAdvancedFilters" x-transition class="space-y-4 pt-4 border-t">
-            <!-- Row 1: Services -->
+            <!-- Row 1: Locations -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Servicios</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ubicaciones</label>
                     <select x-model="filters.service" @change="loadMedia()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
                         <option value="radarr">Solo Radarr</option>
                         <option value="sonarr">Solo Sonarr</option>
                         <option value="jellyfin">Solo Jellyfin</option>
-                        <option value="orphan">Sin servicios</option>
+                        <option value="orphan">Sin ubicaciones</option>
                     </select>
                 </div>
                 <div>
@@ -321,7 +334,7 @@
                             Type
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Services
+                            Locations
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Size
@@ -371,12 +384,6 @@
                                         class="text-xs text-gray-500 mt-1"
                                         x-text="`${item.episode_file_count}/${item.episode_count} episodios`">
                                     </span>
-                                    <!-- Seeding indicator -->
-                                    <span x-show="item.is_seeding"
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 w-fit mt-1"
-                                        title="Sembrando">
-                                        🌱 Seeding
-                                    </span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -407,45 +414,26 @@
                                         title="Solicitado en Jellyseerr">
                                         Jellyseerr
                                     </span>
-                                    <!-- qBittorrent Tag - Color azul oficial con tooltip -->
-                                    <span x-show="item.torrent_hash && item.torrent_hash !== ''"
-                                        class="px-2 py-0.5 text-xs font-semibold rounded cursor-help relative group"
-                                        style="background-color: #3a91d4; color: #ffffff;">
-                                        qBittorrent
-                                        <!-- Tooltip -->
-                                        <div class="invisible group-hover:visible absolute z-50 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none">
-                                            <div class="space-y-1.5">
-                                                <div class="font-semibold text-sm border-b border-gray-700 pb-1.5 mb-1.5">
-                                                    Información del Torrent
-                                                </div>
-                                                <div x-show="item.torrent_tracker && item.torrent_tracker !== ''" class="flex justify-between">
-                                                    <span class="text-gray-400">Tracker:</span>
-                                                    <span class="font-medium" x-text="item.torrent_tracker"></span>
-                                                </div>
-                                                <div x-show="item.seed_ratio !== undefined && item.seed_ratio !== null" class="flex justify-between">
-                                                    <span class="text-gray-400">Ratio:</span>
-                                                    <span class="font-medium" x-text="item.seed_ratio?.toFixed(2) || '0.00'"></span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span class="text-gray-400">Estado:</span>
-                                                    <span class="font-medium" x-text="item.is_seeding ? '🌱 Seeding' : '⏸️ Pausado'"></span>
-                                                </div>
-                                                <div x-show="item.torrent_hash && item.torrent_hash !== ''" class="flex justify-between text-gray-500 pt-1.5 border-t border-gray-700">
-                                                    <span class="text-xs">Hash:</span>
-                                                    <span class="font-mono text-xs" x-text="item.torrent_hash?.substring(0, 12) + '...'"></span>
-                                                </div>
-                                            </div>
-                                            <!-- Tooltip arrow -->
-                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                                                <div class="border-8 border-transparent border-t-gray-900"></div>
-                                            </div>
-                                        </div>
+                                    <!-- qBittorrent Tag - Información completa del torrent -->
+                                    <span x-show="item.torrent_hash != null && item.torrent_hash !== ''"
+                                        class="px-2 py-0.5 text-xs font-semibold rounded bg-teal-600 text-white cursor-help"
+                                        :title="`🧲 qBittorrent
+━━━━━━━━━━━━━━━━━━━━━━━
+📊 Estado: ${item.torrent_state || 'N/A'}
+🌱 Seeding: ${item.is_seeding ? 'Sí' : 'No'}
+� Ratio: ${item.seed_ratio ? item.seed_ratio.toFixed(2) : '0.00'}
+📁 Categoría: ${item.torrent_category || 'Sin categoría'}
+🏷️  Tags: ${item.torrent_tags || 'Sin tags'}
+🔑 Hash: ${item.torrent_hash.substring(0, 16)}...`">
+                                        🧲 qBittorrent
+                                        <span x-show="item.seed_ratio > 0"
+                                            x-text="'(' + item.seed_ratio.toFixed(2) + ')'"></span>
                                     </span>
-                                    <!-- No services indicator -->
+                                    <!-- No locations indicator -->
                                     <span
                                         x-show="(!item.radarr_id || item.radarr_id === '') && (!item.sonarr_id || item.sonarr_id === '') && (!item.jellyfin_id || item.jellyfin_id === '') && (!item.jellyseerr_id || item.jellyseerr_id === '') && (!item.torrent_hash || item.torrent_hash === '')"
                                         class="text-xs text-gray-400 italic">
-                                        Sin servicios
+                                        Sin ubicaciones
                                     </span>
                                 </div>
                             </td>
@@ -517,14 +505,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Success/Error Messages -->
-    <div x-show="message" x-transition :class="{
-            'bg-green-50 border-green-200 text-green-800': messageType === 'success',
-            'bg-red-50 border-red-200 text-red-800': messageType === 'error'
-        }" class="p-4 rounded-lg border">
-        <p x-text="message"></p>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -968,6 +948,7 @@
             syncing: false,
             message: '',
             messageType: 'success',
+            messageTimeout: null,
             currentPage: 1,
             totalPages: 1,
             total: 0,
@@ -1060,7 +1041,10 @@
                             radarr_id: this.media[0].radarr_id,
                             sonarr_id: this.media[0].sonarr_id,
                             jellyfin_id: this.media[0].jellyfin_id,
-                            jellyseerr_id: this.media[0].jellyseerr_id
+                            jellyseerr_id: this.media[0].jellyseerr_id,
+                            torrent_hash: this.media[0].torrent_hash,
+                            is_seeding: this.media[0].is_seeding,
+                            seed_ratio: this.media[0].seed_ratio
                         });
                     }
                 } catch (error) {
@@ -1073,21 +1057,67 @@
 
             async syncMedia() {
                 this.syncing = true;
-                try {
-                    const response = await fetch('/api/sync', { method: 'POST' });
-                    const data = await response.json();
+                this.message = '';
+                let completed = false;
 
-                    if (data.status === 'success') {
-                        this.showMessage('Media synced successfully!', 'success');
-                        await this.loadStats();
-                        await this.loadMedia();
-                    } else {
-                        this.showMessage(data.message || 'Sync failed', 'error');
-                    }
+                try {
+                    // Create EventSource for Server-Sent Events
+                    const eventSource = new EventSource('/api/sync');
+
+                    eventSource.onmessage = (event) => {
+                        try {
+                            const progress = JSON.parse(event.data);
+                            console.log('📥 SSE received:', progress);
+
+                            // Determine message type based on status
+                            let msgType = 'info';  // Default: blue for processing
+                            if (progress.status === 'error') {
+                                msgType = 'error';  // Red for errors
+                            } else if (progress.step === 'complete' || progress.message.includes('✅')) {
+                                msgType = 'success';  // Green for success/complete
+                            }
+
+                            // Show progress message - persist during sync (no timeout)
+                            // Only the complete/error messages will auto-hide after 5s
+                            const persist = progress.step !== 'complete' && progress.status !== 'error';
+                            this.showMessage(progress.message, msgType, persist);
+
+                            // If complete or error, close connection and reload
+                            if (progress.step === 'complete') {
+                                console.log('✅ Sync complete, closing connection');
+                                completed = true;
+                                eventSource.close();
+                                this.syncing = false;
+                                // Reload data after successful sync
+                                setTimeout(async () => {
+                                    await this.loadStats();
+                                    await this.loadMedia();
+                                }, 500);
+                            } else if (progress.status === 'error') {
+                                console.log('❌ Sync error, closing connection');
+                                completed = true;
+                                eventSource.close();
+                                this.syncing = false;
+                            }
+                        } catch (err) {
+                            console.error('Error parsing SSE data:', err);
+                        }
+                    };
+
+                    eventSource.onerror = (error) => {
+                        eventSource.close();
+                        this.syncing = false;
+
+                        // Only show error if sync didn't complete successfully
+                        if (!completed) {
+                            console.error('SSE error:', error);
+                            this.showMessage('Error durante sincronización', 'error');
+                        }
+                    };
+
                 } catch (error) {
                     console.error('Error syncing media:', error);
                     this.showMessage('Failed to sync media', 'error');
-                } finally {
                     this.syncing = false;
                 }
             },
@@ -1381,12 +1411,23 @@
                 });
             },
 
-            showMessage(msg, type = 'success') {
+            showMessage(msg, type = 'success', persist = false) {
+                // Clear any existing timeout
+                if (this.messageTimeout) {
+                    clearTimeout(this.messageTimeout);
+                    this.messageTimeout = null;
+                }
+
                 this.message = msg;
                 this.messageType = type;
-                setTimeout(() => {
-                    this.message = '';
-                }, 5000);
+
+                // Only set timeout if not persisting (e.g., during sync)
+                if (!persist) {
+                    this.messageTimeout = setTimeout(() => {
+                        this.message = '';
+                        this.messageTimeout = null;
+                    }, 5000);
+                }
             }
         }
     }

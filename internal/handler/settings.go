@@ -70,6 +70,11 @@ func (h *SettingsHandler) Get(c *fiber.Ctx) error {
 				"url":     h.config.Clients.Jellyseerr.URL,
 				"api_key": h.config.Clients.Jellyseerr.APIKey,
 			},
+			"jellystat": fiber.Map{
+				"enabled": h.config.Clients.Jellystat.Enabled,
+				"url":     h.config.Clients.Jellystat.URL,
+				"api_key": h.config.Clients.Jellystat.APIKey,
+			},
 			"qbittorrent": fiber.Map{
 				"enabled":  h.config.Clients.QBittorrent.Enabled,
 				"url":      h.config.Clients.QBittorrent.URL,
@@ -111,6 +116,11 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 				URL     string `json:"url"`
 				APIKey  string `json:"api_key"`
 			} `json:"jellyseerr"`
+			Jellystat struct {
+				Enabled bool   `json:"enabled"`
+				URL     string `json:"url"`
+				APIKey  string `json:"api_key"`
+			} `json:"jellystat"`
 			QBittorrent struct {
 				Enabled  bool   `json:"enabled"`
 				URL      string `json:"url"`
@@ -149,6 +159,10 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 	h.config.Clients.Jellyseerr.Enabled = update.Services.Jellyseerr.Enabled
 	h.config.Clients.Jellyseerr.URL = update.Services.Jellyseerr.URL
 	h.config.Clients.Jellyseerr.APIKey = update.Services.Jellyseerr.APIKey
+
+	h.config.Clients.Jellystat.Enabled = update.Services.Jellystat.Enabled
+	h.config.Clients.Jellystat.URL = update.Services.Jellystat.URL
+	h.config.Clients.Jellystat.APIKey = update.Services.Jellystat.APIKey
 
 	h.config.Clients.QBittorrent.Enabled = update.Services.QBittorrent.Enabled
 	h.config.Clients.QBittorrent.URL = update.Services.QBittorrent.URL
@@ -302,10 +316,25 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 			})
 		}
 
+		// Also get preferences (download paths)
+		prefs, err := h.syncService.GetQBittorrentPreferences(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get qBittorrent preferences",
+				"error", err,
+			)
+			// Return system info without preferences
+			return c.JSON(fiber.Map{
+				"success":     true,
+				"message":     "Connection successful",
+				"system_info": systemInfo,
+			})
+		}
+
 		return c.JSON(fiber.Map{
 			"success":     true,
 			"message":     "Connection successful",
 			"system_info": systemInfo,
+			"preferences": prefs,
 		})
 	}
 

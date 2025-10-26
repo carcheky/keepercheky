@@ -97,21 +97,11 @@ func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
 
 // GetStats retrieves media statistics.
 func (r *MediaRepository) GetStats() (map[string]interface{}, error) {
-	var stats struct {
-		TotalMedia            int64
-		TotalMovies           int64
-		TotalSeries           int64
-		TotalSize             int64
-		TotalEpisodes         int64
-		TotalEpisodesDownload int64
-	}
+	var stats models.GlobalStats
 
-	r.db.Model(&models.Media{}).Count(&stats.TotalMedia)
-	r.db.Model(&models.Media{}).Where("type = ?", "movie").Count(&stats.TotalMovies)
-	r.db.Model(&models.Media{}).Where("type = ?", "series").Count(&stats.TotalSeries)
-	r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&stats.TotalSize)
-	r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_count), 0)").Row().Scan(&stats.TotalEpisodes)
-	r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_file_count), 0)").Row().Scan(&stats.TotalEpisodesDownload)
+	_ = r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&stats.TotalSize)
+	_ = r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_count), 0)").Row().Scan(&stats.TotalEpisodes)
+	_ = r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_file_count), 0)").Row().Scan(&stats.TotalEpisodesDownload)
 
 	return map[string]interface{}{
 		"total_media":             stats.TotalMedia,
@@ -364,6 +354,10 @@ func (r *SettingsRepository) Get(key string) (string, error) {
 }
 
 func (r *SettingsRepository) Set(key, value string) error {
-	setting := models.Settings{Key: key, Value: value}
-	return r.db.Save(&setting).Error
+	// Update if exists, create if not (upsert)
+	return r.db.
+		Where("key = ?", key).
+		Assign(models.Settings{Value: value}).
+		FirstOrCreate(&models.Settings{Key: key}).
+		Error
 }

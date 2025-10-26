@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
@@ -18,6 +19,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// Build-time variables injected via ldflags
+var (
+	Version   = "dev"
+	CommitSHA = "unknown"
+)
+
 func main() {
 	// Load configuration
 	cfg, err := config.Load()
@@ -25,12 +32,17 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Initialize logger
-	appLogger := logger.New(cfg.App.LogLevel)
+	// Initialize logger with file output
+	logFilePath := "./logs/keepercheky-dev.log"
+	if cfg.App.Environment == "production" {
+		logFilePath = "./logs/keepercheky.log"
+	}
+	appLogger := logger.NewWithFile(cfg.App.LogLevel, logFilePath)
 	defer appLogger.Sync()
 
 	appLogger.Info("Starting KeeperCheky",
 		"version", getVersion(),
+		"commit", CommitSHA,
 		"env", cfg.App.Environment,
 	)
 
@@ -51,6 +63,15 @@ func main() {
 	// Initialize template engine
 	engine := html.New("./web/templates", ".html")
 	engine.Reload(cfg.App.Environment == "development")
+
+	// Add custom template functions
+	engine.AddFunc("toJSON", func(v interface{}) string {
+		bytes, err := json.Marshal(v)
+		if err != nil {
+			return "[]"
+		}
+		return string(bytes)
+	})
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -124,7 +145,8 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 
 	// Web UI routes
 	app.Get("/", h.Dashboard.Index)
-	app.Get("/media", h.Media.List)
+	// app.Get("/media", h.Media.List) // Removed from navigation - functionality available via API
+	app.Get("/files", h.Files.RenderFilesPage)
 	app.Get("/schedules", h.Schedule.List)
 	app.Get("/settings", h.Settings.Index)
 	app.Get("/logs", h.Logs.Index)
@@ -140,6 +162,9 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Post("/media/bulk-delete", h.Media.BulkDelete)
 		api.Post("/media/:id/exclude", h.Media.Exclude)
 
+		// Files
+		api.Get("/files", h.Files.GetFilesAPI)
+
 		// Stats
 		api.Get("/stats", h.Dashboard.Stats)
 
@@ -148,12 +173,17 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Post("/config", h.Settings.Update)
 		api.Post("/config/test/:service", h.Settings.TestConnection)
 
-		// Sync
-		api.Post("/sync", h.Sync.Sync)
+		// Sync - GET for SSE (Server-Sent Events)
+		api.Get("/sync", h.Sync.Sync)
+		api.Get("/sync/files", h.Sync.SyncFiles) // Filesystem-first sync for Files view
 	}
 }
 
 func getVersion() string {
+	// Return build-time injected version, fallback to env var, then to "dev"
+	if Version != "" && Version != "dev" {
+		return Version
+	}
 	version := os.Getenv("VERSION")
 	if version == "" {
 		return "dev"

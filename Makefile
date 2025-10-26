@@ -10,6 +10,7 @@ help:
 	@echo "  make logs         - Show development logs"
 	@echo "  make shell        - Open shell in development container"
 	@echo "  make stop         - Stop development server"
+	@echo "  make clean-media  - Clean and recreate mock media library"
 	@echo ""
 	@echo "Build:"
 	@echo "  make build        - Build production binary"
@@ -37,36 +38,49 @@ dev:
 	@mkdir -p volumes/qbittorrent-config
 	@mkdir -p volumes/bazarr-config
 	@mkdir -p volumes/jellystat-config
-	@mkdir -p volumes/media-library/library/movies
-	@mkdir -p volumes/media-library/library/tv
 	@mkdir -p volumes/media-library/downloads
+	@mkdir -p volumes/media-library/library
+	@mkdir -p logs
 	@echo "✅ Volume directories ready"
-	@echo "🎬 Creating mock media library..."
-	@./scripts/create-mock-media.sh
-	@docker compose -f docker-compose.dev.yml up --build --watch
+	@echo ""
+	@echo "💡 Tip: Run './scripts/create-mock-media.sh' to create test media files"
+	@echo "📝 Logs: logs/keepercheky-dev.log (auto-rotates at 1000 lines)"
+	@echo ""
+	@chmod +x scripts/log-with-rotation.sh
+	@docker compose up --build --watch > /dev/null 2>&1 &
+	@sleep 5
+	@docker compose logs -f keepercheky 2>&1 | ./scripts/log-with-rotation.sh
 
 # Development with Docker Compose Watch (Docker 28+)
 dev-watch:
 	@echo "🚀 Starting development server with Docker Compose Watch..."
-	@docker compose -f docker-compose.dev.yml watch
+	@docker compose watch
 
 # Show development logs
 logs:
-	@docker compose -f docker-compose.dev.yml logs -f keepercheky
+	@docker compose logs -f keepercheky
 
 # Open shell in development container
 shell:
-	@docker compose -f docker-compose.dev.yml exec keepercheky sh
+	@docker compose exec keepercheky sh
 
 # Stop development server
 stop:
-	@docker compose -f docker-compose.dev.yml down
+	@docker compose down
 
 # Stop and remove volumes
 stop-clean:
 	@echo "🧹 Stopping and cleaning volumes..."
-	@docker compose -f docker-compose.dev.yml down -v
+	@docker compose down -v
 	@echo "✅ Containers and volumes removed"
+
+# Clean mock media library
+clean-media:
+	@echo "🧹 Cleaning mock media library..."
+	@rm -rf volumes/media-library/downloads
+	@rm -rf volumes/media-library/library
+	@echo "✅ Media library cleaned"
+	@echo "   Run './scripts/create-mock-media.sh' or 'make dev' to recreate it"
 
 # Build production binary
 build:
@@ -120,7 +134,7 @@ clean:
 clean-all:
 	@echo "🧹 Cleaning everything (including volumes)..."
 	@rm -rf bin/ tmp/ coverage.out coverage.html
-	@docker compose -f docker-compose.dev.yml down -v
+	@docker compose down -v
 	@rm -rf volumes/
 	@echo "✅ Complete cleanup done"
 
