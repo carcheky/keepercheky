@@ -56,6 +56,10 @@
                 <div class="flex-1">
                     <p class="text-sm text-gray-600">TV Series</p>
                     <p class="text-2xl font-bold text-gray-900" x-text="stats.total_series || 0"></p>
+                    <p class="text-xs text-gray-500 mt-1" x-show="stats.total_episodes > 0">
+                        <span x-text="stats.total_episodes_download || 0"></span>/<span
+                            x-text="stats.total_episodes"></span> episodios
+                    </p>
                 </div>
                 <svg class="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path
