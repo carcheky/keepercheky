@@ -55,6 +55,6 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),
 		Logs:      NewLogsHandler(repos, logger),
 		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
-		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService),
+		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, logger.Desugar()),
 	}
 }

@@ -41,12 +41,14 @@ dev:
 	@mkdir -p volumes/media-library/downloads
 	@mkdir -p volumes/media-library/library
 	@mkdir -p logs
+	@chmod +x scripts/rotate-logs.sh
 	@echo "✅ Volume directories ready"
 	@echo ""
 	@echo "💡 Tip: Run './scripts/create-mock-media.sh' to create test media files"
-	@echo "📝 Logs saved to: logs/keepercheky-dev.log"
+	@echo "📝 Logs: logs/keepercheky-dev.log (auto-rotates at 1000 lines)"
+	@echo "🔍 Filtering: Only keepercheky service logs shown"
 	@echo ""
-	@docker compose up --build --watch 2>&1 | tee logs/keepercheky-dev.log
+	@docker compose up --build --watch 2>&1 | ./scripts/rotate-logs.sh
 
 # Development with Docker Compose Watch (Docker 28+)
 dev-watch:

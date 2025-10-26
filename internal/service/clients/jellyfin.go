@@ -447,3 +447,42 @@ func (c *JellyfinClient) callWithRetry(ctx context.Context, fn func() error) err
 
 	return fmt.Errorf("max retries exceeded: %w", lastErr)
 }
+
+// VirtualFolder represents a Jellyfin library virtual folder.
+type VirtualFolder struct {
+	Name      string   `json:"Name"`
+	Locations []string `json:"Locations"`
+	ItemID    string   `json:"ItemId"`
+}
+
+// GetVirtualFolders retrieves library virtual folders (root paths) from Jellyfin.
+func (c *JellyfinClient) GetVirtualFolders(ctx context.Context) ([]VirtualFolder, error) {
+	var folders []VirtualFolder
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&folders).
+			Get("/Library/VirtualFolders")
+
+		if err != nil {
+			return fmt.Errorf("failed to get virtual folders: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellyfin virtual folders",
+		zap.Int("folder_count", len(folders)),
+	)
+
+	return folders, nil
+}

@@ -2,12 +2,15 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
+	"github.com/carcheky/keepercheky/internal/service/clients"
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 // FilesHandler handles file listing and management
@@ -15,14 +18,16 @@ type FilesHandler struct {
 	mediaRepo   *repository.MediaRepository
 	config      *config.Config
 	syncService *service.SyncService
+	logger      *zap.Logger
 }
 
 // NewFilesHandler creates a new files handler
-func NewFilesHandler(mediaRepo *repository.MediaRepository, cfg *config.Config, syncService *service.SyncService) *FilesHandler {
+func NewFilesHandler(mediaRepo *repository.MediaRepository, cfg *config.Config, syncService *service.SyncService, logger *zap.Logger) *FilesHandler {
 	return &FilesHandler{
 		mediaRepo:   mediaRepo,
 		config:      cfg,
 		syncService: syncService,
+		logger:      logger,
 	}
 }
 
@@ -157,7 +162,7 @@ func (h *FilesHandler) getSonarrPaths(ctx context.Context) []PathInfo {
 	return paths
 }
 
-// getJellyfinPaths retrieves library paths from Jellyfin
+// getJellyfinPaths retrieves library folder paths from Jellyfin
 func (h *FilesHandler) getJellyfinPaths(ctx context.Context) []PathInfo {
 	var paths []PathInfo
 
@@ -166,21 +171,92 @@ func (h *FilesHandler) getJellyfinPaths(ctx context.Context) []PathInfo {
 		return paths
 	}
 
-	// TODO: Add GetLibraryFolders() method to JellyfinClient interface
+	// Try to get virtual folders (library root paths) from Jellyfin
+	// This requires type assertion to access the GetVirtualFolders method
+	jellyfinClient, ok := client.(*clients.JellyfinClient)
+	if !ok {
+		h.logger.Warn("Could not type assert JellyfinClient")
+		return paths
+	}
+
+	// Get library virtual folders
+	folders, err := jellyfinClient.GetVirtualFolders(ctx)
+	if err != nil {
+		h.logger.Error("Failed to get Jellyfin virtual folders",
+			zap.Error(err),
+		)
+		return paths
+	}
+
+	// Extract library paths from virtual folders
+	for _, folder := range folders {
+		for _, location := range folder.Locations {
+			label := fmt.Sprintf("📚 Jellyfin: %s", folder.Name)
+			paths = append(paths, PathInfo{
+				Service: "jellyfin",
+				Type:    "library",
+				Path:    location,
+				Label:   label,
+			})
+		}
+	}
 
 	return paths
-}
-
-// getQBittorrentPaths retrieves download paths from qBittorrent
+} // getQBittorrentPaths retrieves download paths from qBittorrent
 func (h *FilesHandler) getQBittorrentPaths(ctx context.Context) []PathInfo {
 	var paths []PathInfo
 
 	client := h.syncService.GetQBittorrentClient()
 	if client == nil {
+		h.logger.Warn("qBittorrent client is not configured")
 		return paths
 	}
 
-	// TODO: Add GetSavePaths() method to QBittorrentClient
+	// Get all torrents and extract unique SavePath directories
+	torrentMap, err := client.GetAllTorrentsMap(ctx)
+	if err != nil {
+		h.logger.Error("Failed to get qBittorrent torrents for paths",
+			zap.Error(err),
+		)
+		return paths
+	}
+
+	h.logger.Info("Retrieved qBittorrent torrents for paths",
+		zap.Int("torrent_count", len(torrentMap)),
+	)
+
+	// Use a map to deduplicate SavePath directories
+	savePathSet := make(map[string]bool)
+
+	for _, torrent := range torrentMap {
+		// Use SavePath as the base download directory
+		if torrent.SavePath != "" {
+			savePathSet[torrent.SavePath] = true
+			h.logger.Debug("Found SavePath from qBittorrent",
+				zap.String("save_path", torrent.SavePath),
+				zap.String("category", torrent.Category),
+			)
+		}
+	}
+
+	h.logger.Info("Unique SavePaths from qBittorrent",
+		zap.Int("unique_paths", len(savePathSet)),
+	)
+
+	// Convert to PathInfo slice
+	for savePath := range savePathSet {
+		label := "⬇️ qBittorrent: Descargas"
+		paths = append(paths, PathInfo{
+			Service: "qbittorrent",
+			Type:    "download",
+			Path:    savePath,
+			Label:   label,
+		})
+		h.logger.Info("Added qBittorrent path",
+			zap.String("path", savePath),
+			zap.String("label", label),
+		)
+	}
 
 	return paths
 }
