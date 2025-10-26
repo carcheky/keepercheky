@@ -151,12 +151,12 @@ func (Settings) TableName() string {
 
 // GlobalStats represents global statistics for the media library
 type GlobalStats struct {
-	TotalMedia             int64 `json:"total_media"`
-	TotalMovies            int64 `json:"total_movies"`
-	TotalSeries            int64 `json:"total_series"`
-	TotalSize              int64 `json:"total_size"`
-	TotalEpisodes          int   `json:"total_episodes"`
-	TotalEpisodesDownload  int   `json:"total_episodes_download"`
+	TotalMedia            int64 `json:"total_media"`
+	TotalMovies           int64 `json:"total_movies"`
+	TotalSeries           int64 `json:"total_series"`
+	TotalSize             int64 `json:"total_size"`
+	TotalEpisodes         int   `json:"total_episodes"`
+	TotalEpisodesDownload int   `json:"total_episodes_download"`
 }
 
 // RunMigrations runs all database migrations
