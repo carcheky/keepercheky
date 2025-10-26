@@ -62,12 +62,7 @@ func (h *SyncHandler) Sync(c *fiber.Ctx) error {
 			return
 		}
 
-		// Send completion message
-		progressChan <- service.SyncProgress{
-			Step:    "complete",
-			Message: "✅ Sincronización completada exitosamente",
-			Status:  "success",
-		}
+		// Completion message is now sent by the service itself
 	}()
 
 	// Stream progress updates to client
@@ -98,8 +93,10 @@ func (h *SyncHandler) Sync(c *fiber.Ctx) error {
 				"status", progress.Status,
 			)
 
-			// If error or complete, close stream
+			// If error or complete, close stream after a small delay
+			// to ensure the message is received
 			if progress.Status == "error" || progress.Step == "complete" {
+				time.Sleep(100 * time.Millisecond)
 				return
 			}
 		}
