@@ -398,12 +398,11 @@
 <script>
     function filesPage() {
         return {
-            files: {{ .Files | toJSON }
-    },
-    selectedTab: 'all',
+            files: {{ .Files | toJSON }},
+            selectedTab: 'all',
 
-        // Agrupa archivos por tipo
-        get groupedFiles() {
+            // Agrupa archivos por tipo
+            get groupedFiles() {
         return {
             movies: this.files.filter(f => f.type === 'movie'),
             series: this.files.filter(f => f.type === 'series' || f.type === 'episode'),
