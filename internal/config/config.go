@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -130,20 +131,17 @@ type QBittorrentClient struct {
 }
 
 func Load() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("/app/config") // Primary location (mounted volume)
-	viper.AddConfigPath("./config")    // Fallback for local development
-	viper.AddConfigPath(".")
+	// 1. Set defaults FIRST (lowest priority)
+	setDefaults()
 
-	// Environment variables with KEEPERCHEKY_ prefix
+	// 2. Configure environment variable handling
 	// CRITICAL: SetEnvKeyReplacer allows KEEPERCHEKY_CLIENTS_RADARR_URL to map to clients.radarr.url
 	viper.SetEnvPrefix("KEEPERCHEKY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	// Bind environment variables WITHOUT prefix (for external service credentials)
-	// These take precedence over config file values
+	// These also take precedence over config file values
 	viper.BindEnv("clients.radarr.api_key", "RADARR_API_KEY")
 	viper.BindEnv("clients.sonarr.api_key", "SONARR_API_KEY")
 	viper.BindEnv("clients.jellyfin.api_key", "JELLYFIN_API_KEY")
@@ -151,169 +149,259 @@ func Load() (*Config, error) {
 	viper.BindEnv("clients.qbittorrent.username", "QBITTORRENT_USERNAME")
 	viper.BindEnv("clients.qbittorrent.password", "QBITTORRENT_PASSWORD")
 
-	// Defaults
-	setDefaults()
+	// 3. Configure config file paths
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("/app/config") // Primary location (mounted volume)
+	viper.AddConfigPath("./config")    // Fallback for local development
+	viper.AddConfigPath(".")
 
-	// Try to read config file
+	// 4. Try to read config file (medium priority - overrides defaults, but ENV vars override this)
 	if err := viper.ReadInConfig(); err != nil {
-		// Config file not found is OK, we'll use defaults
+		// Config file not found is OK, we'll use defaults + env vars
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("failed to read config: %w", err)
 		}
+		fmt.Println("No config file found, using defaults and environment variables")
+	} else {
+		fmt.Printf("Loaded config from: %s\n", viper.ConfigFileUsed())
 	}
 
+	// 5. Unmarshal into Config struct
+	// This automatically merges: Defaults < Config File < Environment Variables
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	// ¡NUEVA LÓGICA! Si hay variables de entorno definidas, SOBREESCRIBIR config.yaml
+	// 6. CRITICAL: Check if environment variables have DIFFERENT values than config.yaml
+	// If so, PHYSICALLY overwrite config.yaml with .env values
 	envSources := GetEnvSourceMap()
-	needsSave := false
+	if hasAnyEnvVars(envSources) {
+		fmt.Println("🔧 Configuration overrides from environment variables:")
+		logEnvOverrides(envSources)
 
-	// Sobreescribir valores desde variables de entorno SOLO SI SON DIFERENTES
-	if envSources.Radarr.Enabled && os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_ENABLED") != "" {
-		newValue := viper.GetBool("clients.radarr.enabled")
-		if config.Clients.Radarr.Enabled != newValue {
-			config.Clients.Radarr.Enabled = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Radarr.URL && os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_URL") != "" {
-		newValue := viper.GetString("clients.radarr.url")
-		if config.Clients.Radarr.URL != newValue {
-			config.Clients.Radarr.URL = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Radarr.APIKey && os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_API_KEY") != "" {
-		newValue := viper.GetString("clients.radarr.api_key")
-		if config.Clients.Radarr.APIKey != newValue {
-			config.Clients.Radarr.APIKey = newValue
-			needsSave = true
-		}
-	}
+		// Read the ORIGINAL config.yaml values (before env override)
+		originalConfig := &Config{}
 
-	if envSources.Sonarr.Enabled && os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_ENABLED") != "" {
-		newValue := viper.GetBool("clients.sonarr.enabled")
-		if config.Clients.Sonarr.Enabled != newValue {
-			config.Clients.Sonarr.Enabled = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Sonarr.URL && os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_URL") != "" {
-		newValue := viper.GetString("clients.sonarr.url")
-		if config.Clients.Sonarr.URL != newValue {
-			config.Clients.Sonarr.URL = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Sonarr.APIKey && os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_API_KEY") != "" {
-		newValue := viper.GetString("clients.sonarr.api_key")
-		if config.Clients.Sonarr.APIKey != newValue {
-			config.Clients.Sonarr.APIKey = newValue
-			needsSave = true
-		}
-	}
+		// Create a separate viper instance to read ONLY the file (no env vars)
+		fileViper := viper.New()
+		fileViper.SetConfigName("config")
+		fileViper.SetConfigType("yaml")
+		fileViper.AddConfigPath("/app/config")
+		fileViper.AddConfigPath("./config")
+		fileViper.AddConfigPath(".")
 
-	if envSources.Jellyfin.Enabled && os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED") != "" {
-		newValue := viper.GetBool("clients.jellyfin.enabled")
-		if config.Clients.Jellyfin.Enabled != newValue {
-			config.Clients.Jellyfin.Enabled = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Jellyfin.URL && os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_URL") != "" {
-		newValue := viper.GetString("clients.jellyfin.url")
-		if config.Clients.Jellyfin.URL != newValue {
-			config.Clients.Jellyfin.URL = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Jellyfin.APIKey && os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_API_KEY") != "" {
-		newValue := viper.GetString("clients.jellyfin.api_key")
-		if config.Clients.Jellyfin.APIKey != newValue {
-			config.Clients.Jellyfin.APIKey = newValue
-			needsSave = true
-		}
-	}
+		needsSave := false
 
-	if envSources.Jellyseerr.Enabled && os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED") != "" {
-		newValue := viper.GetBool("clients.jellyseerr.enabled")
-		if config.Clients.Jellyseerr.Enabled != newValue {
-			config.Clients.Jellyseerr.Enabled = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Jellyseerr.URL && os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_URL") != "" {
-		newValue := viper.GetString("clients.jellyseerr.url")
-		if config.Clients.Jellyseerr.URL != newValue {
-			config.Clients.Jellyseerr.URL = newValue
-			needsSave = true
-		}
-	}
-	if envSources.Jellyseerr.APIKey && os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY") != "" {
-		newValue := viper.GetString("clients.jellyseerr.api_key")
-		if config.Clients.Jellyseerr.APIKey != newValue {
-			config.Clients.Jellyseerr.APIKey = newValue
-			needsSave = true
-		}
-	}
-
-	if envSources.QBittorrent.Enabled && os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED") != "" {
-		newValue := viper.GetBool("clients.qbittorrent.enabled")
-		if config.Clients.QBittorrent.Enabled != newValue {
-			config.Clients.QBittorrent.Enabled = newValue
-			needsSave = true
-		}
-	}
-	if envSources.QBittorrent.URL && os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_URL") != "" {
-		newValue := viper.GetString("clients.qbittorrent.url")
-		if config.Clients.QBittorrent.URL != newValue {
-			config.Clients.QBittorrent.URL = newValue
-			needsSave = true
-		}
-	}
-	if envSources.QBittorrent.Username && os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_USERNAME") != "" {
-		newValue := viper.GetString("clients.qbittorrent.username")
-		if config.Clients.QBittorrent.Username != newValue {
-			config.Clients.QBittorrent.Username = newValue
-			needsSave = true
-		}
-	}
-	if envSources.QBittorrent.Password && os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_PASSWORD") != "" {
-		newValue := viper.GetString("clients.qbittorrent.password")
-		if config.Clients.QBittorrent.Password != newValue {
-			config.Clients.QBittorrent.Password = newValue
-			needsSave = true
-		}
-	}
-
-	// Si se detectaron CAMBIOS en variables de entorno, GUARDAR en config.yaml
-	if needsSave {
-		if err := Save(&config); err != nil {
-			// No fallar si no se puede guardar, solo loguear
-			fmt.Printf("Warning: Could not save env vars to config.yaml: %v\n", err)
+		// Try to read the original file
+		if err := fileViper.ReadInConfig(); err == nil {
+			if err := fileViper.Unmarshal(originalConfig); err == nil {
+				// Compare and check if ANY value is different
+				needsSave = configHasChanges(originalConfig, &config, envSources)
+			} else {
+				// If we can't read the file, assume we need to save
+				needsSave = true
+			}
 		} else {
-			fmt.Println("Config synced: Environment variables written to config.yaml")
+			// No config file exists, so we need to create it
+			needsSave = true
+		}
+
+		if needsSave {
+			fmt.Println("💾 Detected changes from .env, syncing to config.yaml...")
+			if err := Save(&config); err != nil {
+				fmt.Printf("⚠️  Warning: Could not save config.yaml: %v\n", err)
+			} else {
+				fmt.Println("✅ Config synced: .env values written to config.yaml")
+			}
+		} else {
+			fmt.Println("ℹ️  Config.yaml already up-to-date, no save needed")
 		}
 	}
 
 	return &config, nil
 }
 
+// configHasChanges compares original config.yaml values with merged config (including env vars)
+// Returns true if ANY value from environment variables is DIFFERENT from the file
+func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
+	// Check each field that has an env var override
+	if envSources.Radarr.Enabled && original.Clients.Radarr.Enabled != merged.Clients.Radarr.Enabled {
+		fmt.Printf("  📝 Change detected: radarr.enabled (%v → %v)\n", original.Clients.Radarr.Enabled, merged.Clients.Radarr.Enabled)
+		return true
+	}
+	if envSources.Radarr.URL && original.Clients.Radarr.URL != merged.Clients.Radarr.URL {
+		fmt.Printf("  📝 Change detected: radarr.url (%s → %s)\n", original.Clients.Radarr.URL, merged.Clients.Radarr.URL)
+		return true
+	}
+	if envSources.Radarr.APIKey && original.Clients.Radarr.APIKey != merged.Clients.Radarr.APIKey {
+		fmt.Printf("  📝 Change detected: radarr.api_key (****** → ******)\n")
+		return true
+	}
+
+	if envSources.Sonarr.Enabled && original.Clients.Sonarr.Enabled != merged.Clients.Sonarr.Enabled {
+		fmt.Printf("  📝 Change detected: sonarr.enabled (%v → %v)\n", original.Clients.Sonarr.Enabled, merged.Clients.Sonarr.Enabled)
+		return true
+	}
+	if envSources.Sonarr.URL && original.Clients.Sonarr.URL != merged.Clients.Sonarr.URL {
+		fmt.Printf("  📝 Change detected: sonarr.url (%s → %s)\n", original.Clients.Sonarr.URL, merged.Clients.Sonarr.URL)
+		return true
+	}
+	if envSources.Sonarr.APIKey && original.Clients.Sonarr.APIKey != merged.Clients.Sonarr.APIKey {
+		fmt.Printf("  📝 Change detected: sonarr.api_key (****** → ******)\n")
+		return true
+	}
+
+	if envSources.Jellyfin.Enabled && original.Clients.Jellyfin.Enabled != merged.Clients.Jellyfin.Enabled {
+		fmt.Printf("  📝 Change detected: jellyfin.enabled (%v → %v)\n", original.Clients.Jellyfin.Enabled, merged.Clients.Jellyfin.Enabled)
+		return true
+	}
+	if envSources.Jellyfin.URL && original.Clients.Jellyfin.URL != merged.Clients.Jellyfin.URL {
+		fmt.Printf("  📝 Change detected: jellyfin.url (%s → %s)\n", original.Clients.Jellyfin.URL, merged.Clients.Jellyfin.URL)
+		return true
+	}
+	if envSources.Jellyfin.APIKey && original.Clients.Jellyfin.APIKey != merged.Clients.Jellyfin.APIKey {
+		fmt.Printf("  📝 Change detected: jellyfin.api_key (****** → ******)\n")
+		return true
+	}
+
+	if envSources.Jellyseerr.Enabled && original.Clients.Jellyseerr.Enabled != merged.Clients.Jellyseerr.Enabled {
+		fmt.Printf("  📝 Change detected: jellyseerr.enabled (%v → %v)\n", original.Clients.Jellyseerr.Enabled, merged.Clients.Jellyseerr.Enabled)
+		return true
+	}
+	if envSources.Jellyseerr.URL && original.Clients.Jellyseerr.URL != merged.Clients.Jellyseerr.URL {
+		fmt.Printf("  📝 Change detected: jellyseerr.url (%s → %s)\n", original.Clients.Jellyseerr.URL, merged.Clients.Jellyseerr.URL)
+		return true
+	}
+	if envSources.Jellyseerr.APIKey && original.Clients.Jellyseerr.APIKey != merged.Clients.Jellyseerr.APIKey {
+		fmt.Printf("  📝 Change detected: jellyseerr.api_key (****** → ******)\n")
+		return true
+	}
+
+	if envSources.QBittorrent.Enabled && original.Clients.QBittorrent.Enabled != merged.Clients.QBittorrent.Enabled {
+		fmt.Printf("  📝 Change detected: qbittorrent.enabled (%v → %v)\n", original.Clients.QBittorrent.Enabled, merged.Clients.QBittorrent.Enabled)
+		return true
+	}
+	if envSources.QBittorrent.URL && original.Clients.QBittorrent.URL != merged.Clients.QBittorrent.URL {
+		fmt.Printf("  📝 Change detected: qbittorrent.url (%s → %s)\n", original.Clients.QBittorrent.URL, merged.Clients.QBittorrent.URL)
+		return true
+	}
+	if envSources.QBittorrent.Username && original.Clients.QBittorrent.Username != merged.Clients.QBittorrent.Username {
+		fmt.Printf("  📝 Change detected: qbittorrent.username (%s → %s)\n", original.Clients.QBittorrent.Username, merged.Clients.QBittorrent.Username)
+		return true
+	}
+	if envSources.QBittorrent.Password && original.Clients.QBittorrent.Password != merged.Clients.QBittorrent.Password {
+		fmt.Printf("  📝 Change detected: qbittorrent.password (****** → ******)\n")
+		return true
+	}
+
+	// No changes detected
+	return false
+} // hasAnyEnvVars checks if any environment variables are set
+func hasAnyEnvVars(envMap *EnvSourceMap) bool {
+	return envMap.Radarr.Enabled || envMap.Radarr.URL || envMap.Radarr.APIKey ||
+		envMap.Sonarr.Enabled || envMap.Sonarr.URL || envMap.Sonarr.APIKey ||
+		envMap.Jellyfin.Enabled || envMap.Jellyfin.URL || envMap.Jellyfin.APIKey ||
+		envMap.Jellyseerr.Enabled || envMap.Jellyseerr.URL || envMap.Jellyseerr.APIKey ||
+		envMap.QBittorrent.Enabled || envMap.QBittorrent.URL || envMap.QBittorrent.Username || envMap.QBittorrent.Password
+}
+
+// logEnvOverrides prints which config values come from environment variables
+func logEnvOverrides(envMap *EnvSourceMap) {
+	if envMap.Radarr.Enabled {
+		fmt.Println("  - clients.radarr.enabled (from KEEPERCHEKY_CLIENTS_RADARR_ENABLED)")
+	}
+	if envMap.Radarr.URL {
+		fmt.Println("  - clients.radarr.url (from KEEPERCHEKY_CLIENTS_RADARR_URL)")
+	}
+	if envMap.Radarr.APIKey {
+		fmt.Println("  - clients.radarr.api_key (from RADARR_API_KEY)")
+	}
+	if envMap.Sonarr.Enabled {
+		fmt.Println("  - clients.sonarr.enabled (from KEEPERCHEKY_CLIENTS_SONARR_ENABLED)")
+	}
+	if envMap.Sonarr.URL {
+		fmt.Println("  - clients.sonarr.url (from KEEPERCHEKY_CLIENTS_SONARR_URL)")
+	}
+	if envMap.Sonarr.APIKey {
+		fmt.Println("  - clients.sonarr.api_key (from SONARR_API_KEY)")
+	}
+	if envMap.Jellyfin.Enabled {
+		fmt.Println("  - clients.jellyfin.enabled (from KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED)")
+	}
+	if envMap.Jellyfin.URL {
+		fmt.Println("  - clients.jellyfin.url (from KEEPERCHEKY_CLIENTS_JELLYFIN_URL)")
+	}
+	if envMap.Jellyfin.APIKey {
+		fmt.Println("  - clients.jellyfin.api_key (from JELLYFIN_API_KEY)")
+	}
+	if envMap.Jellyseerr.Enabled {
+		fmt.Println("  - clients.jellyseerr.enabled (from KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED)")
+	}
+	if envMap.Jellyseerr.URL {
+		fmt.Println("  - clients.jellyseerr.url (from KEEPERCHEKY_CLIENTS_JELLYSEERR_URL)")
+	}
+	if envMap.Jellyseerr.APIKey {
+		fmt.Println("  - clients.jellyseerr.api_key (from JELLYSEERR_API_KEY)")
+	}
+	if envMap.QBittorrent.Enabled {
+		fmt.Println("  - clients.qbittorrent.enabled (from KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED)")
+	}
+	if envMap.QBittorrent.URL {
+		fmt.Println("  - clients.qbittorrent.url (from KEEPERCHEKY_CLIENTS_QBITTORRENT_URL)")
+	}
+	if envMap.QBittorrent.Username {
+		fmt.Println("  - clients.qbittorrent.username (from QBITTORRENT_USERNAME)")
+	}
+	if envMap.QBittorrent.Password {
+		fmt.Println("  - clients.qbittorrent.password (from QBITTORRENT_PASSWORD)")
+	}
+}
+
 // Save writes the current configuration to a YAML file
+// This PHYSICALLY overwrites config.yaml with values from environment variables
 func Save(cfg *Config) error {
+	// Update viper's internal state with the merged config
+	// This includes all values from .env that were loaded via AutomaticEnv()
 	viper.Set("app", cfg.App)
 	viper.Set("server", cfg.Server)
 	viper.Set("database", cfg.Database)
 	viper.Set("clients", cfg.Clients)
 	viper.Set("cleanup", cfg.Cleanup)
 
-	// Write to /app/config/config.yaml (mounted volume in container)
-	configPath := "/app/config/config.yaml"
-	if err := viper.WriteConfigAs(configPath); err != nil {
-		return fmt.Errorf("failed to write config file to %s: %w", configPath, err)
+	// Determine the config file path
+	configPaths := []string{
+		"/app/config/config.yaml", // Docker container path
+		"./config/config.yaml",    // Local development
+		"./config.yaml",           // Fallback
+	}
+
+	var configPath string
+	var writeErr error
+
+	// Try each path until one works
+	for _, path := range configPaths {
+		// Check if directory exists and is writable
+		dir := filepath.Dir(path)
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			// Try to create directory
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				continue
+			}
+		}
+
+		// Try to write to this path
+		writeErr = viper.WriteConfigAs(path)
+		if writeErr == nil {
+			configPath = path
+			fmt.Printf("📝 Config saved to: %s\n", configPath)
+			break
+		}
+	}
+
+	if writeErr != nil {
+		return fmt.Errorf("failed to write config to any path: %w", writeErr)
 	}
 
 	return nil
