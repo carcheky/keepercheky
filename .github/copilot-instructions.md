@@ -882,17 +882,38 @@ func (s *CachedService) GetStats(ctx context.Context) (*Stats, error) {
 
 ## 🔄 Git Commit Conventions
 
-**ALWAYS** use conventional commits:
+**ALWAYS** use conventional commits **IN ENGLISH**:
 
+**CRITICAL**: All commit messages MUST be written in English, following the Conventional Commits specification.
+
+**Format**: `<type>(<scope>): <description>`
+
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+- `perf`: Performance improvements
+- `style`: Code style/formatting changes
+
+**Examples**:
 ```
-feat: add media filtering by type
-fix: resolve symlink creation error on Windows
-docs: update API documentation
-refactor: extract cleanup logic to separate service
-test: add integration tests for Radarr client
-chore: update dependencies
-perf: optimize database queries with indexes
-style: format code with gofmt
+feat(sync): implement intelligent torrent matching with disambiguation
+fix(ui): resolve tooltip not showing on mobile devices
+perf(qbittorrent): optimize bulk torrent fetching with single API call
+docs(readme): update installation instructions
+refactor(models): extract StringSlice type to separate file
+test(radarr): add integration tests for client
+chore(deps): update Go dependencies
+```
+
+**BAD Examples** (Spanish - DO NOT USE):
+```
+❌ feat(sync): implementar matching inteligente de torrents
+❌ fix: arreglar tooltip en móviles
+❌ actualizar dependencias
 ```
 
 ## 🐛 Debugging Guidelines
