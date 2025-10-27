@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.21](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** remove testing job from docker-build workflow ([d4a00a9](https://github.com/carcheky/keepercheky/commit/d4a00a9bfddea3d8f3ffc39b5f6c99273bf8a60b))
+
 ## [1.0.0-dev.20](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2025-10-27)
 
 
