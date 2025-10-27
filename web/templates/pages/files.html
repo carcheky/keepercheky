@@ -162,7 +162,7 @@
             <!-- Age Filter -->
             <div>
                 <label class="block text-sm font-medium text-dark-muted mb-2">Filtrar por Antigüedad</label>
-                <select x-model="filters.age" class="w-full px-3 py-2 bg-slate-800 border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select x-model="filters.age" disabled class="w-full px-3 py-2 bg-slate-800 border border-dark-border rounded-lg text-dark-text opacity-50 cursor-not-allowed" title="Próximamente: requiere datos de fecha desde backend">
                     <option value="">Todas las antigüedades</option>
                     <option value="old">&gt; 1 año sin ver</option>
                     <option value="aging">&gt; 6 meses sin ver</option>
@@ -186,11 +186,15 @@
                     <div class="ml-3 flex-1">
                         <div class="flex items-center gap-2">
                             <p class="text-sm font-medium text-dark-muted">Archivos Saludables</p>
-                            <button x-data="{ show: false }" @mouseenter="show = true" @mouseleave="show = false" class="relative text-dark-muted hover:text-dark-text">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <button x-data="{ show: false, id: 'tooltip-healthy-' + Math.random().toString(36).substr(2, 9) }" 
+                                @mouseenter="show = true" @mouseleave="show = false" 
+                                :aria-describedby="show ? id : null"
+                                aria-label="Información sobre archivos saludables"
+                                class="relative text-dark-muted hover:text-dark-text">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
                                 </svg>
-                                <div x-show="show" class="absolute z-50 bg-slate-900 border border-green-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0 whitespace-normal" style="display: none;">
+                                <div x-show="show" :id="id" role="tooltip" class="absolute z-50 bg-slate-900 border border-green-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0 whitespace-normal">
                                     Archivos en biblioteca, gestionados y reproducidos. Todo está bien con estos archivos.
                                 </div>
                             </button>
@@ -338,11 +342,11 @@
             <div class="flex items-center gap-3">
                 <select x-model="bulkAction" class="px-4 py-2 bg-slate-800 border border-blue-600/50 rounded-lg text-dark-text focus:ring-2 focus:ring-blue-500">
                     <option value="">Seleccionar acción...</option>
-                    <option value="delete">🗑️ Eliminar seleccionados</option>
-                    <option value="import">📥 Importar a Radarr/Sonarr</option>
-                    <option value="tag_keep">🏷️ Etiquetar "No eliminar"</option>
-                    <option value="clean_hardlinks">🔗 Limpiar hardlinks</option>
-                    <option value="pause_torrents">⏸️ Pausar torrents</option>
+                    <option value="delete">🗑️ Eliminar seleccionados (próximamente)</option>
+                    <option value="import">📥 Importar a Radarr/Sonarr (próximamente)</option>
+                    <option value="tag_keep">🏷️ Etiquetar "No eliminar" (próximamente)</option>
+                    <option value="clean_hardlinks">🔗 Limpiar hardlinks (próximamente)</option>
+                    <option value="pause_torrents">⏸️ Pausar torrents (próximamente)</option>
                 </select>
                 <button @click="executeBulkAction()" :disabled="!bulkAction" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors">
                     Ejecutar
@@ -604,7 +608,7 @@
         return {
             files: [],
             lastSync: '',
-            selectedTab: 'healthy',
+            selectedTab: 'orphan', // Default to unclassified to avoid empty state on first load
             syncing: false,
             syncMessage: '',
             syncMessageType: 'info',
@@ -668,7 +672,13 @@
             },
 
             get deadTorrents() {
-                return this.files.filter(f => f.in_qbittorrent && (f.torrent_state === 'error' || f.torrent_state === 'missingFiles' || (!f.is_seeding && f.seed_ratio < 1)));
+                return this.files.filter(f => {
+                    if (!f.in_qbittorrent) return false;
+                    // Dead torrent = error state, missing files, or stalled (not seeding with low ratio in library)
+                    return f.torrent_state === 'error' || 
+                           f.torrent_state === 'missingFiles' ||
+                           (f.in_jellyfin && !f.is_seeding && f.seed_ratio < 0.5); // Only consider dead if in library and very low ratio
+                });
             },
 
             get unwatchedFiles() {
@@ -681,8 +691,9 @@
                 if (file.torrent_state === 'error' || file.torrent_state === 'missingFiles') {
                     return 'critical';
                 }
-                if (file.in_qbittorrent && !file.is_seeding && file.seed_ratio < 1 && file.in_jellyfin) {
-                    return 'critical'; // Dead torrent but file is in library
+                // Dead torrent = in library but torrent not seeding with very low ratio
+                if (file.in_qbittorrent && file.in_jellyfin && !file.is_seeding && file.seed_ratio < 0.5) {
+                    return 'critical';
                 }
                 
                 // Attention: orphans, unwatched, missing from services
@@ -708,7 +719,7 @@
             getFileProblem(file) {
                 if (file.torrent_state === 'error') return '🚫 ERROR EN TORRENT';
                 if (file.torrent_state === 'missingFiles') return '🚫 ARCHIVOS FALTANTES';
-                if (file.in_qbittorrent && !file.is_seeding && file.seed_ratio < 1 && file.in_jellyfin) return '🚫 TORRENT MUERTO';
+                if (file.in_qbittorrent && file.in_jellyfin && !file.is_seeding && file.seed_ratio < 0.5) return '🚫 TORRENT MUERTO';
                 if (file.in_qbittorrent && !file.in_jellyfin && !file.in_radarr && !file.in_sonarr) return '⚠️ HUÉRFANO EN DESCARGAS';
                 if (!file.in_qbittorrent && !file.in_jellyfin) return '⚠️ NO EN SERVICIOS';
                 if (file.in_jellyfin && !file.has_been_watched) return '📊 SIN REPRODUCIR';
@@ -725,8 +736,8 @@
                 if (file.torrent_state === 'error' || file.torrent_state === 'missingFiles') {
                     return 'El torrent tiene errores. Verifica el cliente qBittorrent para más detalles.';
                 }
-                if (file.in_qbittorrent && !file.is_seeding && file.seed_ratio < 1 && file.in_jellyfin) {
-                    return 'El torrent está muerto (sin seeds). Si ya está en Jellyfin, puedes eliminarlo de qBittorrent de forma segura.';
+                if (file.in_qbittorrent && file.in_jellyfin && !file.is_seeding && file.seed_ratio < 0.5) {
+                    return 'El torrent está muerto (sin seeds y ratio muy bajo). Si ya está en Jellyfin, puedes eliminarlo de qBittorrent de forma segura.';
                 }
                 if (file.in_jellyfin && !file.has_been_watched) {
                     return 'Este archivo nunca se ha reproducido. Si no te interesa, considera eliminarlo para liberar espacio.';
@@ -766,7 +777,12 @@
                     } else if (this.filters.problem === 'hardlink_only') {
                         filtered = filtered.filter(f => f.is_hardlink);
                     } else if (this.filters.problem === 'dead_torrents') {
-                        filtered = filtered.filter(f => f.in_qbittorrent && (f.torrent_state === 'error' || f.torrent_state === 'missingFiles' || (!f.is_seeding && f.seed_ratio < 1)));
+                        filtered = filtered.filter(f => {
+                            if (!f.in_qbittorrent) return false;
+                            return f.torrent_state === 'error' || 
+                                   f.torrent_state === 'missingFiles' ||
+                                   (f.in_jellyfin && !f.is_seeding && f.seed_ratio < 0.5);
+                        });
                     } else if (this.filters.problem === 'unwatched') {
                         filtered = filtered.filter(f => f.in_jellyfin && !f.has_been_watched);
                     }
