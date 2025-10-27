@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.6](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** ajustar la lógica de etiquetado de imágenes Docker para ramas stable y develop, habilitando etiquetas solo cuando hay un release ([6089bad](https://github.com/carcheky/keepercheky/commit/6089bad4d5a0264589e759f647e378e8c1217a75))
+* **ci:** ajustar la lógica de etiquetado de imágenes Docker para ramas stable y develop, habilitando etiquetas solo cuando hay un release ([0d7abbe](https://github.com/carcheky/keepercheky/commit/0d7abbea19eecef13fe6ce9125742cd04d34a55f))
+
 ## [1.0.0-dev.5](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2025-10-27)
 
 
