@@ -7,6 +7,8 @@ on:
       - develop
       - alpha
       - beta
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - stable
@@ -184,16 +186,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Para DEVELOP: siempre "develop" + versión del tag actual de Git
+            # Si el push es de un tag, úsalo para versiones semánticas
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            # Rama develop: tag "develop"
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=semver,pattern={{version}},enable=${{ github.ref == 'refs/heads/develop' }}
-            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref == 'refs/heads/develop' }}
-            # Para STABLE: latest, stable, versiones semánticas
+            # Rama stable: latest + stable
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' }}
             type=raw,value=stable,enable=${{ github.ref == 'refs/heads/stable' }}
-            type=semver,pattern={{version}},enable=${{ github.ref == 'refs/heads/stable' }}
-            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref == 'refs/heads/stable' }}
-            type=semver,pattern={{major}},enable=${{ github.ref == 'refs/heads/stable' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
