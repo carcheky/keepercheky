@@ -191,9 +191,11 @@ jobs:
             type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
             type=semver,pattern={{major}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
-            # Para DEVELOP: develop, v1.0.0-dev.1 (prerelease)
+            # Para DEVELOP: develop (siempre), v1.0.0-dev.1 (cuando hay release)
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
             type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/develop' }}
+            # Fallback: SHA corto para cualquier push sin tag semántico
+            type=sha,prefix={{branch}}-,format=short,enable=${{ needs.semantic-release.outputs.published != 'true' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
