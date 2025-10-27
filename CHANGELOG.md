@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.9](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2025-10-27)
+
+
+### ✨ Features
+
+* **files:** implement health analysis system for storage management ([2837f8a](https://github.com/carcheky/keepercheky/commit/2837f8a5aa49f3b513e61cd8d15af899a2688ad0)), closes [#10](https://github.com/carcheky/keepercheky/issues/10) [-#13](https://github.com/carcheky/-/issues/13)
+
 ## [1.0.0-dev.8](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2025-10-27)
 
 
