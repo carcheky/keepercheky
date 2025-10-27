@@ -8,6 +8,16 @@ All notable changes to this project will be documented in this file. See [Conven
 ### 🐛 Bug Fixes
 
 * **ci:** remove local tags before semantic-release to avoid conflicts ([e8b506f](https://github.com/carcheky/keepercheky/commit/e8b506f3d03c57af1eceb85703df27198d1c2c8b))
+* **ci:** restructure Docker workflow with separate build and push jobs ([9333709](https://github.com/carcheky/keepercheky/commit/93337099cb9b5143cc97d0bef4637e3a5f3768c7))
+* test ([d8cce5b](https://github.com/carcheky/keepercheky/commit/d8cce5b0b4cf00cc02ce0142c059e2fffd5fa8de))
+* test ([fc56df9](https://github.com/carcheky/keepercheky/commit/fc56df962da3c2d813245473a82d2b4ea36cde36))
+
+## [1.0.0-dev.10](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** remove local tags before semantic-release to avoid conflicts ([e8b506f](https://github.com/carcheky/keepercheky/commit/e8b506f3d03c57af1eceb85703df27198d1c2c8b))
 * test ([d8cce5b](https://github.com/carcheky/keepercheky/commit/d8cce5b0b4cf00cc02ce0142c059e2fffd5fa8de))
 * test ([fc56df9](https://github.com/carcheky/keepercheky/commit/fc56df962da3c2d813245473a82d2b4ea36cde36))
 
