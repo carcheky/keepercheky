@@ -44,14 +44,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Automático desde tag Git: v1.0.0-dev.X → 1.0.0-dev.X, 1.0.0-dev, 1.0
             type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}-{{prerelease}}
             type=semver,pattern={{major}}.{{minor}}
-            # Tag "develop" para tags de prerelease (contienen -dev, -alpha, -beta)
-            type=raw,value=develop,enable={{is_default_branch}}
-            # Tag "latest" y "stable" solo para tags de producción (sin prerelease)
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
-            type=raw,value=stable,enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=develop
 
       - name: Build Docker image
         uses: docker/build-push-action@v5
@@ -100,14 +96,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Automático desde tag Git: v1.0.0-dev.X → 1.0.0-dev.X, 1.0.0-dev, 1.0
             type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}-{{prerelease}}
             type=semver,pattern={{major}}.{{minor}}
-            # Tag "develop" para tags de prerelease (contienen -dev, -alpha, -beta)
-            type=raw,value=develop,enable={{is_default_branch}}
-            # Tag "latest" y "stable" solo para tags de producción (sin prerelease)
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
-            type=raw,value=stable,enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=develop
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
