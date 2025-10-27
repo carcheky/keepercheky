@@ -2,16 +2,16 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Media Management</h1>
-            <p class="text-gray-600 mt-1">Browse and manage your media library</p>
+            <h1 class="text-3xl font-bold text-dark-text">Media Management</h1>
+            <p class="text-dark-muted mt-1">Browse and manage your media library</p>
         </div>
 
         <div class="flex items-center gap-4">
             <!-- Sync Progress Messages -->
             <div x-show="message" x-transition :class="{
-                    'bg-green-50 border-green-200 text-green-800': messageType === 'success',
-                    'bg-red-50 border-red-200 text-red-800': messageType === 'error',
-                    'bg-blue-50 border-blue-200 text-blue-800': messageType === 'info'
+                    'bg-green-900/20 border-green-700/50 text-green-300': messageType === 'success',
+                    'bg-red-900/20 border-red-700/50 text-red-300': messageType === 'error',
+                    'bg-blue-900/20 border-blue-700/50 text-blue-300': messageType === 'info'
                 }" class="px-4 py-2 rounded-lg border text-sm max-w-md">
                 <p x-text="message" class="line-clamp-2"></p>
             </div>
@@ -37,11 +37,11 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm text-gray-600">Total Media</p>
-                    <p class="text-2xl font-bold text-gray-900" x-text="stats.total_media || 0"></p>
+                    <p class="text-sm text-dark-muted">Total Media</p>
+                    <p class="text-2xl font-bold text-dark-text" x-text="stats.total_media || 0"></p>
                 </div>
                 <svg class="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -50,11 +50,11 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm text-gray-600">Movies</p>
-                    <p class="text-2xl font-bold text-gray-900" x-text="stats.total_movies || 0"></p>
+                    <p class="text-sm text-dark-muted">Movies</p>
+                    <p class="text-2xl font-bold text-dark-text" x-text="stats.total_movies || 0"></p>
                 </div>
                 <svg class="w-10 h-10 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
@@ -64,12 +64,12 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm text-gray-600">TV Series</p>
-                    <p class="text-2xl font-bold text-gray-900" x-text="stats.total_series || 0"></p>
-                    <p class="text-xs text-gray-500 mt-1" x-show="stats.total_episodes > 0">
+                    <p class="text-sm text-dark-muted">TV Series</p>
+                    <p class="text-2xl font-bold text-dark-text" x-text="stats.total_series || 0"></p>
+                    <p class="text-xs text-dark-muted mt-1" x-show="stats.total_episodes > 0">
                         <span x-text="stats.total_episodes_download || 0"></span>/<span
                             x-text="stats.total_episodes"></span> episodios
                     </p>
@@ -81,11 +81,11 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm text-gray-600">Total Size</p>
-                    <p class="text-2xl font-bold text-gray-900" x-text="formatSize(stats.total_size || 0)"></p>
+                    <p class="text-sm text-dark-muted">Total Size</p>
+                    <p class="text-2xl font-bold text-dark-text" x-text="formatSize(stats.total_size || 0)"></p>
                 </div>
                 <svg class="w-10 h-10 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
@@ -97,7 +97,7 @@
     </div>
 
     <!-- Advanced Filters -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
         <!-- Quick Actions Bar -->
         <div class="flex justify-between items-center mb-4 pb-4 border-b">
             <div class="flex items-center gap-3">
@@ -114,13 +114,13 @@
                         </svg>
                         Eliminar selección
                     </button>
-                    <button @click="selectedItems = []" class="text-sm text-gray-600 hover:text-gray-900">
+                    <button @click="selectedItems = []" class="text-sm text-dark-muted hover:text-gray-900">
                         Deseleccionar todo
                     </button>
                 </div>
             </div>
             <button @click="showAdvancedFilters = !showAdvancedFilters"
-                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center gap-2">
+                class="px-4 py-2 bg-dark-surface text-dark-text rounded-md hover:bg-slate-700/50 border border-dark-border flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -132,12 +132,12 @@
         <!-- Basic Filters (Always Visible) -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                <label class="block text-sm font-medium text-dark-text mb-2">Buscar</label>
                 <input type="text" x-model="filters.search" @input.debounce.500ms="loadMedia()" placeholder="Título..."
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <label class="block text-sm font-medium text-dark-text mb-2">Tipo</label>
                 <select x-model="filters.type" @change="loadMedia()"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="all">Todos</option>
@@ -147,7 +147,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <label class="block text-sm font-medium text-dark-text mb-2">Estado</label>
                 <select x-model="filters.status" @change="loadMedia()"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="all">Todos</option>
@@ -157,7 +157,7 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Por página</label>
+                <label class="block text-sm font-medium text-dark-text mb-2">Por página</label>
                 <select x-model="filters.pageSize" @change="loadMedia()"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="10">10</option>
@@ -173,7 +173,7 @@
             <!-- Row 1: Locations -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Ubicaciones</label>
+                    <label class="block text-sm font-medium text-dark-text mb-2">Ubicaciones</label>
                     <select x-model="filters.service" @change="loadMedia()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
@@ -184,7 +184,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tamaño</label>
+                    <label class="block text-sm font-medium text-dark-text mb-2">Tamaño</label>
                     <select x-model="filters.sizeRange" @change="loadMedia()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
@@ -195,7 +195,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Agregado</label>
+                    <label class="block text-sm font-medium text-dark-text mb-2">Agregado</label>
                     <select x-model="filters.addedDate" @change="loadMedia()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Cualquier fecha</option>
@@ -206,7 +206,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Seed Ratio</label>
+                    <label class="block text-sm font-medium text-dark-text mb-2">Seed Ratio</label>
                     <select x-model="filters.seedRatio" @change="loadMedia()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
@@ -220,13 +220,13 @@
             <!-- Row 2: Quality & Episodes -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Calidad</label>
+                    <label class="block text-sm font-medium text-dark-text mb-2">Calidad</label>
                     <input type="text" x-model="filters.quality" @input.debounce.500ms="loadMedia()"
                         placeholder="Ej: 1080p, 4K..."
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Series: Episodios</label>
+                    <label class="block text-sm font-medium text-dark-text mb-2">Series: Episodios</label>
                     <select x-model="filters.episodeCompletion" @change="loadMedia()"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
@@ -237,7 +237,7 @@
                 </div>
                 <div class="flex items-end gap-2">
                     <button @click="resetFilters()"
-                        class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                        class="flex-1 px-4 py-2 bg-dark-surface text-dark-text rounded-md hover:bg-slate-700/50 border border-dark-border">
                         Resetear filtros
                     </button>
 
@@ -252,7 +252,7 @@
                             </svg>
                         </button>
                         <div x-show="showPresets" @click.away="showPresets = false"
-                            class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+                            class="absolute z-10 mt-1 w-full bg-dark-bg border border-dark-border text-dark-text rounded-md shadow-lg">
                             <template x-for="(filters, name) in getSavedPresets()" :key="name">
                                 <div class="flex items-center justify-between px-4 py-2 hover:bg-gray-100">
                                     <button @click="loadFilterPreset(name); showPresets = false"
@@ -264,7 +264,7 @@
                                 </div>
                             </template>
                             <div x-show="Object.keys(getSavedPresets()).length === 0"
-                                class="px-4 py-2 text-gray-500 text-sm">
+                                class="px-4 py-2 text-dark-muted text-sm">
                                 No hay presets guardados
                             </div>
                         </div>
@@ -305,16 +305,16 @@
     </div>
 
     <!-- Media List -->
-    <div x-show="!loading && !bulkDeleteModal.deleting" class="bg-white rounded-lg shadow overflow-hidden">
+    <div x-show="!loading && !bulkDeleteModal.deleting" class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border overflow-hidden">
         <!-- Empty State -->
         <div x-show="media.length === 0" class="text-center py-12">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="mx-auto h-12 w-12 text-dark-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z">
                 </path>
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No media found</h3>
-            <p class="mt-1 text-sm text-gray-500">Click "Sync Now" to import your media library.</p>
+            <h3 class="mt-2 text-sm font-medium text-dark-text">No media found</h3>
+            <p class="mt-1 text-sm text-dark-muted">Click "Sync Now" to import your media library.</p>
         </div>
 
         <!-- Media Table -->
@@ -327,30 +327,30 @@
                                 :checked="selectedItems.length === media.length && media.length > 0"
                                 class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Title
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Type
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Locations
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Size
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Added
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Status
                         </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-right text-xs font-medium text-dark-muted uppercase tracking-wider">
                             Actions
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-dark-surface divide-y divide-dark-border">
                     <template x-for="item in media" :key="item.id">
                         <tr class="hover:bg-gray-50" :class="selectedItems.includes(item.id) ? 'bg-blue-50' : ''">
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -362,13 +362,13 @@
                                 <div class="flex items-center">
                                     <div
                                         class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
-                                        <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="h-6 w-6 text-dark-muted" fill="currentColor" viewBox="0 0 20 20">
                                             <path
                                                 d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
                                         </svg>
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900" x-text="item.title"></div>
+                                        <div class="text-sm font-medium text-dark-text" x-text="item.title"></div>
                                     </div>
                                 </div>
                             </td>
@@ -381,7 +381,7 @@
                                     </span>
                                     <!-- Series info -->
                                     <span x-show="item.type === 'series' && item.episode_file_count > 0"
-                                        class="text-xs text-gray-500 mt-1"
+                                        class="text-xs text-dark-muted mt-1"
                                         x-text="`${item.episode_file_count}/${item.episode_count} episodios`">
                                     </span>
                                 </div>
@@ -432,15 +432,15 @@
                                     <!-- No locations indicator -->
                                     <span
                                         x-show="(!item.radarr_id || item.radarr_id === '') && (!item.sonarr_id || item.sonarr_id === '') && (!item.jellyfin_id || item.jellyfin_id === '') && (!item.jellyseerr_id || item.jellyseerr_id === '') && (!item.torrent_hash || item.torrent_hash === '')"
-                                        class="text-xs text-gray-400 italic">
+                                        class="text-xs text-dark-muted italic">
                                         Sin ubicaciones
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-muted">
                                 <span x-text="formatSize(item.size)"></span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-muted">
                                 <span x-text="formatDate(item.added_date)"></span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -470,17 +470,17 @@
             <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                 <div class="flex-1 flex justify-between sm:hidden">
                     <button @click="previousPage()" :disabled="currentPage === 1"
-                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                        class="relative inline-flex items-center px-4 py-2 border border-dark-border text-sm font-medium rounded-md text-dark-text bg-dark-surface hover:bg-slate-700/50 disabled:opacity-50">
                         Previous
                     </button>
                     <button @click="nextPage()" :disabled="currentPage >= totalPages"
-                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
+                        class="ml-3 relative inline-flex items-center px-4 py-2 border border-dark-border text-sm font-medium rounded-md text-dark-text bg-dark-surface hover:bg-slate-700/50 disabled:opacity-50">
                         Next
                     </button>
                 </div>
                 <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-sm text-gray-700">
+                        <p class="text-sm text-dark-text">
                             Showing
                             <span class="font-medium" x-text="((currentPage-1)*filters.pageSize)+1"></span>
                             to
@@ -493,11 +493,11 @@
                     <div>
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                             <button @click="previousPage()" :disabled="currentPage === 1"
-                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-dark-border bg-dark-surface text-sm font-medium text-dark-muted hover:bg-slate-700/50 disabled:opacity-50">
                                 Previous
                             </button>
                             <button @click="nextPage()" :disabled="currentPage >= totalPages"
-                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-dark-border bg-dark-surface text-sm font-medium text-dark-muted hover:bg-slate-700/50 disabled:opacity-50">
                                 Next
                             </button>
                         </nav>
@@ -535,7 +535,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-lg font-semibold text-gray-900 mb-1">Eliminar Media</h3>
-                        <p class="text-sm text-gray-600">
+                        <p class="text-sm text-dark-muted">
                             ¿Estás seguro de eliminar "<span x-text="deleteModal.media?.title"
                                 class="font-semibold"></span>"?
                         </p>
@@ -553,11 +553,11 @@
                             class="w-4 h-4 text-yellow-600 rounded focus:ring-yellow-500">
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-900">Eliminar de Radarr</span>
+                                <span class="text-sm font-medium text-dark-text">Eliminar de Radarr</span>
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #ffc230; color: #1f1f1f;">Radarr</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-0.5">Elimina la película de Radarr</p>
+                            <p class="text-xs text-dark-muted mt-0.5">Elimina la película de Radarr</p>
                         </div>
                     </label>
 
@@ -568,11 +568,11 @@
                             class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-900">Eliminar de Sonarr</span>
+                                <span class="text-sm font-medium text-dark-text">Eliminar de Sonarr</span>
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #35c5f4; color: #1f1f1f;">Sonarr</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-0.5">Elimina la serie de Sonarr</p>
+                            <p class="text-xs text-dark-muted mt-0.5">Elimina la serie de Sonarr</p>
                         </div>
                     </label>
 
@@ -583,11 +583,11 @@
                             class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-900">Eliminar de Jellyfin</span>
+                                <span class="text-sm font-medium text-dark-text">Eliminar de Jellyfin</span>
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #aa5cc3; color: #ffffff;">Jellyfin</span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-0.5">Elimina del servidor Jellyfin</p>
+                            <p class="text-xs text-dark-muted mt-0.5">Elimina del servidor Jellyfin</p>
                         </div>
                     </label>
 
@@ -614,8 +614,8 @@
                         <input type="checkbox" x-model="deleteModal.options.qbittorrent"
                             class="w-4 h-4 text-gray-600 rounded focus:ring-gray-500">
                         <div class="flex-1">
-                            <span class="text-sm font-medium text-gray-900">Eliminar torrent de qBittorrent</span>
-                            <p class="text-xs text-gray-500 mt-0.5">Elimina el torrent (opcional)</p>
+                            <span class="text-sm font-medium text-dark-text">Eliminar torrent de qBittorrent</span>
+                            <p class="text-xs text-dark-muted mt-0.5">Elimina el torrent (opcional)</p>
                         </div>
                     </label>
                 </div>
@@ -827,12 +827,12 @@
     <!-- Bulk Delete Modal -->
     <div x-show="bulkDeleteModal.show"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4" @click.away="bulkDeleteModal.show = false">
+        <div class="bg-dark-surface rounded-xl shadow-2xl border border-dark-border max-w-md w-full mx-4" @click.away="bulkDeleteModal.show = false">
             <div class="p-6">
                 <!-- Header -->
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-gray-900">Eliminar en Bulk</h3>
-                    <button @click="bulkDeleteModal.show = false" class="text-gray-400 hover:text-gray-600">
+                    <h3 class="text-xl font-bold text-dark-text">Eliminar en Bulk</h3>
+                    <button @click="bulkDeleteModal.show = false" class="text-dark-muted hover:text-dark-text">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12">
@@ -842,7 +842,7 @@
                 </div>
 
                 <!-- Info -->
-                <p class="text-gray-600 mb-6">
+                <p class="text-dark-muted mb-6">
                     Vas a eliminar <span class="font-bold text-red-600" x-text="selectedItems.length"></span> elementos.
                     Selecciona de dónde quieres eliminarlos:
                 </p>
@@ -858,7 +858,7 @@
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #ffc230; color: #000000;">Radarr</span>
                             </div>
-                            <p class="text-xs text-gray-500">Eliminar de Radarr</p>
+                            <p class="text-xs text-dark-muted">Eliminar de Radarr</p>
                         </div>
                     </label>
 
@@ -871,7 +871,7 @@
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #35c5f4; color: #000000;">Sonarr</span>
                             </div>
-                            <p class="text-xs text-gray-500">Eliminar de Sonarr</p>
+                            <p class="text-xs text-dark-muted">Eliminar de Sonarr</p>
                         </div>
                     </label>
 
@@ -884,7 +884,7 @@
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #aa5cc3; color: #ffffff;">Jellyfin</span>
                             </div>
-                            <p class="text-xs text-gray-500">Eliminar de Jellyfin</p>
+                            <p class="text-xs text-dark-muted">Eliminar de Jellyfin</p>
                         </div>
                     </label>
 
@@ -897,7 +897,7 @@
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
                                     style="background-color: #3a91d4; color: #ffffff;">qBittorrent</span>
                             </div>
-                            <p class="text-xs text-gray-500">Eliminar torrent</p>
+                            <p class="text-xs text-dark-muted">Eliminar torrent</p>
                         </div>
                     </label>
 
