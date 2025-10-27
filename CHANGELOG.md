@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.17](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2025-10-27)
+
+
+### ♻️ Code Refactoring
+
+* **scripts:** organize downloads by qBittorrent categories ([2ab756e](https://github.com/carcheky/keepercheky/commit/2ab756e3dbd083a22167e5943d50b28cf6466afd))
+
 ## [1.0.0-dev.16](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2025-10-27)
 
 
