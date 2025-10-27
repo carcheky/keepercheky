@@ -114,7 +114,7 @@
                         </svg>
                         Eliminar selección
                     </button>
-                    <button @click="selectedItems = []" class="text-sm text-dark-muted hover:text-gray-900">
+                    <button @click="selectedItems = []" class="text-sm text-dark-muted hover:text-dark-text">
                         Deseleccionar todo
                     </button>
                 </div>
@@ -258,7 +258,7 @@
                                     <button @click="loadFilterPreset(name); showPresets = false"
                                         class="flex-1 text-left" x-text="name"></button>
                                     <button @click.stop="deletePreset(name)"
-                                        class="text-red-600 hover:text-red-800 ml-2">
+                                        class="text-red-400 hover:text-red-800 ml-2">
                                         🗑️
                                     </button>
                                 </div>
@@ -293,14 +293,14 @@
     <div x-show="bulkDeleteModal.deleting"
         class="flex justify-center items-center py-12 bg-red-50 rounded-lg border-2 border-red-200">
         <div class="text-center">
-            <svg class="animate-spin h-10 w-10 text-red-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin h-10 w-10 text-red-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                 </path>
             </svg>
             <p class="text-red-700 font-medium">Eliminando elementos seleccionados...</p>
-            <p class="text-red-600 text-sm mt-1">Por favor espera, no cierres esta página</p>
+            <p class="text-red-400 text-sm mt-1">Por favor espera, no cierres esta página</p>
         </div>
     </div>
 
@@ -457,7 +457,7 @@
                                 <button @click="toggleExclude(item)" class="text-blue-600 hover:text-blue-900 mr-3"
                                     x-text="item.excluded ? 'Include' : 'Exclude'">
                                 </button>
-                                <button @click="deleteMedia(item)" class="text-red-600 hover:text-red-900">
+                                <button @click="deleteMedia(item)" class="text-red-400 hover:text-red-300">
                                     Delete
                                 </button>
                             </td>
@@ -467,7 +467,7 @@
             </table>
 
             <!-- Pagination -->
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-dark-border sm:px-6">
                 <div class="flex-1 flex justify-between sm:hidden">
                     <button @click="previousPage()" :disabled="currentPage === 1"
                         class="relative inline-flex items-center px-4 py-2 border border-dark-border text-sm font-medium rounded-md text-dark-text bg-dark-surface hover:bg-slate-700/50 disabled:opacity-50">
@@ -523,18 +523,18 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 transform scale-100"
                 x-transition:leave-end="opacity-0 transform scale-95"
-                class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative z-50">
+                class="bg-dark-surface rounded-lg shadow-xl border border-dark-border max-w-md w-full p-6 relative z-50">
 
                 <!-- Header -->
                 <div class="flex items-start gap-4 mb-4">
                     <div class="flex-shrink-0">
-                        <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-1">Eliminar Media</h3>
+                        <h3 class="text-lg font-semibold text-dark-text mb-1">Eliminar Media</h3>
                         <p class="text-sm text-dark-muted">
                             ¿Estás seguro de eliminar "<span x-text="deleteModal.media?.title"
                                 class="font-semibold"></span>"?
@@ -544,7 +544,7 @@
 
                 <!-- Options (show when not deleting) -->
                 <div x-show="!deleteModal.deleting" class="space-y-3 mb-6">
-                    <p class="text-sm font-medium text-gray-700">Selecciona qué deseas eliminar:</p>
+                    <p class="text-sm font-medium text-dark-text">Selecciona qué deseas eliminar:</p>
 
                     <!-- Radarr option -->
                     <label x-show="deleteModal.media?.radarr_id"
@@ -595,24 +595,24 @@
                     <label
                         class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 border-red-200 bg-red-50">
                         <input type="checkbox" x-model="deleteModal.options.deleteFiles"
-                            class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
+                            class="w-4 h-4 text-red-400 rounded focus:ring-red-500">
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm font-medium text-red-900">Eliminar archivos del disco</span>
-                                <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                <span class="text-sm font-medium text-red-300">Eliminar archivos del disco</span>
+                                <svg class="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
                                         clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <p class="text-xs text-red-600 mt-0.5">⚠️ Esta acción no se puede deshacer</p>
+                            <p class="text-xs text-red-400 mt-0.5">⚠️ Esta acción no se puede deshacer</p>
                         </div>
                     </label>
 
                     <!-- qBittorrent option -->
                     <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                         <input type="checkbox" x-model="deleteModal.options.qbittorrent"
-                            class="w-4 h-4 text-gray-600 rounded focus:ring-gray-500">
+                            class="w-4 h-4 text-dark-muted rounded focus:ring-gray-500">
                         <div class="flex-1">
                             <span class="text-sm font-medium text-dark-text">Eliminar torrent de qBittorrent</span>
                             <p class="text-xs text-dark-muted mt-0.5">Elimina el torrent (opcional)</p>
@@ -622,7 +622,7 @@
 
                 <!-- Progress indicators (show when deleting) -->
                 <div x-show="deleteModal.deleting" class="space-y-3 mb-6">
-                    <p class="text-sm font-medium text-gray-700 mb-4">Progreso de eliminación:</p>
+                    <p class="text-sm font-medium text-dark-text mb-4">Progreso de eliminación:</p>
 
                     <!-- Radarr progress -->
                     <div x-show="deleteModal.options.radarr && deleteModal.media?.radarr_id"
@@ -639,14 +639,14 @@
                                 </path>
                             </svg>
                             <!-- Success checkmark -->
-                            <svg x-show="deleteModal.progress.radarr === 'success'" class="h-5 w-5 text-green-600"
+                            <svg x-show="deleteModal.progress.radarr === 'success'" class="h-5 w-5 text-green-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                     clip-rule="evenodd" />
                             </svg>
                             <!-- Error X -->
-                            <svg x-show="deleteModal.progress.radarr === 'error'" class="h-5 w-5 text-red-600"
+                            <svg x-show="deleteModal.progress.radarr === 'error'" class="h-5 w-5 text-red-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -656,7 +656,7 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-medium"
-                                    :class="deleteModal.progress.radarr === 'success' ? 'text-green-900' : deleteModal.progress.radarr === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                    :class="deleteModal.progress.radarr === 'success' ? 'text-green-300' : deleteModal.progress.radarr === 'error' ? 'text-red-300' : 'text-dark-text'">
                                     Radarr
                                 </span>
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
@@ -664,7 +664,7 @@
                                     style="background-color: #ffc230; color: #1f1f1f;">Radarr</span>
                             </div>
                             <p class="text-xs mt-0.5"
-                                :class="deleteModal.progress.radarr === 'success' ? 'text-green-600' : deleteModal.progress.radarr === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                :class="deleteModal.progress.radarr === 'success' ? 'text-green-400' : deleteModal.progress.radarr === 'error' ? 'text-red-400' : 'text-dark-muted'">
                                 <span
                                     x-text="deleteModal.progress.radarr === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.radarr === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
                             </p>
@@ -684,13 +684,13 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            <svg x-show="deleteModal.progress.sonarr === 'success'" class="h-5 w-5 text-green-600"
+                            <svg x-show="deleteModal.progress.sonarr === 'success'" class="h-5 w-5 text-green-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                     clip-rule="evenodd" />
                             </svg>
-                            <svg x-show="deleteModal.progress.sonarr === 'error'" class="h-5 w-5 text-red-600"
+                            <svg x-show="deleteModal.progress.sonarr === 'error'" class="h-5 w-5 text-red-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -700,7 +700,7 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-medium"
-                                    :class="deleteModal.progress.sonarr === 'success' ? 'text-green-900' : deleteModal.progress.sonarr === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                    :class="deleteModal.progress.sonarr === 'success' ? 'text-green-300' : deleteModal.progress.sonarr === 'error' ? 'text-red-300' : 'text-dark-text'">
                                     Sonarr
                                 </span>
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
@@ -708,7 +708,7 @@
                                     style="background-color: #35c5f4; color: #1f1f1f;">Sonarr</span>
                             </div>
                             <p class="text-xs mt-0.5"
-                                :class="deleteModal.progress.sonarr === 'success' ? 'text-green-600' : deleteModal.progress.sonarr === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                :class="deleteModal.progress.sonarr === 'success' ? 'text-green-400' : deleteModal.progress.sonarr === 'error' ? 'text-red-400' : 'text-dark-muted'">
                                 <span
                                     x-text="deleteModal.progress.sonarr === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.sonarr === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
                             </p>
@@ -728,13 +728,13 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            <svg x-show="deleteModal.progress.jellyfin === 'success'" class="h-5 w-5 text-green-600"
+                            <svg x-show="deleteModal.progress.jellyfin === 'success'" class="h-5 w-5 text-green-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                     clip-rule="evenodd" />
                             </svg>
-                            <svg x-show="deleteModal.progress.jellyfin === 'error'" class="h-5 w-5 text-red-600"
+                            <svg x-show="deleteModal.progress.jellyfin === 'error'" class="h-5 w-5 text-red-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -744,7 +744,7 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
                                 <span class="text-sm font-medium"
-                                    :class="deleteModal.progress.jellyfin === 'success' ? 'text-green-900' : deleteModal.progress.jellyfin === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                    :class="deleteModal.progress.jellyfin === 'success' ? 'text-green-300' : deleteModal.progress.jellyfin === 'error' ? 'text-red-300' : 'text-dark-text'">
                                     Jellyfin
                                 </span>
                                 <span class="px-2 py-0.5 text-xs font-semibold rounded"
@@ -752,7 +752,7 @@
                                     style="background-color: #aa5cc3; color: #ffffff;">Jellyfin</span>
                             </div>
                             <p class="text-xs mt-0.5"
-                                :class="deleteModal.progress.jellyfin === 'success' ? 'text-green-600' : deleteModal.progress.jellyfin === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                :class="deleteModal.progress.jellyfin === 'success' ? 'text-green-400' : deleteModal.progress.jellyfin === 'error' ? 'text-red-400' : 'text-dark-muted'">
                                 <span
                                     x-text="deleteModal.progress.jellyfin === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.jellyfin === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
                             </p>
@@ -765,20 +765,20 @@
                         :class="deleteModal.progress.files === 'success' ? 'bg-green-50 border-green-300' : deleteModal.progress.files === 'error' ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'">
                         <div class="flex-shrink-0">
                             <svg x-show="deleteModal.progress.files === 'pending'"
-                                class="animate-spin h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24">
+                                class="animate-spin h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                     stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor"
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            <svg x-show="deleteModal.progress.files === 'success'" class="h-5 w-5 text-green-600"
+                            <svg x-show="deleteModal.progress.files === 'success'" class="h-5 w-5 text-green-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                     clip-rule="evenodd" />
                             </svg>
-                            <svg x-show="deleteModal.progress.files === 'error'" class="h-5 w-5 text-red-600"
+                            <svg x-show="deleteModal.progress.files === 'error'" class="h-5 w-5 text-red-400"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -787,11 +787,11 @@
                         </div>
                         <div class="flex-1">
                             <span class="text-sm font-medium"
-                                :class="deleteModal.progress.files === 'success' ? 'text-green-900 line-through' : deleteModal.progress.files === 'error' ? 'text-red-900' : 'text-gray-900'">
+                                :class="deleteModal.progress.files === 'success' ? 'text-green-300 line-through' : deleteModal.progress.files === 'error' ? 'text-red-300' : 'text-dark-text'">
                                 Archivos del disco
                             </span>
                             <p class="text-xs mt-0.5"
-                                :class="deleteModal.progress.files === 'success' ? 'text-green-600' : deleteModal.progress.files === 'error' ? 'text-red-600' : 'text-gray-600'">
+                                :class="deleteModal.progress.files === 'success' ? 'text-green-400' : deleteModal.progress.files === 'error' ? 'text-red-400' : 'text-dark-muted'">
                                 <span
                                     x-text="deleteModal.progress.files === 'success' ? '✓ Eliminado exitosamente' : deleteModal.progress.files === 'error' ? '✗ Error al eliminar' : 'Eliminando...'"></span>
                             </p>
@@ -802,7 +802,7 @@
                 <!-- Actions -->
                 <div class="flex gap-3">
                     <button @click="deleteModal.show = false"
-                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                        class="flex-1 px-4 py-2 border border-dark-border text-dark-text rounded-lg hover:bg-slate-700/50 font-medium">
                         Cancelar
                     </button>
                     <button @click="confirmDelete()" :disabled="deleteModal.deleting"
@@ -843,7 +843,7 @@
 
                 <!-- Info -->
                 <p class="text-dark-muted mb-6">
-                    Vas a eliminar <span class="font-bold text-red-600" x-text="selectedItems.length"></span> elementos.
+                    Vas a eliminar <span class="font-bold text-red-400" x-text="selectedItems.length"></span> elementos.
                     Selecciona de dónde quieres eliminarlos:
                 </p>
 
@@ -904,10 +904,10 @@
                     <label
                         class="flex items-center gap-3 p-3 border border-red-200 rounded-lg cursor-pointer hover:bg-red-50">
                         <input type="checkbox" x-model="bulkDeleteModal.options.deleteFiles"
-                            class="w-5 h-5 text-red-600 rounded">
+                            class="w-5 h-5 text-red-400 rounded">
                         <div class="flex-1">
                             <span class="font-medium text-red-700">Eliminar archivos del disco</span>
-                            <p class="text-xs text-red-600">⚠️ Esto eliminará los archivos permanentemente</p>
+                            <p class="text-xs text-red-400">⚠️ Esto eliminará los archivos permanentemente</p>
                         </div>
                     </label>
                 </div>
@@ -915,7 +915,7 @@
                 <!-- Actions -->
                 <div class="flex gap-3">
                     <button @click="bulkDeleteModal.show = false"
-                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                        class="flex-1 px-4 py-2 border border-dark-border text-dark-text rounded-lg hover:bg-slate-700/50 font-medium">
                         Cancelar
                     </button>
                     <button @click="confirmBulkDelete()" :disabled="bulkDeleteModal.deleting"
