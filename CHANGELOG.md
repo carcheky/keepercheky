@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** update branch references from main to stable in Docker workflow ([a000fd8](https://github.com/carcheky/keepercheky/commit/a000fd84e464b275180a7cebef7e38bc2ca507e9))
+
 ## 1.0.0-dev.1 (2025-10-27)
 
 
