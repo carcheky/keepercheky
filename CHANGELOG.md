@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.16](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2025-10-27)
+
+
+### ✨ Features
+
+* **files:** use qBittorrent category paths for filesystem scanning ([8c297f7](https://github.com/carcheky/keepercheky/commit/8c297f789d37fcd5869b8fdd08fd1a2356c81d14))
+
+
+### 🐛 Bug Fixes
+
+* **docker:** use TARGETARCH/TARGETOS for multi-platform builds ([40930b0](https://github.com/carcheky/keepercheky/commit/40930b06af9b795dde1df0bfaa5599f2f38d58bb))
+
 ## [1.0.0-dev.15](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2025-10-27)
 
 
