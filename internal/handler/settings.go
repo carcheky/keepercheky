@@ -344,3 +344,168 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		"message": "Connection test successful",
 	})
 }
+
+// TestAllConnections tests all enabled services concurrently
+func (h *SettingsHandler) TestAllConnections(c *fiber.Ctx) error {
+	h.logger.Info("Testing all service connections")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// List of all services to test
+	services := []string{"radarr", "sonarr", "jellyfin", "jellyseerr", "jellystat", "qbittorrent"}
+
+	// Results map to store test results
+	type ServiceResult struct {
+		Success    bool        `json:"success"`
+		Message    string      `json:"message"`
+		SystemInfo interface{} `json:"system_info,omitempty"`
+		Error      string      `json:"error,omitempty"`
+	}
+
+	results := make(map[string]ServiceResult)
+	resultsChan := make(chan struct {
+		service string
+		result  ServiceResult
+	}, len(services))
+
+	// Track enabled services
+	enabledCount := 0
+
+	// Test each service concurrently
+	for _, service := range services {
+		// Check if service is enabled
+		enabled := false
+		switch service {
+		case "radarr":
+			enabled = h.config.Clients.Radarr.Enabled
+		case "sonarr":
+			enabled = h.config.Clients.Sonarr.Enabled
+		case "jellyfin":
+			enabled = h.config.Clients.Jellyfin.Enabled
+		case "jellyseerr":
+			enabled = h.config.Clients.Jellyseerr.Enabled
+		case "jellystat":
+			enabled = h.config.Clients.Jellystat.Enabled
+		case "qbittorrent":
+			enabled = h.config.Clients.QBittorrent.Enabled
+		}
+
+		if !enabled {
+			results[service] = ServiceResult{
+				Success: false,
+				Message: "Service not enabled",
+			}
+			continue
+		}
+
+		enabledCount++
+
+		// Test service in goroutine
+		go func(svc string) {
+			result := ServiceResult{}
+
+			// Test basic connection
+			err := h.syncService.TestConnection(ctx, svc)
+			if err != nil {
+				h.logger.Error("Connection test failed",
+					"service", svc,
+					"error", err,
+				)
+				result.Success = false
+				result.Error = err.Error()
+				result.Message = "Connection failed"
+				resultsChan <- struct {
+					service string
+					result  ServiceResult
+				}{svc, result}
+				return
+			}
+
+			result.Success = true
+			result.Message = "Connection successful"
+
+			// Get system info for each service
+			switch svc {
+			case "radarr":
+				systemInfo, err := h.syncService.GetRadarrSystemInfo(ctx)
+				if err == nil {
+					result.SystemInfo = systemInfo
+				}
+			case "sonarr":
+				systemInfo, err := h.syncService.GetSonarrSystemInfo(ctx)
+				if err == nil {
+					result.SystemInfo = systemInfo
+				}
+			case "jellyfin":
+				systemInfo, err := h.syncService.GetJellyfinSystemInfo(ctx)
+				if err == nil {
+					result.SystemInfo = systemInfo
+				}
+			case "jellyseerr":
+				systemInfo, err := h.syncService.GetJellyseerrSystemInfo(ctx)
+				if err == nil {
+					result.SystemInfo = systemInfo
+				}
+			case "jellystat":
+				systemInfo, err := h.syncService.GetJellystatSystemInfo(ctx)
+				if err == nil {
+					result.SystemInfo = systemInfo
+				}
+			case "qbittorrent":
+				systemInfo, err := h.syncService.GetQBittorrentSystemInfo(ctx)
+				if err == nil {
+					result.SystemInfo = systemInfo
+				}
+			}
+
+			resultsChan <- struct {
+				service string
+				result  ServiceResult
+			}{svc, result}
+		}(service)
+	}
+
+	// Collect results
+	for i := 0; i < enabledCount; i++ {
+		select {
+		case res := <-resultsChan:
+			results[res.service] = res.result
+		case <-ctx.Done():
+			h.logger.Error("Test all connections timeout")
+			return c.Status(500).JSON(fiber.Map{
+				"error":   "Request timeout",
+				"results": results,
+			})
+		}
+	}
+
+	// Calculate summary
+	successCount := 0
+	failureCount := 0
+	for _, result := range results {
+		if result.Success {
+			successCount++
+		} else if result.Error != "" {
+			failureCount++
+		}
+	}
+
+	h.logger.Info("Test all connections completed",
+		"total", len(services),
+		"enabled", enabledCount,
+		"success", successCount,
+		"failure", failureCount,
+	)
+
+	return c.JSON(fiber.Map{
+		"success": failureCount == 0 && enabledCount > 0,
+		"summary": fiber.Map{
+			"total":   len(services),
+			"enabled": enabledCount,
+			"success": successCount,
+			"failure": failureCount,
+		},
+		"results": results,
+	})
+}
