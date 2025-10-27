@@ -41,8 +41,7 @@ COPY web/ ./web/
 # - -X: Inject version information at build time
 # - -linkmode external: Use external linker for CGO
 # - -extldflags '-static': Force static linking
-RUN echo "Building for platform: TARGETOS=${TARGETOS} TARGETARCH=${TARGETARCH}" && \
-    apk add --no-cache gcc musl-dev && \
+RUN apk add --no-cache gcc musl-dev && \
     CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags="-w -s -linkmode external -extldflags '-static' -X main.Version=${VERSION} -X main.CommitSHA=${COMMIT_SHA}" \
     -trimpath \
