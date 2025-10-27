@@ -164,6 +164,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 
 		// Files
 		api.Get("/files", h.Files.GetFilesAPI)
+		api.Get("/files/health", h.Files.GetFilesHealthAPI) // Health analysis endpoint
 
 		// Stats
 		api.Get("/stats", h.Dashboard.Stats)
