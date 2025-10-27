@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.7](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** remove published check to always build Docker images from Git tags ([b4e1815](https://github.com/carcheky/keepercheky/commit/b4e181588e0e43d57c1725f934c1f95489386d9f))
+
 ## [1.0.0-dev.6](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2025-10-27)
 
 
