@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.14](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** use PAT for semantic-release to trigger Docker workflow ([61054bc](https://github.com/carcheky/keepercheky/commit/61054bcc3c7eed9f638409def17abd9ea63c1819))
+
 ## [1.0.0-dev.13](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2025-10-27)
 
 
