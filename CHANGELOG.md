@@ -8,6 +8,14 @@ All notable changes to this project will be documented in this file. See [Conven
 ### 🐛 Bug Fixes
 
 * **ci:** correct docker tags logic for develop vs stable ([a60ebaf](https://github.com/carcheky/keepercheky/commit/a60ebafdd03315e01d4604d2f0194182aa703f4f))
+* test ([74578a7](https://github.com/carcheky/keepercheky/commit/74578a7b0563e0ec29d447cd0354a220eee15c64))
+
+## [1.0.0-dev.23](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** correct docker tags logic for develop vs stable ([a60ebaf](https://github.com/carcheky/keepercheky/commit/a60ebafdd03315e01d4604d2f0194182aa703f4f))
 
 ## [1.0.0-dev.22](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.21...v1.0.0-dev.22) (2025-10-27)
 
