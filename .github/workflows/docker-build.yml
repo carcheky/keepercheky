@@ -7,6 +7,8 @@ on:
       - develop
       - alpha
       - beta
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - stable
@@ -184,16 +186,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Para DEVELOP: siempre "develop" + versión si semantic-release generó una
+            # Si el push es de un tag, úsalo para versiones semánticas
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            # Rama develop: tag "develop"
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=raw,value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/develop' && needs.semantic-release.outputs.version != '' }}
-            # Para STABLE: latest, stable, versiones semánticas
+            # Rama stable: latest + stable
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' }}
             type=raw,value=stable,enable=${{ github.ref == 'refs/heads/stable' }}
-            type=raw,value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
-            type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
-            type=semver,pattern={{major}},value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
