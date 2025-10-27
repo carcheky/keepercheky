@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.3](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** update permissions and adjust Docker login step for pull requests ([1ff9834](https://github.com/carcheky/keepercheky/commit/1ff98341e5af3b32533f95adffb255f09f3c943d))
+
 ## [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-27)
 
 
