@@ -13,6 +13,8 @@ set -e
 MEDIA_BASE="./volumes/media-library"
 DOWNLOADS_DIR="$MEDIA_BASE/downloads"
 DOWNLOADS_INCOMPLETE_DIR="$DOWNLOADS_DIR/incomplete"
+DOWNLOADS_MOVIES_DIR="$DOWNLOADS_DIR/movies"
+DOWNLOADS_TV_DIR="$DOWNLOADS_DIR/tv"
 LIBRARY_DIR="$MEDIA_BASE/library"
 MOVIES_DIR="$LIBRARY_DIR/movies"
 TVSHOWS_DIR="$LIBRARY_DIR/tv"
@@ -21,8 +23,9 @@ echo "🎬 Creando biblioteca de medios simulada..."
 echo ""
 
 # Crear directorios si no existen (no borramos nada, solo sobreescribimos)
-mkdir -p "$DOWNLOADS_DIR"
 mkdir -p "$DOWNLOADS_INCOMPLETE_DIR"
+mkdir -p "$DOWNLOADS_MOVIES_DIR"
+mkdir -p "$DOWNLOADS_TV_DIR"
 mkdir -p "$MOVIES_DIR"
 mkdir -p "$TVSHOWS_DIR"
 
@@ -56,9 +59,9 @@ create_hardlink() {
 }
 
 echo ""
-echo "🎬 Creando películas en downloads/ (cada una en su carpeta)..."
+echo "🎬 Creando películas en downloads/movies/ (categoría qBittorrent)..."
 
-# Archivos de películas en downloads - cada película en su propia carpeta
+# Archivos de películas en downloads/movies - cada película en su propia carpeta
 # Formato: "nombre_carpeta|nombre_archivo.mkv|tamaño_mb"
 declare -a downloaded_movies=(
     "The.Matrix.1999.1080p.BluRay.x264-GROUP|The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv|2048"
@@ -79,8 +82,8 @@ declare -a downloaded_movies=(
 
 for movie_info in "${downloaded_movies[@]}"; do
     IFS='|' read -r folder_name file_name size <<< "$movie_info"
-    filepath="$DOWNLOADS_DIR/$folder_name/$file_name"
-    echo "  ✓ Descarga: $folder_name/$file_name ($size MB)"
+    filepath="$DOWNLOADS_MOVIES_DIR/$folder_name/$file_name"
+    echo "  ✓ Descarga: movies/$folder_name/$file_name ($size MB)"
     create_file "$filepath" $size
 done
 
@@ -103,7 +106,7 @@ declare -a movie_mappings=(
 for mapping in "${movie_mappings[@]}"; do
     IFS='|' read -r download_folder download_file folder_name library_name <<< "$mapping"
     
-    source_file="$DOWNLOADS_DIR/$download_folder/$download_file"
+    source_file="$DOWNLOADS_MOVIES_DIR/$download_folder/$download_file"
     target_file="$MOVIES_DIR/$folder_name/$library_name"
     
     echo "  🔗 Hardlink: $folder_name"
@@ -127,7 +130,7 @@ for movie in "${!library_only_movies[@]}"; do
 done
 
 echo ""
-echo "📺 Creando series en downloads/..."
+echo "📺 Creando series en downloads/tv/ (categoría qBittorrent)..."
 
 # Series descargadas (nombres de carpetas de torrent típicos)
 declare -A downloaded_series=(
@@ -144,10 +147,10 @@ declare -A downloaded_series=(
 
 for series_folder in "${!downloaded_series[@]}"; do
     num_episodes=${downloaded_series[$series_folder]}
-    series_path="$DOWNLOADS_DIR/$series_folder"
+    series_path="$DOWNLOADS_TV_DIR/$series_folder"
     mkdir -p "$series_path"
     
-    echo "  📁 Serie: $series_folder ($num_episodes episodios)"
+    echo "  📁 Serie: tv/$series_folder ($num_episodes episodios)"
     
     for episode in $(seq 1 $num_episodes); do
         # Extraer nombre de la serie y temporada del nombre de carpeta
@@ -178,7 +181,7 @@ declare -a series_mappings=(
 for mapping in "${series_mappings[@]}"; do
     IFS='|' read -r download_folder library_name season_num <<< "$mapping"
     
-    source_dir="$DOWNLOADS_DIR/$download_folder"
+    source_dir="$DOWNLOADS_TV_DIR/$download_folder"
     target_dir="$TVSHOWS_DIR/$library_name/Season $(printf %02d $season_num)"
     
     mkdir -p "$target_dir"
@@ -258,10 +261,11 @@ echo ""
 echo "✅ Biblioteca de medios simulada creada exitosamente!"
 echo ""
 echo "📍 Estructura creada:"
-echo "   - $DOWNLOADS_DIR/          (archivos descargados completos, cada película en su carpeta)"
+echo "   - $DOWNLOADS_MOVIES_DIR/     (categoría movies - películas completas)"
+echo "   - $DOWNLOADS_TV_DIR/         (categoría tv - series completas)"
 echo "   - $DOWNLOADS_INCOMPLETE_DIR/ (descargas incompletas - vacío)"
-echo "   - $LIBRARY_DIR/movies/     (películas organizadas)"
-echo "   - $LIBRARY_DIR/tv/         (series organizadas)"
+echo "   - $LIBRARY_DIR/movies/       (películas organizadas)"
+echo "   - $LIBRARY_DIR/tv/           (series organizadas)"
 echo ""
 echo "💡 Casos de prueba incluidos:"
 echo "   ✓ Archivos con hardlink (downloads ↔ library)"
