@@ -49,7 +49,7 @@ RUN apk add --no-cache gcc musl-dev && \
     ./cmd/server
 
 # Verify binary exists and is executable
-RUN ls -lh /app/bin/keepercheky && file /app/bin/keepercheky
+RUN ls -lh /app/bin/keepercheky
 
 # Final stage - Use scratch for absolute minimal image
 FROM scratch
