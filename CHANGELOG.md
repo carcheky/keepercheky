@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file. See [Conven
 
 ### 🐛 Bug Fixes
 
+* test ([d8cce5b](https://github.com/carcheky/keepercheky/commit/d8cce5b0b4cf00cc02ce0142c059e2fffd5fa8de))
+* test ([fc56df9](https://github.com/carcheky/keepercheky/commit/fc56df962da3c2d813245473a82d2b4ea36cde36))
+
+## [1.0.0-dev.10](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
 * test ([fc56df9](https://github.com/carcheky/keepercheky/commit/fc56df962da3c2d813245473a82d2b4ea36cde36))
 
 ## [1.0.0-dev.9](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2025-10-27)
