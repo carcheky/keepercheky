@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.21](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **release:** disable GitHub Release comments to avoid validation errors ([bf5d0e1](https://github.com/carcheky/keepercheky/commit/bf5d0e126eda1f453ef962d0b491bfba2ffd544b))
+
 ## [1.0.0-dev.20](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2025-10-27)
 
 
