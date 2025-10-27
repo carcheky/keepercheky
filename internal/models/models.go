@@ -159,6 +159,59 @@ type GlobalStats struct {
 	TotalEpisodesDownload int   `json:"total_episodes_download"`
 }
 
+// UserViewInfo represents user viewing information
+type UserViewInfo struct {
+	UserID     string `json:"user_id"`
+	Username   string `json:"username"`
+	PlayCount  int    `json:"play_count"`
+	LastPlayed string `json:"last_played"`
+}
+
+// MediaFileInfo represents media file information for display and analysis
+type MediaFileInfo struct {
+	ID            uint   `json:"id" gorm:"column:id"`
+	Title         string `json:"title" gorm:"column:title"`
+	Type          string `json:"type" gorm:"column:type"`
+	FilePath      string `json:"file_path" gorm:"column:file_path"`
+	Size          int64  `json:"size" gorm:"column:size"`
+	PosterURL     string `json:"poster_url" gorm:"column:poster_url"`
+	Quality       string `json:"quality" gorm:"column:quality"`
+	IsHardlink    bool   `json:"is_hardlink" gorm:"column:is_hardlink"`
+	HardlinkPaths string `json:"hardlink_paths" gorm:"column:hardlink_paths"`
+	PrimaryPath   string `json:"primary_path" gorm:"column:primary_path"`
+
+	// Service flags
+	InRadarr      bool `json:"in_radarr" gorm:"column:in_radarr"`
+	InSonarr      bool `json:"in_sonarr" gorm:"column:in_sonarr"`
+	InJellyfin    bool `json:"in_jellyfin" gorm:"column:in_jellyfin"`
+	InJellyseerr  bool `json:"in_jellyseerr" gorm:"column:in_jellyseerr"`
+	InQBittorrent bool `json:"in_qbittorrent" gorm:"column:in_qbittorrent"`
+
+	// Service IDs
+	RadarrID     *int    `json:"radarr_id" gorm:"column:radarr_id"`
+	SonarrID     *int    `json:"sonarr_id" gorm:"column:sonarr_id"`
+	JellyfinID   *string `json:"jellyfin_id" gorm:"column:jellyfin_id"`
+	JellyseerrID *int    `json:"jellyseerr_id" gorm:"column:jellyseerr_id"`
+
+	// Torrent info
+	TorrentHash     string  `json:"torrent_hash" gorm:"column:torrent_hash"`
+	TorrentCategory string  `json:"torrent_category" gorm:"column:torrent_category"`
+	TorrentState    string  `json:"torrent_state" gorm:"column:torrent_state"`
+	TorrentTags     string  `json:"torrent_tags" gorm:"column:torrent_tags"`
+	IsSeeding       bool    `json:"is_seeding" gorm:"column:is_seeding"`
+	SeedRatio       float64 `json:"seed_ratio" gorm:"column:seed_ratio"`
+
+	// Viewing information (not stored in DB, calculated on-the-fly)
+	HasBeenWatched  bool           `json:"has_been_watched" gorm:"-"`
+	WatchedByUsers  []UserViewInfo `json:"watched_by_users" gorm:"-"`
+	TotalPlayCount  int            `json:"total_play_count" gorm:"-"`
+	LastWatchedDate string         `json:"last_watched_date" gorm:"-"`
+
+	// Metadata
+	Tags     []string `json:"tags" gorm:"-"`
+	Excluded bool     `json:"excluded" gorm:"column:excluded"`
+}
+
 // RunMigrations runs all database migrations
 func RunMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(
