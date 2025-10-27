@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.15](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **docker:** enable CGO for SQLite compatibility in production builds ([c333a8e](https://github.com/carcheky/keepercheky/commit/c333a8e1f5a447d9658a2bed8f2c96db24f35cf5))
+
 ## [1.0.0-dev.14](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2025-10-27)
 
 
