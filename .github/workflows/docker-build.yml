@@ -177,7 +177,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
@@ -185,18 +185,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Branch-based tags
-            type=ref,event=branch
-            # Semantic version from semantic-release (only for stable branch)
+            # Para STABLE: latest, stable, v1.0.0, v1.0, v1
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.published == 'true' }}
+            type=raw,value=stable,enable=${{ github.ref == 'refs/heads/stable' }}
             type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
             type=semver,pattern={{major}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
-            # Latest tag only for stable branch
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' }}
-            # Branch name with version (if release was published)
-            type=raw,value=${{ github.ref_name }}-${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' }}
-            # SHA for commit tracking
-            type=sha,format=short
+            # Para DEVELOP: develop, v1.0.0-dev.1 (prerelease)
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/develop' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
