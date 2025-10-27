@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.5](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** mejorar la lógica de versionado para la rama develop y agregar un fallback para pushes sin tag semántico ([8e64763](https://github.com/carcheky/keepercheky/commit/8e64763337c2fa0883790d1536fe2c7b52007756))
+
 ## [1.0.0-dev.4](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2025-10-27)
 
 
