@@ -1,12 +1,10 @@
 name: Semantic Release
 
-# TEMPORALMENTE DESACTIVADO PARA TESTING
 on:
   push:
     branches:
-      - disabled-for-testing
-      # - stable
-      # - develop
+      - stable
+      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
