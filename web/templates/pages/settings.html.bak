@@ -787,15 +787,15 @@
     </div>
 
     <!-- Cleanup Rules -->
-    <div x-show="activeTab === 'cleanup'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <h2 class="text-xl font-semibold text-dark-text mb-6">Cleanup Rules Configuration</h2>
+    <div x-show="activeTab === 'cleanup'" class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Cleanup Rules Configuration</h2>
 
         <div class="space-y-6">
             <!-- Dry Run Mode -->
-            <div class="flex items-center justify-between p-4 bg-yellow-900/20 rounded-lg border border-yellow-700/50">
+            <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                 <div>
-                    <h3 class="font-medium text-dark-text">Dry Run Mode</h3>
-                    <p class="text-sm text-dark-muted">Preview deletions without actually removing files</p>
+                    <h3 class="font-medium text-gray-900">Dry Run Mode</h3>
+                    <p class="text-sm text-gray-600">Preview deletions without actually removing files</p>
                 </div>
                 <label class="flex items-center cursor-pointer">
                     <input type="checkbox" x-model="config.cleanup.dry_run" class="sr-only peer">
@@ -807,33 +807,33 @@
 
             <!-- Days to Keep -->
             <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">Days to Keep Media</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Days to Keep Media</label>
                 <input type="number" x-model.number="config.cleanup.days_to_keep" min="1" max="365"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-dark-bg text-dark-text">
-                <p class="text-sm text-dark-muted mt-1">Media older than this will be marked for deletion</p>
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-sm text-gray-500 mt-1">Media older than this will be marked for deletion</p>
             </div>
 
             <!-- Leaving Soon Days -->
             <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">Leaving Soon Warning (days)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Leaving Soon Warning (days)</label>
                 <input type="number" x-model.number="config.cleanup.leaving_soon_days" min="1" max="30"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-dark-bg text-dark-text">
-                <p class="text-sm text-dark-muted mt-1">Create symlinks this many days before deletion</p>
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-sm text-gray-500 mt-1">Create symlinks this many days before deletion</p>
             </div>
 
             <!-- Exclusion Tags -->
             <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">Exclusion Tags</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Exclusion Tags</label>
                 <input type="text" x-model="config.cleanup.exclusion_tags" placeholder="keep, favorite, important"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-dark-bg text-dark-text">
-                <p class="text-sm text-dark-muted mt-1">Comma-separated list of tags that prevent deletion</p>
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-sm text-gray-500 mt-1">Comma-separated list of tags that prevent deletion</p>
             </div>
 
             <!-- Delete Unmonitored -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="font-medium text-dark-text">Delete Unmonitored</h3>
-                    <p class="text-sm text-dark-muted">Remove media not monitored in Radarr/Sonarr</p>
+                    <h3 class="font-medium text-gray-900">Delete Unmonitored</h3>
+                    <p class="text-sm text-gray-600">Remove media not monitored in Radarr/Sonarr</p>
                 </div>
                 <label class="flex items-center cursor-pointer">
                     <input type="checkbox" x-model="config.cleanup.delete_unmonitored" class="sr-only peer">
