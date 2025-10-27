@@ -675,3 +675,10 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		"last_sync": lastSyncTime,
 	})
 }
+
+// RenderHealthDemoPage renders the health components demo page
+func (h *FilesHandler) RenderHealthDemoPage(c *fiber.Ctx) error {
+	return c.Render("pages/health-demo", fiber.Map{
+		"Title": "Health Components Demo",
+	}, "layouts/main")
+}

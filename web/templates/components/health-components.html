@@ -1,0 +1,784 @@
+{{define "components/health-components"}}
+<!-- 
+  Alpine.js Components for File Health Management
+  
+  This file contains reusable Alpine.js components for managing file health status,
+  filtering, and bulk actions in the Files page.
+-->
+
+<script>
+// ============================================================================
+// HELPER FUNCTIONS (Shared utilities)
+// ============================================================================
+
+/**
+ * Formats bytes to human-readable format
+ * @param {number} bytes - Size in bytes
+ * @returns {string} Formatted string (e.g., "1.5 GB")
+ */
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Formats timestamp to relative date (e.g., "hace 3 días")
+ * @param {string|Date} timestamp - ISO date string or Date object
+ * @returns {string} Relative date string
+ */
+function formatDate(timestamp) {
+    if (!timestamp) return '';
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'hace un momento';
+        if (diffMins < 60) return `hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+        if (diffHours < 24) return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+        if (diffDays < 7) return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+        
+        return date.toLocaleString('es-ES', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric'
+        });
+    } catch (e) {
+        return timestamp;
+    }
+}
+
+/**
+ * Returns emoji icon based on health status
+ * @param {string} status - Health status type
+ * @returns {string} Emoji icon
+ */
+function getStatusIcon(status) {
+    const icons = {
+        'ok': '✅',
+        'orphan_download': '⚠️',
+        'only_hardlink': '🔗',
+        'missing_in_library': '📚',
+        'duplicate': '📋',
+        'low_quality': '📉',
+        'not_seeding': '⏸️',
+        'low_ratio': '📊',
+        'orphan_library': '🔍',
+        'missing_metadata': 'ℹ️',
+        'warning': '⚠️',
+        'critical': '❌',
+        'info': 'ℹ️'
+    };
+    return icons[status] || '❓';
+}
+
+/**
+ * Returns Tailwind CSS classes for severity colors
+ * @param {string} severity - Severity level (ok, warning, critical)
+ * @returns {string} CSS classes
+ */
+function getSeverityColor(severity) {
+    const colors = {
+        'ok': 'bg-green-900/60 border-green-700 text-green-300',
+        'warning': 'bg-yellow-900/60 border-yellow-700 text-yellow-300',
+        'critical': 'bg-red-900/60 border-red-700 text-red-300',
+        'info': 'bg-blue-900/60 border-blue-700 text-blue-300'
+    };
+    return colors[severity] || colors['info'];
+}
+
+/**
+ * Returns background color classes for severity
+ * @param {string} severity - Severity level
+ * @returns {string} CSS classes for background
+ */
+function getSeverityBgColor(severity) {
+    const colors = {
+        'ok': 'bg-green-900/40 hover:bg-green-900/60',
+        'warning': 'bg-yellow-900/40 hover:bg-yellow-900/60',
+        'critical': 'bg-red-900/40 hover:bg-red-900/60',
+        'info': 'bg-blue-900/40 hover:bg-blue-900/60'
+    };
+    return colors[severity] || colors['info'];
+}
+
+// ============================================================================
+// COMPONENT 1: Health Card (Statistics Card with Filter Action)
+// ============================================================================
+
+/**
+ * Health statistics card component
+ * Shows a statistic with icon, count, and allows filtering by clicking
+ * 
+ * @param {string} status - Health status type (ok, orphan_download, etc.)
+ * @param {number} count - Number of files in this category
+ * @param {string} severity - Severity level (ok, warning, critical)
+ * @param {Function} onFilter - Callback function to filter files by this status
+ */
+function healthCard(status, count, severity = 'info', onFilter = null) {
+    return {
+        status: status,
+        count: count,
+        severity: severity,
+        onFilter: onFilter,
+        
+        get icon() {
+            return getStatusIcon(this.status);
+        },
+        
+        get colorClasses() {
+            return getSeverityColor(this.severity);
+        },
+        
+        get bgColorClasses() {
+            return getSeverityBgColor(this.severity);
+        },
+        
+        get title() {
+            const titles = {
+                'ok': 'Archivos Saludables',
+                'orphan_download': 'Descargas Huérfanas',
+                'only_hardlink': 'Solo Hardlinks',
+                'missing_in_library': 'Falta en Biblioteca',
+                'duplicate': 'Duplicados',
+                'low_quality': 'Baja Calidad',
+                'not_seeding': 'No Seedeando',
+                'low_ratio': 'Ratio Bajo',
+                'orphan_library': 'Biblioteca Huérfana',
+                'missing_metadata': 'Sin Metadatos'
+            };
+            return titles[this.status] || 'Estado Desconocido';
+        },
+        
+        get description() {
+            const descriptions = {
+                'ok': 'Archivos sin problemas detectados',
+                'orphan_download': 'En descargas pero no en biblioteca',
+                'only_hardlink': 'Solo existe como hardlink',
+                'missing_in_library': 'No encontrado en servicios de biblioteca',
+                'duplicate': 'Archivos duplicados detectados',
+                'low_quality': 'Calidad inferior a la esperada',
+                'not_seeding': 'Torrent no está seedeando',
+                'low_ratio': 'Ratio de seed menor a 1.0',
+                'orphan_library': 'En biblioteca pero no en descargas',
+                'missing_metadata': 'Falta información de metadatos'
+            };
+            return descriptions[this.status] || 'Sin descripción disponible';
+        },
+        
+        filterByStatus() {
+            if (this.onFilter && typeof this.onFilter === 'function') {
+                this.onFilter(this.status);
+            }
+        }
+    };
+}
+
+// ============================================================================
+// COMPONENT 2: Health Status Badge
+// ============================================================================
+
+/**
+ * Reusable badge component for displaying health status
+ * 
+ * @param {string} status - Status type
+ * @param {string} severity - Severity level (ok, warning, critical)
+ * @param {string} size - Size variant (sm, md, lg)
+ */
+function healthStatusBadge(status, severity = 'info', size = 'md') {
+    return {
+        status: status,
+        severity: severity,
+        size: size,
+        
+        get icon() {
+            return getStatusIcon(this.status);
+        },
+        
+        get colorClasses() {
+            return getSeverityColor(this.severity);
+        },
+        
+        get sizeClasses() {
+            const sizes = {
+                'sm': 'px-2 py-0.5 text-xs',
+                'md': 'px-2 py-1 text-sm',
+                'lg': 'px-3 py-1.5 text-base'
+            };
+            return sizes[this.size] || sizes['md'];
+        },
+        
+        get label() {
+            const labels = {
+                'ok': 'OK',
+                'orphan_download': 'Huérfana',
+                'only_hardlink': 'Hardlink',
+                'missing_in_library': 'Sin Biblioteca',
+                'duplicate': 'Duplicado',
+                'low_quality': 'Baja Calidad',
+                'not_seeding': 'No Seed',
+                'low_ratio': 'Ratio Bajo',
+                'orphan_library': 'Sin Descarga',
+                'missing_metadata': 'Sin Meta'
+            };
+            return labels[this.status] || this.status;
+        }
+    };
+}
+
+// ============================================================================
+// COMPONENT 3: Service Status Indicator
+// ============================================================================
+
+/**
+ * Service status indicator component
+ * Shows whether a file is active in a specific service
+ * 
+ * @param {string} service - Service name (radarr, sonarr, jellyfin, qbittorrent)
+ * @param {boolean} isActive - Whether the file is in this service
+ * @param {Object} details - Additional service-specific details
+ */
+function serviceStatusIndicator(service, isActive = false, details = {}) {
+    return {
+        service: service,
+        isActive: isActive,
+        details: details,
+        showTooltip: false,
+        
+        get icon() {
+            const icons = {
+                'radarr': '🎬',
+                'sonarr': '📺',
+                'jellyfin': '🎥',
+                'jellyseerr': '📝',
+                'jellystat': '📊',
+                'qbittorrent': '🧲'
+            };
+            return icons[this.service] || '📦';
+        },
+        
+        get label() {
+            const labels = {
+                'radarr': 'Radarr',
+                'sonarr': 'Sonarr',
+                'jellyfin': 'Jellyfin',
+                'jellyseerr': 'Jellyseerr',
+                'jellystat': 'Jellystat',
+                'qbittorrent': 'qBittorrent'
+            };
+            return labels[this.service] || this.service;
+        },
+        
+        get colorClasses() {
+            if (!this.isActive) {
+                return 'bg-slate-700/60 border-slate-600/50 text-slate-400';
+            }
+            
+            const colors = {
+                'radarr': 'bg-yellow-900/40 border-yellow-600/50 text-yellow-300',
+                'sonarr': 'bg-blue-900/40 border-blue-600/50 text-blue-300',
+                'jellyfin': 'bg-purple-900/40 border-purple-600/50 text-purple-300',
+                'jellyseerr': 'bg-pink-900/40 border-pink-600/50 text-pink-300',
+                'jellystat': 'bg-cyan-900/40 border-cyan-600/50 text-cyan-300',
+                'qbittorrent': 'bg-indigo-900/40 border-indigo-600/50 text-indigo-300'
+            };
+            return colors[this.service] || 'bg-gray-900/40 border-gray-600/50 text-gray-300';
+        },
+        
+        get hasDetails() {
+            return this.details && Object.keys(this.details).length > 0;
+        },
+        
+        get tooltipContent() {
+            if (!this.hasDetails) return '';
+            
+            const lines = [];
+            if (this.details.state) lines.push(`Estado: ${this.details.state}`);
+            if (this.details.category) lines.push(`Categoría: ${this.details.category}`);
+            if (this.details.ratio !== undefined) lines.push(`Ratio: ${this.details.ratio.toFixed(2)}`);
+            if (this.details.tags) lines.push(`Tags: ${this.details.tags}`);
+            if (this.details.seeding) lines.push('⬆️ Seedeando');
+            
+            return lines.join('\n');
+        }
+    };
+}
+
+// ============================================================================
+// COMPONENT 4: Health Filters
+// ============================================================================
+
+/**
+ * Health filters component for advanced filtering
+ * Manages filter state and applies filters to file list
+ */
+function healthFilters() {
+    return {
+        // Filter state
+        selectedProblem: 'all',
+        selectedService: 'all',
+        selectedSize: 'all',
+        selectedAge: 'all',
+        searchQuery: '',
+        
+        // Filter options
+        problemOptions: [
+            { value: 'all', label: 'Todos los problemas' },
+            { value: 'orphan_download', label: 'Descargas Huérfanas' },
+            { value: 'only_hardlink', label: 'Solo Hardlinks' },
+            { value: 'missing_in_library', label: 'Falta en Biblioteca' },
+            { value: 'duplicate', label: 'Duplicados' },
+            { value: 'low_quality', label: 'Baja Calidad' },
+            { value: 'not_seeding', label: 'No Seedeando' },
+            { value: 'low_ratio', label: 'Ratio Bajo' }
+        ],
+        
+        serviceOptions: [
+            { value: 'all', label: 'Todos los servicios' },
+            { value: 'radarr', label: 'Radarr' },
+            { value: 'sonarr', label: 'Sonarr' },
+            { value: 'jellyfin', label: 'Jellyfin' },
+            { value: 'qbittorrent', label: 'qBittorrent' }
+        ],
+        
+        sizeOptions: [
+            { value: 'all', label: 'Todos los tamaños' },
+            { value: 'small', label: '< 5 GB' },
+            { value: 'medium', label: '5-20 GB' },
+            { value: 'large', label: '20-50 GB' },
+            { value: 'xlarge', label: '> 50 GB' }
+        ],
+        
+        ageOptions: [
+            { value: 'all', label: 'Todas las fechas' },
+            { value: 'week', label: 'Última semana' },
+            { value: 'month', label: 'Último mes' },
+            { value: 'quarter', label: 'Último trimestre' },
+            { value: 'older', label: 'Más antiguos' }
+        ],
+        
+        /**
+         * Gets active filter count
+         */
+        get activeFilterCount() {
+            let count = 0;
+            if (this.selectedProblem !== 'all') count++;
+            if (this.selectedService !== 'all') count++;
+            if (this.selectedSize !== 'all') count++;
+            if (this.selectedAge !== 'all') count++;
+            if (this.searchQuery) count++;
+            return count;
+        },
+        
+        /**
+         * Checks if any filters are active
+         */
+        get hasActiveFilters() {
+            return this.activeFilterCount > 0;
+        },
+        
+        /**
+         * Applies all active filters
+         * This should be called from parent component to get filtered files
+         */
+        applyFilters() {
+            // Trigger filter application in parent component
+            this.$dispatch('filters-changed', {
+                problem: this.selectedProblem,
+                service: this.selectedService,
+                size: this.selectedSize,
+                age: this.selectedAge,
+                search: this.searchQuery
+            });
+        },
+        
+        /**
+         * Clears all filters
+         */
+        clearFilters() {
+            this.selectedProblem = 'all';
+            this.selectedService = 'all';
+            this.selectedSize = 'all';
+            this.selectedAge = 'all';
+            this.searchQuery = '';
+            this.applyFilters();
+        },
+        
+        /**
+         * Filters files based on current filter state
+         * This is a client-side filter function
+         */
+        getFilteredFiles(files) {
+            let filtered = [...files];
+            
+            // Filter by problem type
+            if (this.selectedProblem !== 'all') {
+                filtered = filtered.filter(f => 
+                    f.healthStatus === this.selectedProblem
+                );
+            }
+            
+            // Filter by service
+            if (this.selectedService !== 'all') {
+                filtered = filtered.filter(f => {
+                    switch (this.selectedService) {
+                        case 'radarr': return f.in_radarr;
+                        case 'sonarr': return f.in_sonarr;
+                        case 'jellyfin': return f.in_jellyfin;
+                        case 'qbittorrent': return f.in_qbittorrent;
+                        default: return true;
+                    }
+                });
+            }
+            
+            // Filter by size
+            if (this.selectedSize !== 'all') {
+                filtered = filtered.filter(f => {
+                    const gb = f.size / (1024 * 1024 * 1024);
+                    switch (this.selectedSize) {
+                        case 'small': return gb < 5;
+                        case 'medium': return gb >= 5 && gb < 20;
+                        case 'large': return gb >= 20 && gb < 50;
+                        case 'xlarge': return gb >= 50;
+                        default: return true;
+                    }
+                });
+            }
+            
+            // Filter by search query
+            if (this.searchQuery) {
+                const query = this.searchQuery.toLowerCase();
+                filtered = filtered.filter(f => 
+                    f.title?.toLowerCase().includes(query) ||
+                    f.file_path?.toLowerCase().includes(query)
+                );
+            }
+            
+            return filtered;
+        }
+    };
+}
+
+// ============================================================================
+// COMPONENT 5: Bulk Actions
+// ============================================================================
+
+/**
+ * Bulk actions component for managing multiple files
+ * Handles selection and batch operations
+ */
+function bulkActions() {
+    return {
+        selectedIds: new Set(),
+        selectAll: false,
+        actionInProgress: false,
+        
+        /**
+         * Gets count of selected items
+         */
+        get selectedCount() {
+            return this.selectedIds.size;
+        },
+        
+        /**
+         * Checks if any items are selected
+         */
+        get hasSelection() {
+            return this.selectedIds.size > 0;
+        },
+        
+        /**
+         * Toggles selection of a single item
+         */
+        toggleSelect(fileId) {
+            if (this.selectedIds.has(fileId)) {
+                this.selectedIds.delete(fileId);
+            } else {
+                this.selectedIds.add(fileId);
+            }
+            // Force reactivity update
+            this.selectedIds = new Set(this.selectedIds);
+        },
+        
+        /**
+         * Checks if item is selected
+         */
+        isSelected(fileId) {
+            return this.selectedIds.has(fileId);
+        },
+        
+        /**
+         * Toggles select all
+         */
+        toggleSelectAll(files) {
+            if (this.selectAll) {
+                // Deselect all
+                this.selectedIds.clear();
+                this.selectAll = false;
+            } else {
+                // Select all visible files
+                files.forEach(file => {
+                    this.selectedIds.add(file.id);
+                });
+                this.selectAll = true;
+            }
+            // Force reactivity update
+            this.selectedIds = new Set(this.selectedIds);
+        },
+        
+        /**
+         * Clears all selections
+         */
+        clearSelection() {
+            this.selectedIds.clear();
+            this.selectAll = false;
+            // Force reactivity update
+            this.selectedIds = new Set(this.selectedIds);
+        },
+        
+        /**
+         * Executes bulk action
+         */
+        async executeBulkAction(action, options = {}) {
+            if (!this.hasSelection) {
+                alert('No hay archivos seleccionados');
+                return;
+            }
+            
+            const confirmed = await this.confirmBulkAction(action);
+            if (!confirmed) return;
+            
+            this.actionInProgress = true;
+            
+            try {
+                const ids = Array.from(this.selectedIds);
+                const response = await fetch('/api/files/bulk-action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        ids: ids,
+                        options: options
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show result message
+                const successCount = result.success_count || 0;
+                const failureCount = result.failure_count || 0;
+                alert(`Acción completada:\n✅ Éxitos: ${successCount}\n❌ Fallos: ${failureCount}`);
+                
+                // Clear selection
+                this.clearSelection();
+                
+                // Notify parent to reload
+                this.$dispatch('bulk-action-complete', result);
+                
+            } catch (error) {
+                console.error('Bulk action failed:', error);
+                alert('Error al ejecutar la acción: ' + error.message);
+            } finally {
+                this.actionInProgress = false;
+            }
+        },
+        
+        /**
+         * Shows confirmation dialog for bulk action
+         */
+        async confirmBulkAction(action) {
+            const actionLabels = {
+                'delete': 'eliminar',
+                'import': 'importar',
+                'ignore': 'ignorar',
+                'rescan': 'reescanear'
+            };
+            
+            const actionLabel = actionLabels[action] || action;
+            const count = this.selectedIds.size;
+            
+            return confirm(
+                `¿Estás seguro de que quieres ${actionLabel} ${count} archivo${count > 1 ? 's' : ''}?\n\n` +
+                'Esta acción no se puede deshacer.'
+            );
+        }
+    };
+}
+
+// ============================================================================
+// COMPONENT 6: File Health Card
+// ============================================================================
+
+/**
+ * Individual file health card component
+ * Shows detailed health information for a single file
+ * 
+ * @param {Object} file - File data
+ * @param {Object} healthReport - Health report data
+ */
+function fileHealthCard(file, healthReport = null) {
+    return {
+        file: file,
+        healthReport: healthReport,
+        detailsExpanded: false,
+        actionInProgress: false,
+        
+        /**
+         * Gets health status from report or file
+         */
+        get healthStatus() {
+            return this.healthReport?.status || 'ok';
+        },
+        
+        /**
+         * Gets severity level
+         */
+        get severity() {
+            return this.healthReport?.severity || 'info';
+        },
+        
+        /**
+         * Gets issues array
+         */
+        get issues() {
+            return this.healthReport?.issues || [];
+        },
+        
+        /**
+         * Gets suggestions array
+         */
+        get suggestions() {
+            return this.healthReport?.suggestions || [];
+        },
+        
+        /**
+         * Gets available actions
+         */
+        get actions() {
+            return this.healthReport?.actions || [];
+        },
+        
+        /**
+         * Checks if file has issues
+         */
+        get hasIssues() {
+            return this.issues.length > 0;
+        },
+        
+        /**
+         * Checks if file has suggestions
+         */
+        get hasSuggestions() {
+            return this.suggestions.length > 0;
+        },
+        
+        /**
+         * Toggles details expansion
+         */
+        toggleDetails() {
+            this.detailsExpanded = !this.detailsExpanded;
+        },
+        
+        /**
+         * Executes an action on this file
+         */
+        async executeAction(action) {
+            if (!action) return;
+            
+            // Show confirmation for destructive actions
+            if (action === 'delete') {
+                const confirmed = confirm(
+                    `¿Estás seguro de que quieres eliminar "${this.file.title}"?\n\n` +
+                    'Esta acción no se puede deshacer.'
+                );
+                if (!confirmed) return;
+            }
+            
+            this.actionInProgress = true;
+            
+            try {
+                const response = await fetch(`/api/files/${this.file.id}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show success message
+                alert(`✅ Acción "${action}" completada exitosamente`);
+                
+                // Notify parent to reload
+                this.$dispatch('file-action-complete', { file: this.file, action: action, result: result });
+                
+            } catch (error) {
+                console.error(`Action ${action} failed:`, error);
+                alert(`❌ Error al ejecutar la acción: ${error.message}`);
+            } finally {
+                this.actionInProgress = false;
+            }
+        },
+        
+        /**
+         * Gets action button label
+         */
+        getActionLabel(action) {
+            const labels = {
+                'import': 'Importar a Biblioteca',
+                'delete': 'Eliminar',
+                'ignore': 'Ignorar',
+                'rescan': 'Reescanear',
+                'fix': 'Reparar'
+            };
+            return labels[action] || action;
+        },
+        
+        /**
+         * Gets action button color
+         */
+        getActionColor(action) {
+            const colors = {
+                'import': 'bg-blue-600 hover:bg-blue-700',
+                'delete': 'bg-red-600 hover:bg-red-700',
+                'ignore': 'bg-gray-600 hover:bg-gray-700',
+                'rescan': 'bg-yellow-600 hover:bg-yellow-700',
+                'fix': 'bg-green-600 hover:bg-green-700'
+            };
+            return colors[action] || 'bg-blue-600 hover:bg-blue-700';
+        }
+    };
+}
+
+// ============================================================================
+// Make functions globally available
+// ============================================================================
+window.formatBytes = formatBytes;
+window.formatDate = formatDate;
+window.getStatusIcon = getStatusIcon;
+window.getSeverityColor = getSeverityColor;
+window.getSeverityBgColor = getSeverityBgColor;
+window.healthCard = healthCard;
+window.healthStatusBadge = healthStatusBadge;
+window.serviceStatusIndicator = serviceStatusIndicator;
+window.healthFilters = healthFilters;
+window.bulkActions = bulkActions;
+window.fileHealthCard = fileHealthCard;
+</script>
+{{end}}
