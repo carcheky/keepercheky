@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.18](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **docker:** remove version check and healthcheck from build ([66befb6](https://github.com/carcheky/keepercheky/commit/66befb6f832e5e7103465ff3b4915e334110c1cf))
+
 ## [1.0.0-dev.17](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2025-10-27)
 
 
