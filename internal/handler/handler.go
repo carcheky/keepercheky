@@ -10,14 +10,15 @@ import (
 )
 
 type Handlers struct {
-	Health    *HealthHandler
-	Dashboard *DashboardHandler
-	Media     *MediaHandler
-	Schedule  *ScheduleHandler
-	Settings  *SettingsHandler
-	Logs      *LogsHandler
-	Sync      *SyncHandler
-	Files     *FilesHandler
+	Health      *HealthHandler
+	Dashboard   *DashboardHandler
+	Media       *MediaHandler
+	Schedule    *ScheduleHandler
+	Settings    *SettingsHandler
+	Logs        *LogsHandler
+	Sync        *SyncHandler
+	Files       *FilesHandler
+	FileActions *FileActionsHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
@@ -59,6 +60,19 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),
 		Logs:      NewLogsHandler(repos, logger),
 		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
+<<<<<<< HEAD
 		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, healthAnalyzer, logger.Desugar()),
+=======
+		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, logger.Desugar()),
+		FileActions: NewFileActionsHandler(
+			repos.Media,
+			repos.History,
+			oldSyncService.GetRadarrClient(),
+			oldSyncService.GetSonarrClient(),
+			oldSyncService.GetQBittorrentClient(),
+			oldSyncService.GetJellyfinClient(),
+			logger.Desugar(),
+		),
+>>>>>>> 41e497c (feat(files): implement file action handlers (delete, ignore, cleanup-hardlink, bulk))
 	}
 }
