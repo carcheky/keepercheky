@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.19](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **docker:** remove file command from binary verification ([38af783](https://github.com/carcheky/keepercheky/commit/38af7833cf24a43b9794e5fb20deabce92d2c1e9))
+
 ## [1.0.0-dev.18](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2025-10-27)
 
 
