@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.20](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2025-10-27)
+
+
+### ✨ Features
+
+* **theme:** apply dark theme to all pages consistently ([35bdd1a](https://github.com/carcheky/keepercheky/commit/35bdd1a36ad94f508fb5860b4d7ddc664d547eb8))
+
+
+### 🐛 Bug Fixes
+
+* **ci:** correct docker tags logic for develop vs stable ([a60ebaf](https://github.com/carcheky/keepercheky/commit/a60ebafdd03315e01d4604d2f0194182aa703f4f))
+* **ci:** remove testing job from docker-build workflow ([d4a00a9](https://github.com/carcheky/keepercheky/commit/d4a00a9bfddea3d8f3ffc39b5f6c99273bf8a60b))
+* **ci:** simplify docker tags generation ([5270f2d](https://github.com/carcheky/keepercheky/commit/5270f2d267934f9a925dc8ef711fd2c841935cac))
+* test ([ccd633d](https://github.com/carcheky/keepercheky/commit/ccd633d4a8a752873fdbe2463782dab17520b6e3))
+* test ([f204962](https://github.com/carcheky/keepercheky/commit/f20496213280c7b2acf3cea899d2533a161e1424))
+* test ([b98ed0b](https://github.com/carcheky/keepercheky/commit/b98ed0bcd32743d6a2931bdcd2cc0d59313b1a96))
+* test ([74578a7](https://github.com/carcheky/keepercheky/commit/74578a7b0563e0ec29d447cd0354a220eee15c64))
+* **theme:** apply consistent dark theme across all pages ([#9](https://github.com/carcheky/keepercheky/issues/9)) ([fd84421](https://github.com/carcheky/keepercheky/commit/fd84421625d09778dce3e23a24a9d7005894d3fb)), closes [carcheky/keepercheky#8](https://github.com/carcheky/keepercheky/issues/8)
+* **theme:** apply dark theme to media management and files pages ([b075224](https://github.com/carcheky/keepercheky/commit/b0752249ba534a4e20d596baa6476841bddbfb0f))
+* **theme:** complete dark theme application for all components ([a86c532](https://github.com/carcheky/keepercheky/commit/a86c53203c84df81931ac7c2e7f4d4136a3714d0))
+* **theme:** complete dark theme for media page modals and dynamic states ([8409997](https://github.com/carcheky/keepercheky/commit/84099973c6a2498ab7e2b2cc85032d2d92541579))
+* **theme:** resolve all code review comments for dark theme consistency ([8202596](https://github.com/carcheky/keepercheky/commit/82025962546883022d43e535a493aab461128667))
+
 ## [1.0.0-dev.23](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2025-10-27)
 
 
