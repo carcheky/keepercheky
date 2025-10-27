@@ -3,13 +3,13 @@ name: Docker Build & Release
 on:
   push:
     branches:
-      - main
+      - stable
       - develop
       - alpha
       - beta
   pull_request:
     branches:
-      - main
+      - stable
       - develop
 
 concurrency:
@@ -24,8 +24,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    # Only run tests on main, latest or stable branches (for push or PR to those branches)
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable')) || (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'latest' || github.base_ref == 'stable'))
+    # Only run tests on stable, latest or stable branches (for push or PR to those branches)
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable')) || (github.event_name == 'pull_request' && (github.base_ref == 'stable' || github.base_ref == 'latest' || github.base_ref == 'stable'))
 
     steps:
       - name: Checkout code
@@ -61,8 +61,8 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    # Only run lint on main, latest or stable branches (push or PR targeting these branches)
-    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable')) || (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'latest' || github.base_ref == 'stable'))
+    # Only run lint on stable, latest or stable branches (push or PR targeting these branches)
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/stable')) || (github.event_name == 'pull_request' && (github.base_ref == 'stable' || github.base_ref == 'latest' || github.base_ref == 'stable'))
 
     steps:
       - name: Checkout code
@@ -91,7 +91,7 @@ jobs:
       (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
       (
         github.event_name == 'pull_request' ||
-        (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta'))
+        (github.event_name == 'push' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta'))
       )
     permissions:
       contents: write
@@ -180,12 +180,12 @@ jobs:
           tags: |
             # Branch-based tags
             type=ref,event=branch
-            # Semantic version from semantic-release (only for main branch)
-            type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/main' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/main' }}
-            type=semver,pattern={{major}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/main' }}
-            # Latest tag only for main branch
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            # Semantic version from semantic-release (only for stable branch)
+            type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
+            type=semver,pattern={{major}},value=${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' && github.ref == 'refs/heads/stable' }}
+            # Latest tag only for stable branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' }}
             # Branch name with version (if release was published)
             type=raw,value=${{ github.ref_name }}-${{ needs.semantic-release.outputs.version }},enable=${{ needs.semantic-release.outputs.published == 'true' }}
             # SHA for commit tracking
