@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.12](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** remove [skip ci] from release commits and skip semantic-release on release commits ([50ae621](https://github.com/carcheky/keepercheky/commit/50ae6216eac3bb75bf37312be49fa8a3665b989e))
+* test ([bcae89a](https://github.com/carcheky/keepercheky/commit/bcae89a8740f49a31548cade43964e681d78d41b))
+
 ## [1.0.0-dev.11](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2025-10-27)
 
 
