@@ -11,9 +11,8 @@ set -e
 
 # Directorios principales
 MEDIA_BASE="./volumes/media-library"
-DOWNLOADS_DIR="$MEDIA_BASE/downloads/complete"
-DOWNLOADS_MOVIES_DIR="$DOWNLOADS_DIR/movies"
-DOWNLOADS_TV_DIR="$DOWNLOADS_DIR/tv"
+DOWNLOADS_DIR="$MEDIA_BASE/downloads"
+DOWNLOADS_INCOMPLETE_DIR="$DOWNLOADS_DIR/incomplete"
 LIBRARY_DIR="$MEDIA_BASE/library"
 MOVIES_DIR="$LIBRARY_DIR/movies"
 TVSHOWS_DIR="$LIBRARY_DIR/tv"
@@ -22,8 +21,8 @@ echo "🎬 Creando biblioteca de medios simulada..."
 echo ""
 
 # Crear directorios si no existen (no borramos nada, solo sobreescribimos)
-mkdir -p "$DOWNLOADS_MOVIES_DIR"
-mkdir -p "$DOWNLOADS_TV_DIR"
+mkdir -p "$DOWNLOADS_DIR"
+mkdir -p "$DOWNLOADS_INCOMPLETE_DIR"
 mkdir -p "$MOVIES_DIR"
 mkdir -p "$TVSHOWS_DIR"
 
@@ -57,30 +56,31 @@ create_hardlink() {
 }
 
 echo ""
-echo "🎬 Creando archivos en downloads/complete/movies/..."
+echo "🎬 Creando películas en downloads/ (cada una en su carpeta)..."
 
-# Archivos de películas en downloads (nombres típicos de torrents)
-declare -A downloaded_movies=(
-    ["The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv"]=2048
-    ["Inception.2010.1080p.BluRay.x264-SPARKS.mkv"]=2560
-    ["The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY.mkv"]=1920
-    ["Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD.mkv"]=2304
-    ["The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7.mkv"]=2688
-    ["Forrest.Gump.1994.1080p.BluRay.x264-YIFY.mkv"]=2176
-    ["Fight.Club.1999.1080p.BluRay.x264-LEVERAGE.mkv"]=2432
-    ["Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE.mkv"]=2240
-    ["The.Godfather.1972.1080p.BluRay.x264-SiNNERS.mkv"]=2816
-    ["The.Lord.of.the.Rings.The.Fellowship.of.the.Ring.2001.EXTENDED.1080p.BluRay.x264-SECTOR7.mkv"]=3072
+# Archivos de películas en downloads - cada película en su propia carpeta
+# Formato: "nombre_carpeta|nombre_archivo.mkv|tamaño_mb"
+declare -a downloaded_movies=(
+    "The.Matrix.1999.1080p.BluRay.x264-GROUP|The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv|2048"
+    "Inception.2010.1080p.BluRay.x264-SPARKS|Inception.2010.1080p.BluRay.x264-SPARKS.mkv|2560"
+    "The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY|The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY.mkv|1920"
+    "Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD|Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD.mkv|2304"
+    "The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7|The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7.mkv|2688"
+    "Forrest.Gump.1994.1080p.BluRay.x264-YIFY|Forrest.Gump.1994.1080p.BluRay.x264-YIFY.mkv|2176"
+    "Fight.Club.1999.1080p.BluRay.x264-LEVERAGE|Fight.Club.1999.1080p.BluRay.x264-LEVERAGE.mkv|2432"
+    "Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE|Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE.mkv|2240"
+    "The.Godfather.1972.1080p.BluRay.x264-SiNNERS|The.Godfather.1972.1080p.BluRay.x264-SiNNERS.mkv|2816"
+    "The.Lord.of.the.Rings.The.Fellowship.of.the.Ring.2001.EXTENDED.1080p.BluRay.x264-SECTOR7|The.Lord.of.the.Rings.The.Fellowship.of.the.Ring.2001.EXTENDED.1080p.BluRay.x264-SECTOR7.mkv|3072"
     # Películas huérfanas (sin hardlink en library) - Simulan descargas no procesadas
-    ["Interstellar.2014.1080p.BluRay.x264-SPARKS.mkv"]=2944
-    ["The.Prestige.2006.1080p.BluRay.x264-SECTOR7.mkv"]=2112
-    ["Memento.2000.1080p.BluRay.x264-CiNEFiLE.mkv"]=1856
+    "Interstellar.2014.1080p.BluRay.x264-SPARKS|Interstellar.2014.1080p.BluRay.x264-SPARKS.mkv|2944"
+    "The.Prestige.2006.1080p.BluRay.x264-SECTOR7|The.Prestige.2006.1080p.BluRay.x264-SECTOR7.mkv|2112"
+    "Memento.2000.1080p.BluRay.x264-CiNEFiLE|Memento.2000.1080p.BluRay.x264-CiNEFiLE.mkv|1856"
 )
 
-for movie in "${!downloaded_movies[@]}"; do
-    size=${downloaded_movies[$movie]}
-    filepath="$DOWNLOADS_MOVIES_DIR/$movie"
-    echo "  ✓ Descarga: $movie ($size MB)"
+for movie_info in "${downloaded_movies[@]}"; do
+    IFS='|' read -r folder_name file_name size <<< "$movie_info"
+    filepath="$DOWNLOADS_DIR/$folder_name/$file_name"
+    echo "  ✓ Descarga: $folder_name/$file_name ($size MB)"
     create_file "$filepath" $size
 done
 
@@ -88,22 +88,22 @@ echo ""
 echo "📽️  Creando películas en library/ (con hardlinks)..."
 
 # Mapeo de archivos descargados a su ubicación organizada en library
-# Formato: "nombre_en_downloads|nombre_carpeta|nombre_en_library"
+# Formato: "carpeta_downloads|nombre_archivo|nombre_carpeta_library|nombre_en_library"
 declare -a movie_mappings=(
-    "The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv|The Matrix (1999)|The Matrix (1999) - 1080p.mkv"
-    "Inception.2010.1080p.BluRay.x264-SPARKS.mkv|Inception (2010)|Inception (2010) - 1080p.mkv"
-    "The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY.mkv|The Shawshank Redemption (1994)|The Shawshank Redemption (1994) - 1080p.mkv"
-    "Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD.mkv|Pulp Fiction (1994)|Pulp Fiction (1994) - 1080p.mkv"
-    "The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7.mkv|The Dark Knight (2008)|The Dark Knight (2008) - 1080p.mkv"
-    "Forrest.Gump.1994.1080p.BluRay.x264-YIFY.mkv|Forrest Gump (1994)|Forrest Gump (1994) - 1080p.mkv"
-    "Fight.Club.1999.1080p.BluRay.x264-LEVERAGE.mkv|Fight Club (1999)|Fight Club (1999) - 1080p.mkv"
-    "Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE.mkv|Goodfellas (1990)|Goodfellas (1990) - 1080p.mkv"
+    "The.Matrix.1999.1080p.BluRay.x264-GROUP|The.Matrix.1999.1080p.BluRay.x264-GROUP.mkv|The Matrix (1999)|The Matrix (1999) - 1080p.mkv"
+    "Inception.2010.1080p.BluRay.x264-SPARKS|Inception.2010.1080p.BluRay.x264-SPARKS.mkv|Inception (2010)|Inception (2010) - 1080p.mkv"
+    "The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY|The.Shawshank.Redemption.1994.1080p.BluRay.x264-YIFY.mkv|The Shawshank Redemption (1994)|The Shawshank Redemption (1994) - 1080p.mkv"
+    "Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD|Pulp.Fiction.1994.1080p.BluRay.x264-CtrlHD.mkv|Pulp Fiction (1994)|Pulp Fiction (1994) - 1080p.mkv"
+    "The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7|The.Dark.Knight.2008.1080p.BluRay.x264-SECTOR7.mkv|The Dark Knight (2008)|The Dark Knight (2008) - 1080p.mkv"
+    "Forrest.Gump.1994.1080p.BluRay.x264-YIFY|Forrest.Gump.1994.1080p.BluRay.x264-YIFY.mkv|Forrest Gump (1994)|Forrest Gump (1994) - 1080p.mkv"
+    "Fight.Club.1999.1080p.BluRay.x264-LEVERAGE|Fight.Club.1999.1080p.BluRay.x264-LEVERAGE.mkv|Fight Club (1999)|Fight Club (1999) - 1080p.mkv"
+    "Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE|Goodfellas.1990.1080p.BluRay.x264-CiNEFiLE.mkv|Goodfellas (1990)|Goodfellas (1990) - 1080p.mkv"
 )
 
 for mapping in "${movie_mappings[@]}"; do
-    IFS='|' read -r download_name folder_name library_name <<< "$mapping"
+    IFS='|' read -r download_folder download_file folder_name library_name <<< "$mapping"
     
-    source_file="$DOWNLOADS_MOVIES_DIR/$download_name"
+    source_file="$DOWNLOADS_DIR/$download_folder/$download_file"
     target_file="$MOVIES_DIR/$folder_name/$library_name"
     
     echo "  🔗 Hardlink: $folder_name"
@@ -127,7 +127,7 @@ for movie in "${!library_only_movies[@]}"; do
 done
 
 echo ""
-echo "📺 Creando series en downloads/complete/..."
+echo "📺 Creando series en downloads/..."
 
 # Series descargadas (nombres de carpetas de torrent típicos)
 declare -A downloaded_series=(
@@ -144,7 +144,7 @@ declare -A downloaded_series=(
 
 for series_folder in "${!downloaded_series[@]}"; do
     num_episodes=${downloaded_series[$series_folder]}
-    series_path="$DOWNLOADS_TV_DIR/$series_folder"
+    series_path="$DOWNLOADS_DIR/$series_folder"
     mkdir -p "$series_path"
     
     echo "  📁 Serie: $series_folder ($num_episodes episodios)"
@@ -178,7 +178,7 @@ declare -a series_mappings=(
 for mapping in "${series_mappings[@]}"; do
     IFS='|' read -r download_folder library_name season_num <<< "$mapping"
     
-    source_dir="$DOWNLOADS_TV_DIR/$download_folder"
+    source_dir="$DOWNLOADS_DIR/$download_folder"
     target_dir="$TVSHOWS_DIR/$library_name/Season $(printf %02d $season_num)"
     
     mkdir -p "$target_dir"
@@ -258,9 +258,10 @@ echo ""
 echo "✅ Biblioteca de medios simulada creada exitosamente!"
 echo ""
 echo "📍 Estructura creada:"
-echo "   - $DOWNLOADS_DIR/     (archivos descargados)"
-echo "   - $LIBRARY_DIR/movies/ (películas organizadas)"
-echo "   - $LIBRARY_DIR/tv/     (series organizadas)"
+echo "   - $DOWNLOADS_DIR/          (archivos descargados completos, cada película en su carpeta)"
+echo "   - $DOWNLOADS_INCOMPLETE_DIR/ (descargas incompletas - vacío)"
+echo "   - $LIBRARY_DIR/movies/     (películas organizadas)"
+echo "   - $LIBRARY_DIR/tv/         (series organizadas)"
 echo ""
 echo "💡 Casos de prueba incluidos:"
 echo "   ✓ Archivos con hardlink (downloads ↔ library)"

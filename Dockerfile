@@ -8,6 +8,10 @@ FROM golang:1.25-alpine AS builder
 ARG VERSION=dev
 ARG COMMIT_SHA=unknown
 
+# Platform-specific build arguments (automatically set by buildx)
+ARG TARGETOS
+ARG TARGETARCH
+
 WORKDIR /app
 
 # Install build dependencies
@@ -31,12 +35,14 @@ COPY web/ ./web/
 
 # Build binary with optimizations
 # - CGO_ENABLED=1: Required for SQLite (but using musl for static linking)
+# - TARGETOS/TARGETARCH: Set by buildx for multi-platform builds
 # - -ldflags="-w -s": Strip debug information (-w) and symbol table (-s)
 # - -trimpath: Remove file system paths from binary
 # - -X: Inject version information at build time
+# - -linkmode external: Use external linker for CGO
 # - -extldflags '-static': Force static linking
 RUN apk add --no-cache gcc musl-dev && \
-    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
+    CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags="-w -s -linkmode external -extldflags '-static' -X main.Version=${VERSION} -X main.CommitSHA=${COMMIT_SHA}" \
     -trimpath \
     -o /app/bin/keepercheky \
