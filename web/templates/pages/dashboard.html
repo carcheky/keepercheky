@@ -1,7 +1,7 @@
 <div x-data="dashboard()" x-init="init()" class="space-y-6">
     <!-- Header with Sync Button -->
     <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 class="text-3xl font-bold text-dark-text dark:text-dark-text">Dashboard</h1>
         <button @click="syncNow()" :disabled="syncing"
             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
             <svg x-show="!syncing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,12 +23,12 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Total Media -->
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-600">Total Media</p>
-                    <p class="text-3xl font-bold text-gray-900" x-text="stats.total_media || 0"></p>
-                    <p class="text-xs text-gray-500 mt-1">
+                    <p class="text-sm font-medium text-dark-muted">Total Media</p>
+                    <p class="text-3xl font-bold text-dark-text" x-text="stats.total_media || 0"></p>
+                    <p class="text-xs text-dark-muted mt-1">
                         <span x-text="stats.total_movies || 0"></span> movies,
                         <span x-text="stats.total_series || 0"></span> series
                     </p>
@@ -44,12 +44,12 @@
         </div>
 
         <!-- Total Size -->
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-600">Total Size</p>
-                    <p class="text-3xl font-bold text-gray-900" x-text="formatBytes(stats.total_size || 0)"></p>
-                    <p class="text-xs text-gray-500 mt-1">Across all media</p>
+                    <p class="text-sm font-medium text-dark-muted">Total Size</p>
+                    <p class="text-3xl font-bold text-dark-text" x-text="formatBytes(stats.total_size || 0)"></p>
+                    <p class="text-xs text-dark-muted mt-1">Across all media</p>
                 </div>
                 <div class="ml-4">
                     <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,12 +62,12 @@
         </div>
 
         <!-- To Delete -->
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-600">To Delete</p>
-                    <p class="text-3xl font-bold text-gray-900" x-text="stats.to_delete || 0"></p>
-                    <p class="text-xs text-gray-500 mt-1">Based on rules</p>
+                    <p class="text-sm font-medium text-dark-muted">To Delete</p>
+                    <p class="text-3xl font-bold text-dark-text" x-text="stats.to_delete || 0"></p>
+                    <p class="text-xs text-dark-muted mt-1">Based on rules</p>
                 </div>
                 <div class="ml-4">
                     <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,12 +80,12 @@
         </div>
 
         <!-- Leaving Soon -->
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
             <div class="flex items-center">
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-600">Leaving Soon</p>
-                    <p class="text-3xl font-bold text-gray-900" x-text="stats.leaving_soon || 0"></p>
-                    <p class="text-xs text-gray-500 mt-1">In collection</p>
+                    <p class="text-sm font-medium text-dark-muted">Leaving Soon</p>
+                    <p class="text-3xl font-bold text-dark-text" x-text="stats.leaving_soon || 0"></p>
+                    <p class="text-xs text-dark-muted mt-1">In collection</p>
                 </div>
                 <div class="ml-4">
                     <svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,28 +98,28 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+    <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
+        <h2 class="text-xl font-semibold text-dark-text mb-4">Quick Actions</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="/media" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition">
-                <h3 class="font-semibold text-gray-900">View Media</h3>
-                <p class="text-sm text-gray-600 mt-1">Browse and manage your media library</p>
+            <a href="/media" class="block p-4 border-2 border-dark-border rounded-lg hover:border-blue-500 transition bg-dark-bg hover:bg-slate-700/30">
+                <h3 class="font-semibold text-dark-text">View Media</h3>
+                <p class="text-sm text-dark-muted mt-1">Browse and manage your media library</p>
             </a>
-            <a href="/settings" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition">
-                <h3 class="font-semibold text-gray-900">Configure Services</h3>
-                <p class="text-sm text-gray-600 mt-1">Set up Radarr, Sonarr, Jellyfin, etc.</p>
+            <a href="/settings" class="block p-4 border-2 border-dark-border rounded-lg hover:border-blue-500 transition bg-dark-bg hover:bg-slate-700/30">
+                <h3 class="font-semibold text-dark-text">Configure Services</h3>
+                <p class="text-sm text-dark-muted mt-1">Set up Radarr, Sonarr, Jellyfin, etc.</p>
             </a>
-            <a href="/schedules" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition">
-                <h3 class="font-semibold text-gray-900">Manage Schedules</h3>
-                <p class="text-sm text-gray-600 mt-1">Configure cleanup schedules</p>
+            <a href="/schedules" class="block p-4 border-2 border-dark-border rounded-lg hover:border-blue-500 transition bg-dark-bg hover:bg-slate-700/30">
+                <h3 class="font-semibold text-dark-text">Manage Schedules</h3>
+                <p class="text-sm text-dark-muted mt-1">Configure cleanup schedules</p>
             </a>
         </div>
     </div>
 
     <!-- Status Messages -->
     <div x-show="message" x-transition :class="{
-             'bg-green-50 border-green-200 text-green-800': messageType === 'success',
-             'bg-red-50 border-red-200 text-red-800': messageType === 'error'
+             'bg-green-900/20 border-green-700/50 text-green-300': messageType === 'success',
+             'bg-red-900/20 border-red-700/50 text-red-300': messageType === 'error'
          }" class="p-4 rounded-lg border">
         <p x-text="message"></p>
     </div>
