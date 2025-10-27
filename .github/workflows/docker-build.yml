@@ -184,16 +184,16 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Para DEVELOP: siempre "develop" + versión del tag actual de Git
+            # Para DEVELOP: siempre "develop" + versión si semantic-release generó una
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=semver,pattern={{version}},enable=${{ github.ref == 'refs/heads/develop' }}
-            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/develop' && needs.semantic-release.outputs.version != '' }}
             # Para STABLE: latest, stable, versiones semánticas
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/stable' }}
             type=raw,value=stable,enable=${{ github.ref == 'refs/heads/stable' }}
-            type=semver,pattern={{version}},enable=${{ github.ref == 'refs/heads/stable' }}
-            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref == 'refs/heads/stable' }}
-            type=semver,pattern={{major}},enable=${{ github.ref == 'refs/heads/stable' }}
+            type=raw,value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
+            type=semver,pattern={{version}},value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
+            type=semver,pattern={{major}},value=${{ needs.semantic-release.outputs.version }},enable=${{ github.ref == 'refs/heads/stable' && needs.semantic-release.outputs.version != '' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
