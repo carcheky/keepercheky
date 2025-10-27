@@ -48,8 +48,8 @@ RUN apk add --no-cache gcc musl-dev && \
     -o /app/bin/keepercheky \
     ./cmd/server
 
-# Verify binary
-RUN /app/bin/keepercheky --version 2>&1 || true
+# Verify binary exists and is executable
+RUN ls -lh /app/bin/keepercheky && file /app/bin/keepercheky
 
 # Final stage - Use scratch for absolute minimal image
 FROM scratch
@@ -70,9 +70,10 @@ USER 65534:65534
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD ["/keepercheky", "healthcheck"]
+# Health check - Disabled: requires running server with database
+# Use docker-compose healthcheck with curl/wget instead
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#     CMD ["/keepercheky", "healthcheck"]
 
 # Set environment
 ENV KEEPERCHEKY_APP_ENVIRONMENT=production \
