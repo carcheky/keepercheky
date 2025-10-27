@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.13](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** verify complete workflow pipeline from commit to Docker image ([f588fa8](https://github.com/carcheky/keepercheky/commit/f588fa83a66aa2b90c47ad65d26b23710b3e7fc3))
+
 ## [1.0.0-dev.12](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2025-10-27)
 
 
