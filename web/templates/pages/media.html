@@ -134,12 +134,12 @@
             <div>
                 <label class="block text-sm font-medium text-dark-text mb-2">Buscar</label>
                 <input type="text" x-model="filters.search" @input.debounce.500ms="loadMedia()" placeholder="Título..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-dark-text mb-2">Tipo</label>
                 <select x-model="filters.type" @change="loadMedia()"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="all">Todos</option>
                     <option value="movie">Películas</option>
                     <option value="series">Series</option>
@@ -149,7 +149,7 @@
             <div>
                 <label class="block text-sm font-medium text-dark-text mb-2">Estado</label>
                 <select x-model="filters.status" @change="loadMedia()"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="all">Todos</option>
                     <option value="active">Activos</option>
                     <option value="excluded">Excluidos</option>
@@ -159,7 +159,7 @@
             <div>
                 <label class="block text-sm font-medium text-dark-text mb-2">Por página</label>
                 <select x-model="filters.pageSize" @change="loadMedia()"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="10">10</option>
                     <option value="20">20</option>
                     <option value="50">50</option>
@@ -175,7 +175,7 @@
                 <div>
                     <label class="block text-sm font-medium text-dark-text mb-2">Ubicaciones</label>
                     <select x-model="filters.service" @change="loadMedia()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
                         <option value="radarr">Solo Radarr</option>
                         <option value="sonarr">Solo Sonarr</option>
@@ -186,7 +186,7 @@
                 <div>
                     <label class="block text-sm font-medium text-dark-text mb-2">Tamaño</label>
                     <select x-model="filters.sizeRange" @change="loadMedia()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
                         <option value="small">&lt; 5 GB</option>
                         <option value="medium">5-20 GB</option>
@@ -197,7 +197,7 @@
                 <div>
                     <label class="block text-sm font-medium text-dark-text mb-2">Agregado</label>
                     <select x-model="filters.addedDate" @change="loadMedia()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Cualquier fecha</option>
                         <option value="last7">Últimos 7 días</option>
                         <option value="last30">Últimos 30 días</option>
@@ -208,7 +208,7 @@
                 <div>
                     <label class="block text-sm font-medium text-dark-text mb-2">Seed Ratio</label>
                     <select x-model="filters.seedRatio" @change="loadMedia()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
                         <option value="low">&lt; 1.0</option>
                         <option value="good">1.0 - 2.0</option>
@@ -223,12 +223,12 @@
                     <label class="block text-sm font-medium text-dark-text mb-2">Calidad</label>
                     <input type="text" x-model="filters.quality" @input.debounce.500ms="loadMedia()"
                         placeholder="Ej: 1080p, 4K..."
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-dark-text mb-2">Series: Episodios</label>
                     <select x-model="filters.episodeCompletion" @change="loadMedia()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Todos</option>
                         <option value="complete">Completas (100%)</option>
                         <option value="incomplete">Incompletas (&lt;100%)</option>
@@ -254,7 +254,7 @@
                         <div x-show="showPresets" @click.away="showPresets = false"
                             class="absolute z-10 mt-1 w-full bg-dark-bg border border-dark-border text-dark-text rounded-md shadow-lg">
                             <template x-for="(filters, name) in getSavedPresets()" :key="name">
-                                <div class="flex items-center justify-between px-4 py-2 hover:bg-gray-100">
+                                <div class="flex items-center justify-between px-4 py-2 hover:bg-slate-700/50">
                                     <button @click="loadFilterPreset(name); showPresets = false"
                                         class="flex-1 text-left" x-text="name"></button>
                                     <button @click.stop="deletePreset(name)"
@@ -291,7 +291,7 @@
 
     <!-- Bulk Deleting State -->
     <div x-show="bulkDeleteModal.deleting"
-        class="flex justify-center items-center py-12 bg-red-50 rounded-lg border-2 border-red-200">
+        class="flex justify-center items-center py-12 bg-red-900/20 rounded-lg border-2 border-red-700/50">
         <div class="text-center">
             <svg class="animate-spin h-10 w-10 text-red-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -352,7 +352,7 @@
                 </thead>
                 <tbody class="bg-dark-surface divide-y divide-dark-border">
                     <template x-for="item in media" :key="item.id">
-                        <tr class="hover:bg-gray-50" :class="selectedItems.includes(item.id) ? 'bg-blue-50' : ''">
+                        <tr class="hover:bg-slate-700/30" :class="selectedItems.includes(item.id) ? 'bg-blue-900/20' : ''">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <input type="checkbox" :value="item.id" @change="toggleSelection(item.id)"
                                     :checked="selectedItems.includes(item.id)"
@@ -361,7 +361,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div
-                                        class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
+                                        class="flex-shrink-0 h-10 w-10 bg-dark-surface border border-dark-border rounded flex items-center justify-center">
                                         <svg class="h-6 w-6 text-dark-muted" fill="currentColor" viewBox="0 0 20 20">
                                             <path
                                                 d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
@@ -467,7 +467,7 @@
             </table>
 
             <!-- Pagination -->
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-dark-border sm:px-6">
+            <div class="bg-dark-surface px-4 py-3 flex items-center justify-between border-t border-dark-border sm:px-6">
                 <div class="flex-1 flex justify-between sm:hidden">
                     <button @click="previousPage()" :disabled="currentPage === 1"
                         class="relative inline-flex items-center px-4 py-2 border border-dark-border text-sm font-medium rounded-md text-dark-text bg-dark-surface hover:bg-slate-700/50 disabled:opacity-50">
@@ -548,7 +548,7 @@
 
                     <!-- Radarr option -->
                     <label x-show="deleteModal.media?.radarr_id"
-                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="deleteModal.options.radarr"
                             class="w-4 h-4 text-yellow-600 rounded focus:ring-yellow-500">
                         <div class="flex-1">
@@ -563,7 +563,7 @@
 
                     <!-- Sonarr option -->
                     <label x-show="deleteModal.media?.sonarr_id"
-                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="deleteModal.options.sonarr"
                             class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
                         <div class="flex-1">
@@ -578,7 +578,7 @@
 
                     <!-- Jellyfin option -->
                     <label x-show="deleteModal.media?.jellyfin_id"
-                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="deleteModal.options.jellyfin"
                             class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
                         <div class="flex-1">
@@ -593,7 +593,7 @@
 
                     <!-- Delete files option -->
                     <label
-                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 border-red-200 bg-red-50">
+                        class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-red-900/30 border-red-700/50 bg-red-900/20">
                         <input type="checkbox" x-model="deleteModal.options.deleteFiles"
                             class="w-4 h-4 text-red-400 rounded focus:ring-red-500">
                         <div class="flex-1">
@@ -610,7 +610,7 @@
                     </label>
 
                     <!-- qBittorrent option -->
-                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="deleteModal.options.qbittorrent"
                             class="w-4 h-4 text-dark-muted rounded focus:ring-gray-500">
                         <div class="flex-1">
@@ -849,7 +849,7 @@
 
                 <!-- Options -->
                 <div class="space-y-3 mb-6">
-                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="bulkDeleteModal.options.radarr"
                             class="w-5 h-5 text-blue-600 rounded">
                         <div class="flex-1">
@@ -862,7 +862,7 @@
                         </div>
                     </label>
 
-                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="bulkDeleteModal.options.sonarr"
                             class="w-5 h-5 text-blue-600 rounded">
                         <div class="flex-1">
@@ -875,7 +875,7 @@
                         </div>
                     </label>
 
-                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="bulkDeleteModal.options.jellyfin"
                             class="w-5 h-5 text-blue-600 rounded">
                         <div class="flex-1">
@@ -888,7 +888,7 @@
                         </div>
                     </label>
 
-                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                         <input type="checkbox" x-model="bulkDeleteModal.options.qbittorrent"
                             class="w-5 h-5 text-blue-600 rounded">
                         <div class="flex-1">
@@ -902,7 +902,7 @@
                     </label>
 
                     <label
-                        class="flex items-center gap-3 p-3 border border-red-200 rounded-lg cursor-pointer hover:bg-red-50">
+                        class="flex items-center gap-3 p-3 border border-red-700/50 rounded-lg cursor-pointer hover:bg-red-900/30">
                         <input type="checkbox" x-model="bulkDeleteModal.options.deleteFiles"
                             class="w-5 h-5 text-red-400 rounded">
                         <div class="flex-1">
