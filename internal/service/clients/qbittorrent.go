@@ -90,6 +90,12 @@ type QBittorrentPreferences struct {
 	ScanDirs       map[string]interface{} `json:"scan_dirs"`         // Directories to watch for torrents
 }
 
+// QBittorrentCategory represents a qBittorrent category with its save path.
+type QBittorrentCategory struct {
+	Name     string `json:"name"`
+	SavePath string `json:"savePath"`
+}
+
 // login authenticates with qBittorrent and stores the SID cookie.
 func (c *QBittorrentClient) login(ctx context.Context) error {
 	resp, err := c.client.R().
@@ -247,6 +253,36 @@ func (c *QBittorrentClient) GetPreferences(ctx context.Context) (*QBittorrentPre
 	)
 
 	return &prefs, nil
+}
+
+// GetCategories retrieves all torrent categories with their save paths from qBittorrent.
+func (c *QBittorrentClient) GetCategories(ctx context.Context) (map[string]QBittorrentCategory, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	var categories map[string]QBittorrentCategory
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&categories).
+		Get("/api/v2/torrents/categories")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get categories: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Info("Retrieved qBittorrent categories",
+		zap.Int("category_count", len(categories)),
+	)
+
+	return categories, nil
 }
 
 // GetAllTorrentsMap retrieves all torrents and returns them indexed by content_path for fast lookup.

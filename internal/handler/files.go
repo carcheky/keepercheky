@@ -252,6 +252,30 @@ func (h *FilesHandler) getQBittorrentPaths(ctx context.Context) []PathInfo {
 		return paths
 	}
 
+	// Get qBittorrent categories and their save paths
+	categories, err := client.GetCategories(ctx)
+	if err != nil {
+		h.logger.Error("Failed to get qBittorrent categories",
+			zap.Error(err),
+		)
+	} else {
+		// Add each category's save path
+		for name, category := range categories {
+			if category.SavePath != "" {
+				paths = append(paths, PathInfo{
+					Service: "qbittorrent",
+					Type:    "download",
+					Path:    category.SavePath,
+					Label:   fmt.Sprintf("⬇️ qBittorrent: %s", name),
+				})
+				h.logger.Info("Added qBittorrent category path",
+					zap.String("category", name),
+					zap.String("path", category.SavePath),
+				)
+			}
+		}
+	}
+
 	// Get qBittorrent preferences (configuration) for default save path (completed downloads)
 	prefs, err := client.GetPreferences(ctx)
 	if err != nil {
@@ -262,21 +286,33 @@ func (h *FilesHandler) getQBittorrentPaths(ctx context.Context) []PathInfo {
 	}
 
 	// Add completed downloads path (ExportDirFin) if available, otherwise SavePath
+	// Only add if it's not already in categories
 	completedPath := prefs.ExportDirFin
 	if completedPath == "" {
 		completedPath = prefs.SavePath
 	}
 
 	if completedPath != "" {
-		paths = append(paths, PathInfo{
-			Service: "qbittorrent",
-			Type:    "download",
-			Path:    completedPath,
-			Label:   "⬇️ qBittorrent: Descargas completadas",
-		})
-		h.logger.Info("Added qBittorrent completed downloads path",
-			zap.String("path", completedPath),
-		)
+		// Check if this path is not already in the list
+		alreadyExists := false
+		for _, p := range paths {
+			if p.Path == completedPath {
+				alreadyExists = true
+				break
+			}
+		}
+
+		if !alreadyExists {
+			paths = append(paths, PathInfo{
+				Service: "qbittorrent",
+				Type:    "download",
+				Path:    completedPath,
+				Label:   "⬇️ qBittorrent: Descargas completadas",
+			})
+			h.logger.Info("Added qBittorrent default downloads path",
+				zap.String("path", completedPath),
+			)
+		}
 	}
 
 	return paths
