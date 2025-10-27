@@ -48,6 +48,9 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		logger.Desugar(),
 	)
 
+	// Initialize HealthAnalyzer
+	healthAnalyzer := service.NewHealthAnalyzer(logger.Desugar())
+
 	return &Handlers{
 		Health:    NewHealthHandler(db, logger),
 		Dashboard: NewDashboardHandler(repos, logger),
@@ -56,6 +59,6 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),
 		Logs:      NewLogsHandler(repos, logger),
 		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
-		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, logger.Desugar()),
+		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, healthAnalyzer, logger.Desugar()),
 	}
 }

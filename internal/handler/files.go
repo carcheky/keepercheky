@@ -17,19 +17,27 @@ import (
 
 // FilesHandler handles file listing and management
 type FilesHandler struct {
-	mediaRepo   *repository.MediaRepository
-	config      *config.Config
-	syncService *service.SyncService
-	logger      *zap.Logger
+	mediaRepo      *repository.MediaRepository
+	config         *config.Config
+	syncService    *service.SyncService
+	healthAnalyzer *service.HealthAnalyzer
+	logger         *zap.Logger
 }
 
 // NewFilesHandler creates a new files handler
-func NewFilesHandler(mediaRepo *repository.MediaRepository, cfg *config.Config, syncService *service.SyncService, logger *zap.Logger) *FilesHandler {
+func NewFilesHandler(
+	mediaRepo *repository.MediaRepository,
+	cfg *config.Config,
+	syncService *service.SyncService,
+	healthAnalyzer *service.HealthAnalyzer,
+	logger *zap.Logger,
+) *FilesHandler {
 	return &FilesHandler{
-		mediaRepo:   mediaRepo,
-		config:      cfg,
-		syncService: syncService,
-		logger:      logger,
+		mediaRepo:      mediaRepo,
+		config:         cfg,
+		syncService:    syncService,
+		healthAnalyzer: healthAnalyzer,
+		logger:         logger,
 	}
 }
 
@@ -673,5 +681,76 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		"files":     media,
 		"total":     len(media),
 		"last_sync": lastSyncTime,
+	})
+}
+
+// GetFilesHealthAPI returns files with health analysis as JSON
+func (h *FilesHandler) GetFilesHealthAPI(c *fiber.Ctx) error {
+	ctx := context.Background()
+
+	// Get service paths
+	servicePaths := h.getServicePaths(ctx)
+
+	// Scan filesystem
+	scannedFiles, err := h.scanFilesystemFromPaths(servicePaths)
+	if err != nil {
+		h.logger.Error("Failed to scan filesystem for health analysis",
+			zap.Error(err),
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to scan filesystem",
+		})
+	}
+
+	// Convert MediaFileInfo to service.MediaFileInfo for health analysis
+	serviceFiles := make([]service.MediaFileInfo, len(scannedFiles))
+	for i, file := range scannedFiles {
+		serviceFiles[i] = service.MediaFileInfo{
+			ID:              file.ID,
+			Title:           file.Title,
+			Type:            file.Type,
+			FilePath:        file.FilePath,
+			Size:            file.Size,
+			PosterURL:       file.PosterURL,
+			Quality:         file.Quality,
+			IsHardlink:      file.IsHardlink,
+			HardlinkPaths:   file.HardlinkPaths,
+			PrimaryPath:     file.PrimaryPath,
+			InRadarr:        file.InRadarr,
+			InSonarr:        file.InSonarr,
+			InJellyfin:      file.InJellyfin,
+			InJellyseerr:    file.InJellyseerr,
+			InQBittorrent:   file.InQBittorrent,
+			RadarrID:        file.RadarrID,
+			SonarrID:        file.SonarrID,
+			JellyfinID:      file.JellyfinID,
+			JellyseerrID:    file.JellyseerrID,
+			TorrentHash:     file.TorrentHash,
+			TorrentCategory: file.TorrentCategory,
+			TorrentState:    file.TorrentState,
+			TorrentTags:     file.TorrentTags,
+			IsSeeding:       file.IsSeeding,
+			SeedRatio:       file.SeedRatio,
+			HasBeenWatched:  file.HasBeenWatched,
+			TotalPlayCount:  file.TotalPlayCount,
+			Tags:            file.Tags,
+			Excluded:        file.Excluded,
+		}
+	}
+
+	// Perform health analysis
+	healthReports := h.healthAnalyzer.AnalyzeFiles(serviceFiles)
+	summary := h.healthAnalyzer.GetHealthSummary(serviceFiles)
+
+	h.logger.Info("Health analysis complete",
+		zap.Int("total_files", len(serviceFiles)),
+		zap.Int("healthy", summary.Healthy),
+		zap.Int("needs_attention", summary.NeedsAttention),
+	)
+
+	return c.JSON(fiber.Map{
+		"summary": summary,
+		"files":   healthReports,
+		"total":   len(healthReports),
 	})
 }
