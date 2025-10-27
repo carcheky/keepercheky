@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.4](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2025-10-27)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** update Docker image tagging logic for stable and develop branches ([02b37b4](https://github.com/carcheky/keepercheky/commit/02b37b492fc6b7f690f88613e928851c79f7fc7c))
+
 ## [1.0.0-dev.3](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2025-10-27)
 
 
