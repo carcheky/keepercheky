@@ -18,6 +18,8 @@ jobs:
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
+    # No ejecutar si el commit es de semantic-release (chore(release):)
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     
     steps:
       - name: Checkout code
@@ -25,9 +27,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
-
-      - name: Clean local tags to avoid conflicts
-        run: git tag -l | xargs git tag -d || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
