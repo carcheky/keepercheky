@@ -118,8 +118,8 @@
 
     <!-- Status Messages -->
     <div x-show="message" x-transition :class="{
-             'bg-green-50 border-green-200 text-green-800': messageType === 'success',
-             'bg-red-50 border-red-200 text-red-800': messageType === 'error'
+             'bg-green-900/20 border-green-700/50 text-green-300': messageType === 'success',
+             'bg-red-900/20 border-red-700/50 text-red-300': messageType === 'error'
          }" class="p-4 rounded-lg border">
         <p x-text="message"></p>
     </div>
