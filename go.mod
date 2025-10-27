@@ -10,8 +10,8 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.27.0
-	gorm.io/driver/sqlite v1.5.6
-	gorm.io/gorm v1.25.12
+	gorm.io/driver/sqlite v1.6.0
+	gorm.io/gorm v1.30.0
 )
 
 require (

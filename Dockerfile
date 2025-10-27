@@ -30,12 +30,14 @@ COPY pkg/ ./pkg/
 COPY web/ ./web/
 
 # Build binary with optimizations
-# - CGO_ENABLED=0: Static binary (no C dependencies)
+# - CGO_ENABLED=1: Required for SQLite (but using musl for static linking)
 # - -ldflags="-w -s": Strip debug information (-w) and symbol table (-s)
 # - -trimpath: Remove file system paths from binary
 # - -X: Inject version information at build time
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s -X main.Version=${VERSION} -X main.CommitSHA=${COMMIT_SHA}" \
+# - -extldflags '-static': Force static linking
+RUN apk add --no-cache gcc musl-dev && \
+    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-w -s -linkmode external -extldflags '-static' -X main.Version=${VERSION} -X main.CommitSHA=${COMMIT_SHA}" \
     -trimpath \
     -o /app/bin/keepercheky \
     ./cmd/server
