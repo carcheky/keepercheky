@@ -61,7 +61,30 @@ fi
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Si falló, mostrar jobs que fallaron
+# Mostrar TODOS los jobs del workflow
+echo ""
+echo "📋 Jobs del workflow:"
+echo ""
+
+gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '.jobs[] | "  \(if .conclusion == "success" then "✅" elif .conclusion == "failure" then "❌" elif .conclusion == "cancelled" then "🚫" elif .conclusion == "skipped" then "⏭️" elif .status == "in_progress" then "⏳" elif .status == "queued" then "⏸️" else "❓" end) \(.name)\n     Status: \(.status) | Conclusion: \(.conclusion // "N/A")"' 2>/dev/null
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Mostrar logs de TODOS los jobs (no solo los fallidos)
+echo ""
+echo "📄 Logs de TODOS los jobs:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '.jobs[] | .name' 2>/dev/null | while read -r job_name; do
+    echo "📦 Job: $job_name"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    gh run view "$RUN_ID" --repo "$REPO" --job "$job_name" --log 2>/dev/null | tail -50 || echo "   (No se pudieron obtener logs)"
+    echo ""
+done
+
+# Si falló, mostrar jobs que fallaron con más detalle
 if [ "$CONCLUSION" = "failure" ]; then
     echo ""
     echo "🔍 Revisando jobs fallidos..."

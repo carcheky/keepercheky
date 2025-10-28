@@ -87,7 +87,9 @@ echo ""
 echo "� Haciendo pull, commit y push..."
 git pull
 git add .
-git commit -m "fix: apply writerOpts to avoid Date.prototype.toString error" --allow-empty
+git commit -m "fix: 1 apply writerOpts to avoid Date.prototype.toString error" --allow-empty
+git push
+git commit -m "fix: 2 apply writerOpts to avoid Date.prototype.toString error" --allow-empty
 git push
 echo "✅ Commit y push realizados"
 echo ""
