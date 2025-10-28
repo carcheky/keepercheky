@@ -98,7 +98,7 @@ echo "   Opciones:"
 echo "   - Espera automática de 60 segundos"
 echo "   - Presiona cualquier tecla para continuar inmediatamente"
 echo ""
-read -t 60 -n 1 -s -r && echo "✅ Continuando..." || echo "✅ Tiempo de espera completado"
+read -t 300 -n 1 -s -r && echo "✅ Continuando..." || echo "✅ Tiempo de espera completado"
 echo ""
 
 # 8. Ejecutar check-last-workflow y guardar en logl.log
