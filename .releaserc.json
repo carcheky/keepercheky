@@ -30,6 +30,9 @@
       "@semantic-release/release-notes-generator",
       {
         "preset": "conventionalcommits",
+        "writerOpts": {
+          "commitsSort": ["subject", "scope"]
+        },
         "presetConfig": {
           "types": [
             { "type": "feat", "section": "✨ Features" },

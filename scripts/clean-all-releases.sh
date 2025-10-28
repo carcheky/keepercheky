@@ -82,8 +82,30 @@ echo ""
 
 echo "✅ Limpieza completada!"
 echo ""
+
+# 6. Pull, commit y push para disparar workflow
+echo "� Haciendo pull, commit y push..."
+git pull
+git add .
+git commit -m "fix: apply writerOpts to avoid Date.prototype.toString error" --allow-empty
+git push
+echo "✅ Commit y push realizados"
+echo ""
+
+# 7. Esperar 1 minuto para que el workflow se ejecute
+echo "⏳ Esperando 60 segundos para que el workflow se ejecute..."
+sleep 60
+echo "✅ Espera completada"
+echo ""
+
+# 8. Ejecutar check-last-workflow y guardar en logl.log
+echo "🔍 Ejecutando check-last-workflow.sh..."
+bash scripts/check-last-workflow.sh > logl.log
+echo "✅ Resultados guardados en logl.log"
+echo ""
+
 echo "📝 Próximos pasos:"
-echo "   1. Haz un commit nuevo para que semantic-release cree v1.0.0-dev.1"
+echo "   1. Revisa logl.log para ver el resultado del workflow"
 echo "   2. Verifica packages en: https://github.com/$REPO/pkgs/container/keepercheky"
 echo ""
 echo "⚠️  NOTA: Si hay errores con packages, asegúrate de tener permisos:"

@@ -70,10 +70,26 @@ if [ "$CONCLUSION" = "failure" ]; then
     gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '.jobs[] | select(.conclusion == "failure") | "  ❌ Job: \(.name)\n     Conclusión: \(.conclusion)\n"' 2>/dev/null
     
     echo ""
-    echo "📋 Para ver logs completos:"
-    echo "   gh run view $RUN_ID --log"
+    echo "📋 Logs de errores:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Obtener logs de los steps que fallaron
+    gh api "/repos/$REPO/actions/runs/$RUN_ID/jobs" 2>/dev/null | jq -r '.jobs[] | select(.conclusion == "failure") | .steps[] | select(.conclusion == "failure") | .name' | while read -r step_name; do
+        echo ""
+        echo "🔴 Step fallido: $step_name"
+        echo ""
+    done
+    
+    # Intentar obtener logs completos del job fallido
     echo ""
-    echo "🔗 Ver en navegador:"
+    echo "📄 Logs completos del workflow fallido:"
+    echo ""
+    gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null | tail -100 || echo "   (No se pudieron obtener logs detallados)"
+    
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "🔗 Ver completo en navegador:"
     echo "   gh run view $RUN_ID --web"
 fi
 
