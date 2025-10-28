@@ -52,16 +52,16 @@
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "git tag v${nextRelease.version} && git push origin v${nextRelease.version}"
-      }
-    ],
-    [
       "@semantic-release/git",
       {
         "assets": ["CHANGELOG.md"],
         "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}",
+        "successComment": false
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
         "successComment": false
       }
     ]
