@@ -1,3 +1,10 @@
+# [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-28)
+
+
+### Bug Fixes
+
+* test ([8541c73](https://github.com/carcheky/keepercheky/commit/8541c732a1abdd283af1d26ee8500a99061ed75b))
+
 # 1.0.0-dev.1 (2025-10-28)
 
 
