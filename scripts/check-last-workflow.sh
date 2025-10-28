@@ -5,26 +5,36 @@
 
 REPO="carcheky/keepercheky"
 
-echo "🔍 Revisando último workflow..."
-echo ""
+# Función para obtener y mostrar información del workflow
+check_workflow() {
+    echo "🔍 Revisando último workflow..."
+    echo ""
 
-# Obtener información del último workflow
-LAST_RUN=$(gh run list --repo "$REPO" --limit 1 --json databaseId,status,conclusion,name,headBranch,event,createdAt,url 2>/dev/null)
+    # Obtener información del último workflow
+    LAST_RUN=$(gh run list --repo "$REPO" --limit 1 --json databaseId,status,conclusion,name,headBranch,event,createdAt,url 2>/dev/null)
 
-if [ -z "$LAST_RUN" ] || [ "$LAST_RUN" = "[]" ]; then
-    echo "❌ No se encontraron workflows"
-    exit 1
-fi
+    if [ -z "$LAST_RUN" ] || [ "$LAST_RUN" = "[]" ]; then
+        echo "❌ No se encontraron workflows"
+        exit 1
+    fi
 
-# Parsear información
-RUN_ID=$(echo "$LAST_RUN" | jq -r '.[0].databaseId')
-STATUS=$(echo "$LAST_RUN" | jq -r '.[0].status')
-CONCLUSION=$(echo "$LAST_RUN" | jq -r '.[0].conclusion')
-NAME=$(echo "$LAST_RUN" | jq -r '.[0].name')
-BRANCH=$(echo "$LAST_RUN" | jq -r '.[0].headBranch')
-EVENT=$(echo "$LAST_RUN" | jq -r '.[0].event')
-CREATED=$(echo "$LAST_RUN" | jq -r '.[0].createdAt')
-URL=$(echo "$LAST_RUN" | jq -r '.[0].url')
+    # Parsear información
+    RUN_ID=$(echo "$LAST_RUN" | jq -r '.[0].databaseId')
+    STATUS=$(echo "$LAST_RUN" | jq -r '.[0].status')
+    CONCLUSION=$(echo "$LAST_RUN" | jq -r '.[0].conclusion')
+    NAME=$(echo "$LAST_RUN" | jq -r '.[0].name')
+    BRANCH=$(echo "$LAST_RUN" | jq -r '.[0].headBranch')
+    EVENT=$(echo "$LAST_RUN" | jq -r '.[0].event')
+    CREATED=$(echo "$LAST_RUN" | jq -r '.[0].createdAt')
+    URL=$(echo "$LAST_RUN" | jq -r '.[0].url')
+}
+
+# Bucle principal: repetir mientras haya jobs en progreso
+while true; do
+    check_workflow
+    
+    # Limpiar pantalla para actualización (opcional, comenta si no quieres)
+    # clear
 
 # Mostrar información básica
 echo "📊 Información del Workflow"
@@ -128,6 +138,28 @@ if [ "$STATUS" = "in_progress" ]; then
     echo "🔄 Para monitorear en tiempo real:"
     echo "   gh run watch $RUN_ID"
 fi
+
+# Comprobar si hay jobs en progreso
+JOBS_IN_PROGRESS=$(gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '[.jobs[] | select(.status == "in_progress")] | length' 2>/dev/null)
+
+# Si hay jobs en progreso, esperar y repetir
+if [ "$JOBS_IN_PROGRESS" -gt 0 ]; then
+    echo ""
+    echo "⏳ Esperando 2 minutos antes de volver a comprobar..."
+    echo "   (Presiona Ctrl+C para cancelar)"
+    sleep 120
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "🔄 ACTUALIZANDO ESTADO..."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    continue
+fi
+
+# Si no hay jobs en progreso, salir del bucle
+break
+
+done
 
 # Si fue exitoso, mostrar releases/tags creados
 if [ "$CONCLUSION" = "success" ] && [ "$NAME" = "Release" ]; then
