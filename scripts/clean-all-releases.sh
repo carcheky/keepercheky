@@ -8,6 +8,17 @@ REPO="carcheky/keepercheky"
 echo "🧹 Limpiando todos los releases, tags y packages de GitHub..."
 echo ""
 
+# 0. Cancelar workflows en ejecución
+echo "🛑 Cancelando todos los workflows en ejecución..."
+gh run list --limit 100 --json databaseId,status --jq '.[] | select(.status=="in_progress") | .databaseId' 2>/dev/null | while read -r id; do
+  if [ -n "$id" ]; then
+    echo "  Cancelando workflow: $id"
+    gh run cancel "$id" 2>/dev/null || true
+  fi
+done
+echo "✅ Workflows cancelados"
+echo ""
+
 # 1. Borrar todos los GitHub Releases
 echo "📦 Borrando GitHub Releases..."
 gh release list --repo "$REPO" --limit 1000 2>/dev/null | while read -r line; do
