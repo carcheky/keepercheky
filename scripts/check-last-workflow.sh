@@ -145,9 +145,9 @@ JOBS_IN_PROGRESS=$(gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '[.jobs
 # Si hay jobs en progreso, esperar y repetir
 if [ "$JOBS_IN_PROGRESS" -gt 0 ]; then
     echo ""
-    echo "⏳ Esperando 2 minutos antes de volver a comprobar..."
+    echo "⏳ Esperando 5 minutos antes de volver a comprobar..."
     echo "   (Presiona Ctrl+C para cancelar)"
-    sleep 120
+    sleep 300
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "🔄 ACTUALIZANDO ESTADO..."
