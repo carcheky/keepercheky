@@ -86,6 +86,7 @@ echo ""
 # 6. Pull, commit y push para disparar workflow
 echo "� Haciendo pull, commit y push..."
 git pull
+rm -fr CHANGELOG.md
 git add .
 git commit -m "chore: 1 apply writerOpts to avoid Date.prototype.toString error" --allow-empty
 git push
