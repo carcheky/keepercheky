@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-28)
+
+
+### 🐛 Bug Fixes
+
+* test ([0ca01b3](https://github.com/carcheky/keepercheky/commit/0ca01b373531a33854ac8c65059817f94d43b2db))
+
 ## 1.0.0-dev.1 (2025-10-28)
 
 
