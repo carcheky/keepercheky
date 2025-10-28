@@ -1,3 +1,11 @@
+# [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-28)
+
+
+### Bug Fixes
+
+* 1 apply writerOpts to avoid Date.prototype.toString error ([4a97c3d](https://github.com/carcheky/keepercheky/commit/4a97c3d071cabbb368f6a3ee25f698c5e719e2e6))
+* 2 apply writerOpts to avoid Date.prototype.toString error ([aaa9b1b](https://github.com/carcheky/keepercheky/commit/aaa9b1b671119b6b7af58bf0729551cef6999b77))
+
 # 1.0.0-dev.1 (2025-10-28)
 
 
