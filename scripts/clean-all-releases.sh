@@ -93,9 +93,12 @@ echo "✅ Commit y push realizados"
 echo ""
 
 # 7. Esperar 1 minuto para que el workflow se ejecute
-echo "⏳ Esperando 60 segundos para que el workflow se ejecute..."
-sleep 60
-echo "✅ Espera completada"
+echo "⏳ Esperando a que el workflow se ejecute..."
+echo "   Opciones:"
+echo "   - Espera automática de 60 segundos"
+echo "   - Presiona cualquier tecla para continuar inmediatamente"
+echo ""
+read -t 60 -n 1 -s -r && echo "✅ Continuando..." || echo "✅ Tiempo de espera completado"
 echo ""
 
 # 8. Ejecutar check-last-workflow y guardar en logl.log
