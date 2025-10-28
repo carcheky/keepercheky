@@ -89,6 +89,7 @@ git pull
 git add .
 git commit -m "fix: 1 apply writerOpts to avoid Date.prototype.toString error" --allow-empty
 git push
+sleep 10
 git commit -m "fix: 2 apply writerOpts to avoid Date.prototype.toString error" --allow-empty
 git push
 echo "✅ Commit y push realizados"
