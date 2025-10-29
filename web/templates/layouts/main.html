@@ -254,15 +254,8 @@
                 },
                 
                 applyFilters() {
-                    const filterData = {
-                        problem: this.selectedProblem,
-                        service: this.selectedService,
-                        size: this.selectedSize,
-                        age: this.selectedAge,
-                        search: this.searchQuery
-                    };
-                    
-                    this.$dispatch('filters-changed', filterData);
+                    // Previously dispatched 'filters-changed' event, but this is unused.
+                    // If needed, update filter state here.
                 },
                 
                 clearFilters() {
