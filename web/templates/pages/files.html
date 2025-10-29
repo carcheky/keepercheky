@@ -398,6 +398,9 @@
 
 <script>
 function filesPage() {
+    // Constants
+    const DEAD_TORRENT_RATIO_THRESHOLD = 0.5;
+    
     return {
         files: [],
         lastSync: '',
@@ -428,7 +431,7 @@ function filesPage() {
                 if (!f.in_qbittorrent) return false;
                 return f.torrent_state === 'error' || 
                        f.torrent_state === 'missingFiles' ||
-                       (f.in_jellyfin && !f.is_seeding && (f.seed_ratio || 0) < 0.5);
+                       (f.in_jellyfin && !f.is_seeding && (f.seed_ratio || 0) < DEAD_TORRENT_RATIO_THRESHOLD);
             });
         },
 
@@ -467,7 +470,7 @@ function filesPage() {
             if (file.torrent_state === 'error') {
                 return 'El torrent tiene errores. Verifica qBittorrent para más detalles.';
             }
-            if (file.in_qbittorrent && file.in_jellyfin && !file.is_seeding && (file.seed_ratio || 0) < 0.5) {
+            if (file.in_qbittorrent && file.in_jellyfin && !file.is_seeding && (file.seed_ratio || 0) < DEAD_TORRENT_RATIO_THRESHOLD) {
                 return 'Torrent muerto. Si ya está en Jellyfin, puedes eliminarlo de qBittorrent de forma segura.';
             }
             if (file.in_jellyfin && !file.has_been_watched) {
