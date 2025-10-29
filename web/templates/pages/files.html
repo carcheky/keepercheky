@@ -574,7 +574,10 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         jellystat: { icon: '📊', name: 'JellyStat' }
     };
 
-    const config = serviceConfig[serviceName] || { icon: '❓', name: serviceName };
+    const config = serviceConfig[serviceName] || { 
+        icon: '❓', 
+        name: serviceName.charAt(0).toUpperCase() + serviceName.slice(1) 
+    };
 
     return {
         serviceName,
@@ -606,7 +609,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
                 }
                 
                 // Seeding/uploading states
-                if (state === 'uploading' || details.seeding) {
+                if (state === 'uploading' || state === 'seeding' || (state === 'stalledUP' && details.seeding)) {
                     return 'bg-green-900/30 border-green-600/50 text-green-300';
                 }
                 
@@ -629,7 +632,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         },
 
         get hasDetails() {
-            return this.isPresent && Object.keys(details).length > 0;
+            return this.isPresent && Object.keys(this.details).length > 0;
         }
     };
 }
