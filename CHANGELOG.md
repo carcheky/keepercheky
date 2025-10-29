@@ -1,3 +1,10 @@
+# [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-29)
+
+
+### Features
+
+* **docker:** consolidate Dockerfile and add development build support ([a4e0ff5](https://github.com/carcheky/keepercheky/commit/a4e0ff50f8b0864c1efac74c3c6043ed3312ce40))
+
 # 1.0.0-dev.1 (2025-10-28)
 
 
