@@ -563,81 +563,75 @@ function filesPage() {
     };
 }
 
-// Alpine.js component: Health Card
-function healthCard(status, count, severity, onClick) {
-    const statusConfig = {
-        'ok': { icon: '✅', title: 'Archivos Saludables', description: 'Todo funcionando correctamente' },
-        'orphan_download': { icon: '📥', title: 'Huérfanos en Descargas', description: 'En qBittorrent, no en biblioteca' },
-        'only_hardlink': { icon: '🔗', title: 'Solo Hardlinks', description: 'Vinculados a múltiples rutas' },
-        'not_seeding': { icon: '⚠️', title: 'Torrents Muertos', description: 'Sin seeds activos' },
-        'missing_metadata': { icon: '👁️', title: 'Sin Reproducir', description: 'Nunca vistos en Jellyfin' }
-    };
+// Shared configuration objects for Alpine.js components
+const HEALTH_STATUS_CONFIG = {
+    'ok': { icon: '✅', title: 'Archivos Saludables', label: 'OK', description: 'Todo funcionando correctamente' },
+    'orphan_download': { icon: '📥', title: 'Huérfanos en Descargas', label: 'Huérfano', description: 'En qBittorrent, no en biblioteca' },
+    'only_hardlink': { icon: '🔗', title: 'Solo Hardlinks', label: 'Hardlink', description: 'Vinculados a múltiples rutas' },
+    'not_seeding': { icon: '⚠️', title: 'Torrents Muertos', label: 'Torrent Muerto', description: 'Sin seeds activos' },
+    'missing_metadata': { icon: '👁️', title: 'Sin Reproducir', label: 'Sin Ver', description: 'Nunca vistos en Jellyfin' },
+    'critical': { icon: '🔴', title: 'Crítico', label: 'Crítico', description: 'Requiere atención inmediata' }
+};
 
-    const severityColors = {
+const SEVERITY_COLORS = {
+    card: {
         'ok': 'bg-green-900/20 border-green-600/50 hover:border-green-500',
         'info': 'bg-blue-900/20 border-blue-600/50 hover:border-blue-500',
         'warning': 'bg-yellow-900/20 border-yellow-600/50 hover:border-yellow-500',
         'critical': 'bg-red-900/20 border-red-600/50 hover:border-red-500'
-    };
+    },
+    badge: {
+        'ok': 'bg-green-900/40 border-green-600/50 text-green-300',
+        'info': 'bg-blue-900/40 border-blue-600/50 text-blue-300',
+        'warning': 'bg-yellow-900/40 border-yellow-600/50 text-yellow-300',
+        'critical': 'bg-red-900/40 border-red-600/50 text-red-300'
+    }
+};
 
-    const config = statusConfig[status] || statusConfig['ok'];
+const SERVICE_CONFIG = {
+    'qbittorrent': { icon: '🧲', label: 'qBittorrent' },
+    'radarr': { icon: '🎬', label: 'Radarr' },
+    'sonarr': { icon: '📺', label: 'Sonarr' },
+    'jellyfin': { icon: '🎞️', label: 'Jellyfin' },
+    'jellyseerr': { icon: '🎫', label: 'Jellyseerr' },
+    'jellystat': { icon: '📊', label: 'Jellystat' }
+};
+
+// Alpine.js component: Health Card
+function healthCard(status, count, severity, onClick) {
+    const config = HEALTH_STATUS_CONFIG[status] || HEALTH_STATUS_CONFIG['ok'];
 
     return {
         icon: config.icon,
         title: config.title,
         description: config.description,
         count: count,
-        bgColorClasses: severityColors[severity] || severityColors['ok'],
+        bgColorClasses: SEVERITY_COLORS.card[severity] || SEVERITY_COLORS.card['ok'],
         filterByStatus: onClick
     };
 }
 
 // Alpine.js component: Health Status Badge
 function healthStatusBadge(status, severity, size = 'sm') {
-    const statusConfig = {
-        'ok': { icon: '✅', label: 'OK' },
-        'orphan_download': { icon: '📥', label: 'Huérfano' },
-        'only_hardlink': { icon: '🔗', label: 'Hardlink' },
-        'not_seeding': { icon: '⚠️', label: 'Torrent Muerto' },
-        'missing_metadata': { icon: '👁️', label: 'Sin Ver' },
-        'critical': { icon: '🔴', label: 'Crítico' }
-    };
-
-    const severityColors = {
-        'ok': 'bg-green-900/40 border-green-600/50 text-green-300',
-        'info': 'bg-blue-900/40 border-blue-600/50 text-blue-300',
-        'warning': 'bg-yellow-900/40 border-yellow-600/50 text-yellow-300',
-        'critical': 'bg-red-900/40 border-red-600/50 text-red-300'
-    };
-
     const sizeClasses = {
         'sm': 'px-2 py-0.5 text-xs',
         'md': 'px-3 py-1 text-sm',
         'lg': 'px-4 py-2 text-base'
     };
 
-    const config = statusConfig[status] || statusConfig['ok'];
+    const config = HEALTH_STATUS_CONFIG[status] || HEALTH_STATUS_CONFIG['ok'];
 
     return {
         icon: config.icon,
         label: config.label,
-        colorClasses: severityColors[severity] || severityColors['ok'],
+        colorClasses: SEVERITY_COLORS.badge[severity] || SEVERITY_COLORS.badge['ok'],
         sizeClasses: sizeClasses[size] || sizeClasses['sm']
     };
 }
 
 // Alpine.js component: Service Status Indicator
 function serviceStatusIndicator(serviceName, isPresent, details = {}) {
-    const serviceConfig = {
-        'qbittorrent': { icon: '🧲', label: 'qBittorrent' },
-        'radarr': { icon: '🎬', label: 'Radarr' },
-        'sonarr': { icon: '📺', label: 'Sonarr' },
-        'jellyfin': { icon: '🎞️', label: 'Jellyfin' },
-        'jellyseerr': { icon: '🎫', label: 'Jellyseerr' },
-        'jellystat': { icon: '📊', label: 'Jellystat' }
-    };
-
-    const config = serviceConfig[serviceName] || { icon: '❓', label: serviceName };
+    const config = SERVICE_CONFIG[serviceName] || { icon: '❓', label: serviceName };
 
     return {
         icon: config.icon,
