@@ -914,6 +914,8 @@ func (s *CachedService) GetStats(ctx context.Context) (*Stats, error) {
 
 **CRITICAL**: All commit messages MUST be written in English, following the Conventional Commits specification.
 
+> **📄 For detailed commit message generation rules, see [`.vscode/copilot-commit-message-instructions.md`](../.vscode/copilot-commit-message-instructions.md)**
+
 **Format**: `<type>(<scope>): <description>`
 
 ### Commit Types and When to Use Them
