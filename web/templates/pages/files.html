@@ -562,5 +562,76 @@ function filesPage() {
         }
     };
 }
+
+function serviceStatusIndicator(serviceName, isPresent, details = {}) {
+    // Service configuration
+    const serviceConfig = {
+        qbittorrent: { icon: '🧲', name: 'qBittorrent' },
+        radarr: { icon: '🎬', name: 'Radarr' },
+        sonarr: { icon: '📺', name: 'Sonarr' },
+        jellyfin: { icon: '🍿', name: 'Jellyfin' },
+        jellyseerr: { icon: '🎫', name: 'Jellyseerr' },
+        jellystat: { icon: '📊', name: 'JellyStat' }
+    };
+
+    const config = serviceConfig[serviceName] || { icon: '❓', name: serviceName };
+
+    return {
+        serviceName,
+        isPresent,
+        details,
+        config,
+        showTooltip: false,
+
+        get icon() {
+            return config.icon;
+        },
+
+        get label() {
+            return config.name;
+        },
+
+        get colorClasses() {
+            if (!this.isPresent) {
+                return 'bg-slate-800/50 border-slate-600 text-slate-500';
+            }
+
+            // Special handling for qBittorrent based on torrent state
+            if (serviceName === 'qbittorrent' && details.state) {
+                const state = details.state.toLowerCase();
+                
+                // Error states
+                if (state === 'error' || state === 'missingfiles') {
+                    return 'bg-red-900/30 border-red-600/50 text-red-300';
+                }
+                
+                // Seeding/uploading states
+                if (state === 'uploading' || details.seeding) {
+                    return 'bg-green-900/30 border-green-600/50 text-green-300';
+                }
+                
+                // Downloading states
+                if (state === 'downloading' || state === 'stalledDL') {
+                    return 'bg-blue-900/30 border-blue-600/50 text-blue-300';
+                }
+                
+                // Paused states
+                if (state === 'pausedUP' || state === 'pausedDL') {
+                    return 'bg-yellow-900/30 border-yellow-600/50 text-yellow-300';
+                }
+                
+                // Completed/stalled
+                return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
+            }
+
+            // Default present state
+            return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
+        },
+
+        get hasDetails() {
+            return this.isPresent && Object.keys(details).length > 0;
+        }
+    };
+}
 </script>
 {{end}}
