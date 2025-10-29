@@ -60,10 +60,7 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),
 		Logs:      NewLogsHandler(repos, logger),
 		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
-<<<<<<< HEAD
 		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, healthAnalyzer, logger.Desugar()),
-=======
-		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, logger.Desugar()),
 		FileActions: NewFileActionsHandler(
 			repos.Media,
 			repos.History,
@@ -73,6 +70,5 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 			oldSyncService.GetJellyfinClient(),
 			logger.Desugar(),
 		),
->>>>>>> 41e497c (feat(files): implement file action handlers (delete, ignore, cleanup-hardlink, bulk))
 	}
 }
