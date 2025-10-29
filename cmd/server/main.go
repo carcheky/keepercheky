@@ -166,6 +166,14 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/files", h.Files.GetFilesAPI)
 		api.Get("/files/health", h.Files.GetFilesHealthAPI) // Health analysis endpoint
 
+		// File Actions
+		api.Post("/files/:id/import-to-radarr", h.FileActions.ImportToRadarr)
+		api.Post("/files/:id/import-to-sonarr", h.FileActions.ImportToSonarr)
+		api.Post("/files/:id/delete", h.FileActions.DeleteFile)
+		api.Post("/files/:id/ignore", h.FileActions.IgnoreFile)
+		api.Post("/files/:id/cleanup-hardlink", h.FileActions.CleanupHardlink)
+		api.Post("/files/bulk-action", h.FileActions.BulkAction)
+
 		// Stats
 		api.Get("/stats", h.Dashboard.Stats)
 

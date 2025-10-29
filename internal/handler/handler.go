@@ -10,14 +10,15 @@ import (
 )
 
 type Handlers struct {
-	Health    *HealthHandler
-	Dashboard *DashboardHandler
-	Media     *MediaHandler
-	Schedule  *ScheduleHandler
-	Settings  *SettingsHandler
-	Logs      *LogsHandler
-	Sync      *SyncHandler
-	Files     *FilesHandler
+	Health      *HealthHandler
+	Dashboard   *DashboardHandler
+	Media       *MediaHandler
+	Schedule    *ScheduleHandler
+	Settings    *SettingsHandler
+	Logs        *LogsHandler
+	Sync        *SyncHandler
+	Files       *FilesHandler
+	FileActions *FileActionsHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
@@ -60,5 +61,14 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Logs:      NewLogsHandler(repos, logger),
 		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
 		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, healthAnalyzer, logger.Desugar()),
+		FileActions: NewFileActionsHandler(
+			repos.Media,
+			repos.History,
+			oldSyncService.GetRadarrClient(),
+			oldSyncService.GetSonarrClient(),
+			oldSyncService.GetQBittorrentClient(),
+			oldSyncService.GetJellyfinClient(),
+			logger.Desugar(),
+		),
 	}
 }

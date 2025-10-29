@@ -15,6 +15,7 @@ logs/
 
 # Binaries for programs and plugins
 bin/
+server
 *.exe
 *.exe~
 *.dll
