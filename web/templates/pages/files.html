@@ -501,31 +501,86 @@ function filesPage() {
 
         async syncFiles() {
             this.syncing = true;
-            this.showSyncMessage('Iniciando sincronización...', 'info');
+            this.syncMessage = '';
+            let completed = false;
 
             try {
-                const response = await fetch('/api/files/sync', { method: 'POST' });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                this.showSyncMessage('Sincronización completada', 'success');
-                await this.loadFiles();
+                // Create EventSource for Server-Sent Events
+                const eventSource = new EventSource('/api/sync/files');
+
+                eventSource.onmessage = (event) => {
+                    try {
+                        const progress = JSON.parse(event.data);
+                        console.log('📥 SSE received:', progress);
+
+                        // Determine message type based on status
+                        let msgType = 'info';  // Default: blue for processing
+                        if (progress.status === 'error') {
+                            msgType = 'error';  // Red for errors
+                        } else if (progress.step === 'complete' || progress.message.includes('✅')) {
+                            msgType = 'success';  // Green for success/complete
+                        }
+
+                        // Show progress message - persist during sync (no timeout)
+                        const persist = progress.step !== 'complete' && progress.status !== 'error';
+                        this.showSyncMessage(progress.message, msgType, persist);
+
+                        // If complete or error, close connection and reload data
+                        if (progress.step === 'complete') {
+                            console.log('✅ Sync complete, closing connection');
+                            completed = true;
+                            eventSource.close();
+                            this.syncing = false;
+                            // Reload files after successful sync
+                            setTimeout(async () => {
+                                await this.loadFiles();
+                            }, 500);
+                        } else if (progress.status === 'error') {
+                            console.log('❌ Sync error, closing connection');
+                            completed = true;
+                            eventSource.close();
+                            this.syncing = false;
+                        }
+                    } catch (err) {
+                        console.error('Error parsing SSE data:', err);
+                    }
+                };
+
+                eventSource.onerror = (error) => {
+                    eventSource.close();
+                    this.syncing = false;
+
+                    // Only show error if sync didn't complete successfully
+                    if (!completed) {
+                        console.error('SSE error:', error);
+                        this.showSyncMessage('Error durante sincronización', 'error');
+                    }
+                };
+
             } catch (error) {
-                console.error('Sync error:', error);
-                this.showSyncMessage('Error en sincronización: ' + error.message, 'error');
-            } finally {
+                console.error('Error syncing files:', error);
+                this.showSyncMessage('Failed to sync files', 'error');
                 this.syncing = false;
             }
         },
 
-        showSyncMessage(message, type) {
-            this.syncMessage = message;
+        showSyncMessage(msg, type = 'info', persist = false) {
+            // Clear any existing timeout
+            if (this.syncMessageTimeout) {
+                clearTimeout(this.syncMessageTimeout);
+                this.syncMessageTimeout = null;
+            }
+
+            this.syncMessage = msg;
             this.syncMessageType = type;
-            
-            if (this.syncMessageTimeout) clearTimeout(this.syncMessageTimeout);
-            
-            this.syncMessageTimeout = setTimeout(() => {
-                this.syncMessage = '';
-            }, 5000);
+
+            // Only set timeout if not persisting (e.g., during sync)
+            if (!persist) {
+                this.syncMessageTimeout = setTimeout(() => {
+                    this.syncMessage = '';
+                    this.syncMessageTimeout = null;
+                }, 5000);
+            }
         },
 
         formatBytes(bytes) {
