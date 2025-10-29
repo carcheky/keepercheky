@@ -405,6 +405,244 @@
 </div>
 
 <script>
+// Alpine.js Component: Health Card
+function healthCard(status, count, severity, clickHandler) {
+    const statusConfig = {
+        ok: {
+            icon: '✅',
+            title: 'Archivos Saludables',
+            description: 'Todo en orden'
+        },
+        orphan_download: {
+            icon: '📥',
+            title: 'Huérfanos en Descargas',
+            description: 'En descargas pero no en biblioteca'
+        },
+        only_hardlink: {
+            icon: '🔗',
+            title: 'Solo Hardlinks',
+            description: 'Archivos enlazados'
+        },
+        not_seeding: {
+            icon: '💀',
+            title: 'Torrents Muertos',
+            description: 'Sin seeds activos'
+        },
+        missing_metadata: {
+            icon: '👁️',
+            title: 'Sin Reproducir',
+            description: 'Nunca vistos en Jellyfin'
+        }
+    };
+
+    const severityColors = {
+        ok: 'bg-green-900/20 border-green-600/30 hover:bg-green-900/30',
+        info: 'bg-blue-900/20 border-blue-600/30 hover:bg-blue-900/30',
+        warning: 'bg-yellow-900/20 border-yellow-600/30 hover:bg-yellow-900/30',
+        critical: 'bg-red-900/20 border-red-600/30 hover:bg-red-900/30'
+    };
+
+    const config = statusConfig[status] || statusConfig.ok;
+
+    return {
+        icon: config.icon,
+        title: config.title,
+        description: config.description,
+        count: count,
+        bgColorClasses: severityColors[severity] || severityColors.ok,
+        filterByStatus: clickHandler
+    };
+}
+
+// Alpine.js Component: Service Status Indicator
+function serviceStatusIndicator(service, isPresent, details = {}) {
+    const serviceConfig = {
+        qbittorrent: {
+            icon: '🧲',
+            label: 'qBittorrent',
+            presentColor: 'bg-indigo-900/40 border-indigo-600/50 text-indigo-300',
+            absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+        },
+        radarr: {
+            icon: '🎬',
+            label: 'Radarr',
+            presentColor: 'bg-blue-900/40 border-blue-600/50 text-blue-300',
+            absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+        },
+        sonarr: {
+            icon: '📺',
+            label: 'Sonarr',
+            presentColor: 'bg-purple-900/40 border-purple-600/50 text-purple-300',
+            absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+        },
+        jellyfin: {
+            icon: '🎞️',
+            label: 'Jellyfin',
+            presentColor: 'bg-emerald-900/40 border-emerald-600/50 text-emerald-300',
+            absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+        },
+        jellyseerr: {
+            icon: '🎫',
+            label: 'Jellyseerr',
+            presentColor: 'bg-teal-900/40 border-teal-600/50 text-teal-300',
+            absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+        },
+        jellystat: {
+            icon: '📊',
+            label: 'Jellystat',
+            presentColor: 'bg-cyan-900/40 border-cyan-600/50 text-cyan-300',
+            absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+        }
+    };
+
+    const config = serviceConfig[service] || serviceConfig.radarr;
+    
+    return {
+        icon: config.icon,
+        label: config.label,
+        colorClasses: isPresent ? config.presentColor : config.absentColor,
+        showTooltip: false,
+        details: details,
+        hasDetails: details && Object.keys(details).length > 0 && isPresent
+    };
+}
+
+// Alpine.js Component: Health Status Badge
+function healthStatusBadge(status, severity, size = 'md') {
+    const statusConfig = {
+        ok: {
+            icon: '✅',
+            label: 'OK'
+        },
+        orphan_download: {
+            icon: '📥',
+            label: 'Huérfano en Descargas'
+        },
+        only_hardlink: {
+            icon: '🔗',
+            label: 'Solo Hardlink'
+        },
+        not_seeding: {
+            icon: '💀',
+            label: 'Torrent Muerto'
+        },
+        missing_metadata: {
+            icon: '👁️',
+            label: 'Sin Reproducir'
+        },
+        critical: {
+            icon: '🔴',
+            label: 'Crítico'
+        }
+    };
+
+    const severityColors = {
+        ok: 'bg-green-900/40 border-green-600/50 text-green-300',
+        info: 'bg-blue-900/40 border-blue-600/50 text-blue-300',
+        warning: 'bg-yellow-900/40 border-yellow-600/50 text-yellow-300',
+        critical: 'bg-red-900/40 border-red-600/50 text-red-300'
+    };
+
+    const sizeClasses = {
+        sm: 'px-2 py-0.5 text-xs',
+        md: 'px-3 py-1 text-sm',
+        lg: 'px-4 py-2 text-base'
+    };
+
+    const config = statusConfig[status] || statusConfig.ok;
+
+    return {
+        icon: config.icon,
+        label: config.label,
+        colorClasses: severityColors[severity] || severityColors.ok,
+        sizeClasses: sizeClasses[size] || sizeClasses.md
+    };
+}
+
+// Alpine.js Component: Health Filters
+function healthFilters() {
+    return {
+        selectedProblem: 'all',
+        selectedService: 'all',
+        selectedSize: 'all',
+        selectedAge: 'all',
+        searchQuery: '',
+
+        problemOptions: [
+            { value: 'all', label: 'Todos los problemas' },
+            { value: 'orphan', label: 'Huérfanos' },
+            { value: 'dead_torrent', label: 'Torrents muertos' },
+            { value: 'unwatched', label: 'Sin reproducir' },
+            { value: 'hardlink_only', label: 'Solo hardlinks' }
+        ],
+
+        serviceOptions: [
+            { value: 'all', label: 'Todos los servicios' },
+            { value: 'qbittorrent', label: 'qBittorrent' },
+            { value: 'radarr', label: 'Radarr' },
+            { value: 'sonarr', label: 'Sonarr' },
+            { value: 'jellyfin', label: 'Jellyfin' },
+            { value: 'jellyseerr', label: 'Jellyseerr' },
+            { value: 'jellystat', label: 'Jellystat' }
+        ],
+
+        sizeOptions: [
+            { value: 'all', label: 'Todos los tamaños' },
+            { value: 'small', label: '< 1 GB' },
+            { value: 'medium', label: '1-10 GB' },
+            { value: 'large', label: '10-50 GB' },
+            { value: 'huge', label: '> 50 GB' }
+        ],
+
+        ageOptions: [
+            { value: 'all', label: 'Todas las edades' },
+            { value: 'recent', label: '< 1 mes' },
+            { value: 'moderate', label: '1-6 meses' },
+            { value: 'old', label: '6-12 meses' },
+            { value: 'ancient', label: '> 1 año' }
+        ],
+
+        get hasActiveFilters() {
+            return this.selectedProblem !== 'all' ||
+                   this.selectedService !== 'all' ||
+                   this.selectedSize !== 'all' ||
+                   this.selectedAge !== 'all' ||
+                   this.searchQuery.trim() !== '';
+        },
+
+        get activeFilterCount() {
+            let count = 0;
+            if (this.selectedProblem !== 'all') count++;
+            if (this.selectedService !== 'all') count++;
+            if (this.selectedSize !== 'all') count++;
+            if (this.selectedAge !== 'all') count++;
+            if (this.searchQuery.trim() !== '') count++;
+            return count;
+        },
+
+        applyFilters() {
+            this.$dispatch('filters-changed', {
+                problem: this.selectedProblem,
+                service: this.selectedService,
+                size: this.selectedSize,
+                age: this.selectedAge,
+                search: this.searchQuery
+            });
+        },
+
+        clearFilters() {
+            if (!this.hasActiveFilters) return;
+            
+            this.selectedProblem = 'all';
+            this.selectedService = 'all';
+            this.selectedSize = 'all';
+            this.selectedAge = 'all';
+            this.searchQuery = '';
+            this.applyFilters();
+        }
+    };
+}
+
 function filesPage() {
     // Constants
     const DEAD_TORRENT_RATIO_THRESHOLD = 0.5;
