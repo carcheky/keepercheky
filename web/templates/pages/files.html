@@ -640,7 +640,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
             ? 'bg-green-900/40 border-green-600/50 text-green-300' 
             : 'bg-gray-900/40 border-gray-600/50 text-gray-500',
         showTooltip: false,
-        hasDetails: details && Object.keys(details).length > 0,
+        hasDetails: details && typeof details === "object" && !Array.isArray(details) && details !== null && Object.keys(details).length > 0,
         details: details
     };
 }
