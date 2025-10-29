@@ -22,36 +22,13 @@
     <!-- Tabs -->
     <div class="border-b border-dark-border">
         <nav class="-mb-px flex space-x-8">
-            <button @click="activeTab = 'radarr'"
-                :class="activeTab === 'radarr' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Radarr
-            </button>
-            <button @click="activeTab = 'sonarr'"
-                :class="activeTab === 'sonarr' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Sonarr
-            </button>
-            <button @click="activeTab = 'jellyfin'"
-                :class="activeTab === 'jellyfin' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Jellyfin
-            </button>
-            <button @click="activeTab = 'jellyseerr'"
-                :class="activeTab === 'jellyseerr' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Jellyseerr
-            </button>
-            <button @click="activeTab = 'jellystat'"
-                :class="activeTab === 'jellystat' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Jellystat
-            </button>
-            <button @click="activeTab = 'qbittorrent'"
-                :class="activeTab === 'qbittorrent' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                qBittorrent
-            </button>
+            <template x-for="service in services" :key="service.id">
+                <button @click="activeTab = service.id"
+                    :class="activeTab === service.id ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors"
+                    x-text="service.label">
+                </button>
+            </template>
             <button @click="activeTab = 'cleanup'"
                 :class="activeTab === 'cleanup' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
                 class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
@@ -60,733 +37,95 @@
         </nav>
     </div>
 
-    <!-- Radarr Settings -->
-    <div x-show="activeTab === 'radarr'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-dark-text">Radarr Configuration</h2>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center"
-                    :class="envSources.radarr.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
-                    <input type="checkbox" x-model="config.services.radarr.enabled"
-                        :disabled="envSources.radarr.enabled" class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
-                </label>
-                <span x-show="envSources.radarr.enabled" class="text-xs text-blue-400">(from .env)</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    URL
-                    <span x-show="envSources.radarr.url" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="url" x-model="config.services.radarr.url" placeholder="http://localhost:7878"
-                    :disabled="envSources.radarr.url"
-                    :class="envSources.radarr.url ? 'bg-slate-800/50 cursor-not-allowed' : 'bg-dark-bg'"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-dark-text">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    API Key
-                    <span x-show="envSources.radarr.api_key" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="password" x-model="config.services.radarr.api_key" placeholder="Enter Radarr API Key"
-                    :disabled="envSources.radarr.api_key"
-                    :class="envSources.radarr.api_key ? 'bg-slate-800/50 cursor-not-allowed' : 'bg-dark-bg'"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-dark-text">
-            </div>
-
-            <button @click="testConnection('radarr')" :disabled="testing"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-            </button>
-
-            <!-- Connection Results -->
-            <div x-show="connectionResults.radarr" x-transition class="mt-4">
-                <!-- Error State -->
-                <div x-show="connectionResults.radarr && !connectionResults.radarr.success"
-                    class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p x-text="connectionResults.radarr.message"></p>
-                    </div>
+    <!-- Service Settings Panels (Dynamic) -->
+    <template x-for="service in services" :key="service.id">
+        <div x-show="activeTab === service.id" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
+            <!-- Service Header with Enable Toggle -->
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-dark-text" x-text="service.label + ' Configuration'"></h2>
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center"
+                        :class="envSources[service.id]?.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
+                        <input type="checkbox" x-model="config.services[service.id].enabled"
+                            :disabled="envSources[service.id]?.enabled" class="sr-only peer">
+                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                        </div>
+                        <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
+                    </label>
+                    <span x-show="envSources[service.id]?.enabled" class="text-xs text-blue-400">(from .env)</span>
                 </div>
+            </div>
 
-                <!-- Success State with System Info -->
-                <div x-show="connectionResults.radarr && connectionResults.radarr.success"
-                    class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p class="font-semibold text-green-300">✓ Connection Successful</p>
+            <!-- Service Fields -->
+            <div class="space-y-4">
+                <template x-for="field in service.fields" :key="field.name">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-text mb-1">
+                            <span x-text="field.label"></span>
+                            <span x-show="envSources[service.id]?.[field.name]" class="text-xs text-blue-400">(from .env)</span>
+                        </label>
+                        <input 
+                            :type="field.type || 'text'" 
+                            x-model="config.services[service.id][field.name]"
+                            :placeholder="field.placeholder"
+                            :disabled="envSources[service.id]?.[field.name]"
+                            :class="envSources[service.id]?.[field.name] ? 'bg-slate-800/50 cursor-not-allowed' : 'bg-dark-bg'"
+                            class="w-full px-3 py-2 border border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-dark-text">
+                    </div>
+                </template>
+
+                <!-- Test Connection Button -->
+                <button @click="testConnection(service.id)" :disabled="testing"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+                    <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
+                </button>
+
+                <!-- Connection Results -->
+                <div x-show="connectionResults[service.id]" x-transition class="mt-4">
+                    <!-- Error State -->
+                    <div x-show="connectionResults[service.id] && !connectionResults[service.id].success"
+                        class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
+                        <div class="flex items-start gap-2">
+                            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <p x-text="connectionResults[service.id].message"></p>
+                        </div>
                     </div>
 
-                    <!-- System Information Grid -->
-                    <div x-show="connectionResults.radarr.system_info"
-                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.version || 'N/A'"></p>
+                    <!-- Success State with System Info -->
+                    <div x-show="connectionResults[service.id] && connectionResults[service.id].success"
+                        class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <p class="font-semibold text-green-300">✓ Connection Successful</p>
                         </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Branch</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.branch || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Operating System</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.os || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">OS Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.os_version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Runtime</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.runtime || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Runtime Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.runtime_version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">SQLite Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.sqlite_version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Authentication</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.authentication || 'N/A'"></p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-xs text-green-400 font-medium">App Data Path</p>
-                            <p class="text-sm text-green-300 font-mono break-all"
-                                x-text="connectionResults.radarr.system_info?.app_data || 'N/A'"></p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-xs text-green-400 font-medium">Build Time</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.radarr.system_info?.build_time || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Mode</p>
-                            <p class="text-sm text-green-300">
-                                <span x-show="connectionResults.radarr.system_info?.is_production"
-                                    class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Production</span>
-                                <span x-show="connectionResults.radarr.system_info?.is_debug"
-                                    class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Debug</span>
-                            </p>
+
+                        <!-- System Information (if available) -->
+                        <div x-show="connectionResults[service.id].system_info" 
+                            x-data="systemInfoDisplay(connectionResults[service.id].system_info, service.systemInfoFields)"
+                            class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
+                            <template x-for="field in displayFields" :key="field.key">
+                                <div :class="field.span ? 'col-span-2' : ''">
+                                    <p class="text-xs text-green-400 font-medium" x-text="field.label"></p>
+                                    <p class="text-sm text-green-300" :class="field.mono ? 'font-mono break-all' : ''" 
+                                        x-html="field.value"></p>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </template>
 
-    <!-- Sonarr Settings -->
-    <div x-show="activeTab === 'sonarr'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-dark-text">Sonarr Configuration</h2>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center"
-                    :class="envSources.sonarr.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
-                    <input type="checkbox" x-model="config.services.sonarr.enabled"
-                        :disabled="envSources.sonarr.enabled" class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
-                </label>
-                <span x-show="envSources.sonarr.enabled" class="text-xs text-blue-400">(from .env)</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    URL
-                    <span x-show="envSources.sonarr.url" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="url" x-model="config.services.sonarr.url" placeholder="http://localhost:8989"
-                    :disabled="envSources.sonarr.url"
-                    :class="envSources.sonarr.url ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    API Key
-                    <span x-show="envSources.sonarr.api_key" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="password" x-model="config.services.sonarr.api_key" placeholder="Enter Sonarr API Key"
-                    :disabled="envSources.sonarr.api_key"
-                    :class="envSources.sonarr.api_key ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <button @click="testConnection('sonarr')" :disabled="testing"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-            </button>
-
-            <!-- Connection Results -->
-            <div x-show="connectionResults.sonarr" x-transition class="mt-4">
-                <!-- Error State -->
-                <div x-show="connectionResults.sonarr && !connectionResults.sonarr.success"
-                    class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p x-text="connectionResults.sonarr.message"></p>
-                    </div>
-                </div>
-
-                <!-- Success State with System Info -->
-                <div x-show="connectionResults.sonarr && connectionResults.sonarr.success"
-                    class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p class="font-semibold text-green-300">✓ Connection Successful</p>
-                    </div>
-
-                    <!-- System Information Grid -->
-                    <div x-show="connectionResults.sonarr.system_info"
-                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Branch</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.branch || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Operating System</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.os || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">OS Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.os_version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Runtime</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.runtime || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Runtime Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.runtime_version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">SQLite Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.sqlite_version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Authentication</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.authentication || 'N/A'"></p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-xs text-green-400 font-medium">App Data Path</p>
-                            <p class="text-sm text-green-300 font-mono break-all"
-                                x-text="connectionResults.sonarr.system_info?.app_data || 'N/A'"></p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-xs text-green-400 font-medium">Build Time</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.sonarr.system_info?.build_time || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Mode</p>
-                            <p class="text-sm text-green-300">
-                                <span x-show="connectionResults.sonarr.system_info?.is_production"
-                                    class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Production</span>
-                                <span x-show="connectionResults.sonarr.system_info?.is_debug"
-                                    class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Debug</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Jellyfin Settings -->
-    <div x-show="activeTab === 'jellyfin'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-dark-text">Jellyfin Configuration</h2>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center"
-                    :class="envSources.jellyfin.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
-                    <input type="checkbox" x-model="config.services.jellyfin.enabled"
-                        :disabled="envSources.jellyfin.enabled" class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
-                </label>
-                <span x-show="envSources.jellyfin.enabled" class="text-xs text-blue-400">(from .env)</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    URL
-                    <span x-show="envSources.jellyfin.url" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="url" x-model="config.services.jellyfin.url" placeholder="http://localhost:8096"
-                    :disabled="envSources.jellyfin.url"
-                    :class="envSources.jellyfin.url ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    API Key
-                    <span x-show="envSources.jellyfin.api_key" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="password" x-model="config.services.jellyfin.api_key" placeholder="Enter Jellyfin API Key"
-                    :disabled="envSources.jellyfin.api_key"
-                    :class="envSources.jellyfin.api_key ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <button @click="testConnection('jellyfin')" :disabled="testing"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-            </button>
-
-            <!-- Connection Results -->
-            <div x-show="connectionResults.jellyfin" x-transition class="mt-4">
-                <!-- Error State -->
-                <div x-show="connectionResults.jellyfin && !connectionResults.jellyfin.success"
-                    class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p x-text="connectionResults.jellyfin.message"></p>
-                    </div>
-                </div>
-
-                <!-- Success State with System Info -->
-                <div x-show="connectionResults.jellyfin && connectionResults.jellyfin.success"
-                    class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p class="font-semibold text-green-300">✓ Connection Successful</p>
-                    </div>
-
-                    <!-- System Information Grid -->
-                    <div x-show="connectionResults.jellyfin.system_info"
-                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellyfin.system_info?.version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Product Name</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellyfin.system_info?.product_name || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Server Name</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellyfin.system_info?.server_name || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Server ID</p>
-                            <p class="text-xs text-green-300 font-mono break-all"
-                                x-text="connectionResults.jellyfin.system_info?.server_id || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Operating System</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellyfin.system_info?.os || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">OS Display Name</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellyfin.system_info?.os_display_name || 'N/A'"></p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-xs text-green-400 font-medium">Local Address</p>
-                            <p class="text-sm text-green-300 font-mono"
-                                x-text="connectionResults.jellyfin.system_info?.local_address || 'N/A'"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Jellyseerr Settings -->
-    <div x-show="activeTab === 'jellyseerr'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-dark-text">Jellyseerr Configuration</h2>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center"
-                    :class="envSources.jellyseerr.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
-                    <input type="checkbox" x-model="config.services.jellyseerr.enabled"
-                        :disabled="envSources.jellyseerr.enabled" class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
-                </label>
-                <span x-show="envSources.jellyseerr.enabled" class="text-xs text-blue-400">(from .env)</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    URL
-                    <span x-show="envSources.jellyseerr.url" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="url" x-model="config.services.jellyseerr.url" placeholder="http://localhost:5055"
-                    :disabled="envSources.jellyseerr.url"
-                    :class="envSources.jellyseerr.url ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    API Key
-                    <span x-show="envSources.jellyseerr.api_key" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="password" x-model="config.services.jellyseerr.api_key"
-                    placeholder="Enter Jellyseerr API Key" :disabled="envSources.jellyseerr.api_key"
-                    :class="envSources.jellyseerr.api_key ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <button @click="testConnection('jellyseerr')" :disabled="testing"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-            </button>
-
-            <!-- Connection Results -->
-            <div x-show="connectionResults.jellyseerr" x-transition class="mt-4">
-                <!-- Error State -->
-                <div x-show="connectionResults.jellyseerr && !connectionResults.jellyseerr.success"
-                    class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p x-text="connectionResults.jellyseerr.message"></p>
-                    </div>
-                </div>
-
-                <!-- Success State with System Info -->
-                <div x-show="connectionResults.jellyseerr && connectionResults.jellyseerr.success"
-                    class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p class="font-semibold text-green-300">✓ Connection Successful</p>
-                    </div>
-
-                    <!-- System Information Grid -->
-                    <div x-show="connectionResults.jellyseerr.system_info"
-                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellyseerr.system_info?.version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Commit Tag</p>
-                            <p class="text-sm text-green-300 font-mono"
-                                x-text="connectionResults.jellyseerr.system_info?.commit_tag || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Update Available</p>
-                            <p class="text-sm text-green-300">
-                                <span x-show="connectionResults.jellyseerr.system_info?.update_available"
-                                    class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Yes</span>
-                                <span x-show="!connectionResults.jellyseerr.system_info?.update_available"
-                                    class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">No</span>
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Commits Behind</p>
-                            <p class="text-sm text-green-300">
-                                <span x-text="connectionResults.jellyseerr.system_info?.commits_behind || '0'"></span>
-                                <span x-show="connectionResults.jellyseerr.system_info?.commits_behind > 0"
-                                    class="ml-1 text-xs text-yellow-700">(update available)</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Jellystat Settings -->
-    <div x-show="activeTab === 'jellystat'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-dark-text">Jellystat Configuration</h2>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center"
-                    :class="envSources.jellystat.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
-                    <input type="checkbox" x-model="config.services.jellystat.enabled"
-                        :disabled="envSources.jellystat.enabled" class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
-                </label>
-                <span x-show="envSources.jellystat.enabled" class="text-xs text-blue-400">(from .env)</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    URL
-                    <span x-show="envSources.jellystat.url" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="url" x-model="config.services.jellystat.url" placeholder="http://localhost:3000"
-                    :disabled="envSources.jellystat.url"
-                    :class="envSources.jellystat.url ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    API Key
-                    <span x-show="envSources.jellystat.api_key" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="password" x-model="config.services.jellystat.api_key"
-                    placeholder="Enter Jellystat API Key" :disabled="envSources.jellystat.api_key"
-                    :class="envSources.jellystat.api_key ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <button @click="testConnection('jellystat')" :disabled="testing"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-            </button>
-
-            <!-- Connection Results -->
-            <div x-show="connectionResults.jellystat" x-transition class="mt-4">
-                <!-- Error State -->
-                <div x-show="connectionResults.jellystat && !connectionResults.jellystat.success"
-                    class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p x-text="connectionResults.jellystat.message"></p>
-                    </div>
-                </div>
-
-                <!-- Success State with System Info -->
-                <div x-show="connectionResults.jellystat && connectionResults.jellystat.success"
-                    class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p class="font-semibold text-green-300">✓ Connection Successful</p>
-                    </div>
-
-                    <!-- System Information Grid -->
-                    <div x-show="connectionResults.jellystat.system_info"
-                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.jellystat.system_info?.version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Status</p>
-                            <p class="text-sm text-green-300">
-                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Connected</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- qBittorrent Settings -->
-    <div x-show="activeTab === 'qbittorrent'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-dark-text">qBittorrent Configuration</h2>
-            <div class="flex items-center gap-2">
-                <label class="flex items-center"
-                    :class="envSources.qbittorrent.enabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'">
-                    <input type="checkbox" x-model="config.services.qbittorrent.enabled"
-                        :disabled="envSources.qbittorrent.enabled" class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-dark-text">Enabled</span>
-                </label>
-                <span x-show="envSources.qbittorrent.enabled" class="text-xs text-blue-400">(from .env)</span>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    URL
-                    <span x-show="envSources.qbittorrent.url" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="url" x-model="config.services.qbittorrent.url" placeholder="http://localhost:8080"
-                    :disabled="envSources.qbittorrent.url"
-                    :class="envSources.qbittorrent.url ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    Username
-                    <span x-show="envSources.qbittorrent.username" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="text" x-model="config.services.qbittorrent.username" placeholder="admin"
-                    :disabled="envSources.qbittorrent.username"
-                    :class="envSources.qbittorrent.username ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-dark-text mb-1">
-                    Password
-                    <span x-show="envSources.qbittorrent.password" class="text-xs text-blue-400">(from .env)</span>
-                </label>
-                <input type="password" x-model="config.services.qbittorrent.password"
-                    placeholder="Enter qBittorrent Password" :disabled="envSources.qbittorrent.password"
-                    :class="envSources.qbittorrent.password ? 'bg-slate-800/50 cursor-not-allowed' : ''"
-                    class="w-full px-3 py-2 border border-dark-border rounded-md bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <button @click="testConnection('qbittorrent')" :disabled="testing"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-                <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-            </button>
-
-            <!-- Connection Results -->
-            <div x-show="connectionResults.qbittorrent" x-transition class="mt-4">
-                <!-- Error State -->
-                <div x-show="connectionResults.qbittorrent && !connectionResults.qbittorrent.success"
-                    class="p-4 bg-red-900/20 text-red-300 border border-red-700/50 rounded-lg">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p x-text="connectionResults.qbittorrent.message"></p>
-                    </div>
-                </div>
-
-                <!-- Success State with System Info -->
-                <div x-show="connectionResults.qbittorrent && connectionResults.qbittorrent.success"
-                    class="p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <p class="font-semibold text-green-300">✓ Connection Successful</p>
-                    </div>
-
-                    <!-- System Information Grid -->
-                    <div x-show="connectionResults.qbittorrent.system_info"
-                        class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-green-200">
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.qbittorrent.system_info?.version || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Architecture</p>
-                            <p class="text-sm text-green-300">
-                                <span x-text="connectionResults.qbittorrent.system_info?.bitness || 'N/A'"></span>
-                                <span x-show="connectionResults.qbittorrent.system_info?.bitness">-bit</span>
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Qt Version</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.qbittorrent.system_info?.qt || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Libtorrent</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.qbittorrent.system_info?.libtorrent || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">Boost</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.qbittorrent.system_info?.boost || 'N/A'"></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-green-400 font-medium">OpenSSL</p>
-                            <p class="text-sm text-green-300"
-                                x-text="connectionResults.qbittorrent.system_info?.openssl || 'N/A'"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cleanup Rules -->
+    <!-- Cleanup Rules Panel -->
     <div x-show="activeTab === 'cleanup'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-6">Cleanup Rules Configuration</h2>
 
@@ -855,6 +194,47 @@
 </div>
 
 <script>
+    // System Info Display Component
+    function systemInfoDisplay(systemInfo, fieldsDef) {
+        return {
+            systemInfo: systemInfo,
+            fieldsDef: fieldsDef || [],
+            
+            get displayFields() {
+                if (!this.systemInfo || this.fieldsDef.length === 0) {
+                    // Auto-generate fields from system_info keys
+                    const fields = [];
+                    for (const [key, value] of Object.entries(this.systemInfo)) {
+                        fields.push({
+                            key: key,
+                            label: key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+                            value: this.formatValue(key, value),
+                            mono: key.includes('id') || key.includes('path'),
+                            span: key.includes('path') || key.includes('address')
+                        });
+                    }
+                    return fields;
+                }
+                
+                // Use defined fields
+                return this.fieldsDef.map(field => ({
+                    ...field,
+                    value: this.formatValue(field.key, this.systemInfo[field.key])
+                }));
+            },
+            
+            formatValue(key, value) {
+                if (value === null || value === undefined) return 'N/A';
+                if (typeof value === 'boolean') {
+                    return value ? 
+                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Yes</span>' :
+                        '<span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">No</span>';
+                }
+                return String(value);
+            }
+        };
+    }
+
     function settings() {
         return {
             activeTab: 'radarr',
@@ -875,26 +255,115 @@
                     delete_unmonitored: false
                 }
             },
-            connectionResults: {
-                radarr: null,
-                sonarr: null,
-                jellyfin: null,
-                jellyseerr: null,
-                jellystat: null,
-                qbittorrent: null
-            },
-            envSources: {
-                radarr: { enabled: false, url: false, api_key: false },
-                sonarr: { enabled: false, url: false, api_key: false },
-                jellyfin: { enabled: false, url: false, api_key: false },
-                jellyseerr: { enabled: false, url: false, api_key: false },
-                jellystat: { enabled: false, url: false, api_key: false },
-                qbittorrent: { enabled: false, url: false, username: false, password: false }
-            },
+            connectionResults: {},
+            envSources: {},
             testing: false,
             saving: false,
             message: '',
             messageType: 'success',
+
+            // Service definitions with metadata
+            services: [
+                {
+                    id: 'radarr',
+                    label: 'Radarr',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:7878' },
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Radarr API Key' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'version', label: 'Version' },
+                        { key: 'branch', label: 'Branch' },
+                        { key: 'os', label: 'Operating System' },
+                        { key: 'os_version', label: 'OS Version' },
+                        { key: 'runtime', label: 'Runtime' },
+                        { key: 'runtime_version', label: 'Runtime Version' },
+                        { key: 'sqlite_version', label: 'SQLite Version' },
+                        { key: 'authentication', label: 'Authentication' },
+                        { key: 'app_data', label: 'App Data Path', mono: true, span: true },
+                        { key: 'build_time', label: 'Build Time', span: true }
+                    ]
+                },
+                {
+                    id: 'sonarr',
+                    label: 'Sonarr',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:8989' },
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Sonarr API Key' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'version', label: 'Version' },
+                        { key: 'branch', label: 'Branch' },
+                        { key: 'os', label: 'Operating System' },
+                        { key: 'os_version', label: 'OS Version' },
+                        { key: 'runtime', label: 'Runtime' },
+                        { key: 'runtime_version', label: 'Runtime Version' },
+                        { key: 'sqlite_version', label: 'SQLite Version' },
+                        { key: 'authentication', label: 'Authentication' },
+                        { key: 'app_data', label: 'App Data Path', mono: true, span: true },
+                        { key: 'build_time', label: 'Build Time', span: true }
+                    ]
+                },
+                {
+                    id: 'jellyfin',
+                    label: 'Jellyfin',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:8096' },
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellyfin API Key' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'version', label: 'Version' },
+                        { key: 'product_name', label: 'Product Name' },
+                        { key: 'server_name', label: 'Server Name' },
+                        { key: 'server_id', label: 'Server ID', mono: true },
+                        { key: 'os', label: 'Operating System' },
+                        { key: 'os_display_name', label: 'OS Display Name' },
+                        { key: 'local_address', label: 'Local Address', mono: true, span: true }
+                    ]
+                },
+                {
+                    id: 'jellyseerr',
+                    label: 'Jellyseerr',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:5055' },
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellyseerr API Key' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'version', label: 'Version' },
+                        { key: 'commit_tag', label: 'Commit Tag', mono: true },
+                        { key: 'update_available', label: 'Update Available' },
+                        { key: 'commits_behind', label: 'Commits Behind' }
+                    ]
+                },
+                {
+                    id: 'jellystat',
+                    label: 'Jellystat',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:3000' },
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellystat API Key' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'version', label: 'Version' }
+                    ]
+                },
+                {
+                    id: 'qbittorrent',
+                    label: 'qBittorrent',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:8080' },
+                        { name: 'username', label: 'Username', type: 'text', placeholder: 'admin' },
+                        { name: 'password', label: 'Password', type: 'password', placeholder: 'Enter qBittorrent Password' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'version', label: 'Version' },
+                        { key: 'bitness', label: 'Architecture' },
+                        { key: 'qt', label: 'Qt Version' },
+                        { key: 'libtorrent', label: 'Libtorrent' },
+                        { key: 'boost', label: 'Boost' },
+                        { key: 'openssl', label: 'OpenSSL' }
+                    ]
+                }
+            ],
 
             async init() {
                 await this.loadConfig();
