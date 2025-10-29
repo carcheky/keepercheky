@@ -284,7 +284,7 @@
                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
                             <div class="space-y-1">
                                 <div x-show="details.state"><span class="text-indigo-400">Estado:</span> <span x-text="details.state"></span></div>
-                                <div x-show="details.ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="details.ratio?.toFixed(2)"></span></div>
+                                <div x-show="details.ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="details.ratio.toFixed(2)"></span></div>
                                 <div x-show="details.seeding" class="text-green-400">⬆️ Seedeando</div>
                             </div>
                         </div>
@@ -545,7 +545,7 @@ function filesPage() {
                 const diffMins = Math.floor(diffMs / 60000);
                 
                 if (diffMins < 1) return 'hace un momento';
-                if (diffMins < 60) return `hace ${diffMins} min`;
+                if (diffMins < 60) return `hace ${diffMins} minuto(s)`;
                 
                 const diffHours = Math.floor(diffMs / 3600000);
                 if (diffHours < 24) return `hace ${diffHours}h`;
