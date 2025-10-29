@@ -1,3 +1,10 @@
+# [1.0.0-dev.5](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2025-10-29)
+
+
+### Features
+
+* **files:** implement file action handlers for storage health management ([#16](https://github.com/carcheky/keepercheky/issues/16)) ([b2e6ed3](https://github.com/carcheky/keepercheky/commit/b2e6ed330c91f651b9ef442fb363b2111ae31c36))
+
 # [1.0.0-dev.4](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2025-10-29)
 
 
