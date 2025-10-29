@@ -656,10 +656,10 @@ function healthFilters() {
 
         problemOptions: [
             { value: 'all', label: 'Todos los problemas' },
-            { value: 'orphan', label: 'Huérfanos en descargas' },
-            { value: 'dead_torrent', label: 'Torrents muertos' },
-            { value: 'unwatched', label: 'Sin reproducir' },
-            { value: 'hardlink_only', label: 'Solo hardlinks' }
+            { value: 'orphan_download', label: 'Huérfanos en descargas' },
+            { value: 'not_seeding', label: 'Torrents muertos' },
+            { value: 'missing_metadata', label: 'Sin reproducir' },
+            { value: 'only_hardlink', label: 'Solo hardlinks' }
         ],
 
         serviceOptions: [
@@ -668,7 +668,8 @@ function healthFilters() {
             { value: 'radarr', label: 'Radarr' },
             { value: 'sonarr', label: 'Sonarr' },
             { value: 'jellyfin', label: 'Jellyfin' },
-            { value: 'jellyseerr', label: 'Jellyseerr' }
+            { value: 'jellyseerr', label: 'Jellyseerr' },
+            { value: 'jellystat', label: 'Jellystat' }
         ],
 
         sizeOptions: [
