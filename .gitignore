@@ -50,10 +50,11 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # IDEs
-.vscode/
-!.vscode/copilot-instructions.md
+.vscode/*
 !.vscode/copilot-commit-message-instructions.md
 !.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
 .idea/
 *.swp
 *.swo
