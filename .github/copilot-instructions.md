@@ -916,32 +916,125 @@ func (s *CachedService) GetStats(ctx context.Context) (*Stats, error) {
 
 **Format**: `<type>(<scope>): <description>`
 
-**Types**:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-- `perf`: Performance improvements
-- `style`: Code style/formatting changes
+### Commit Types and When to Use Them
 
-**Examples**:
+**⚠️ IMPORTANT: Only `feat`, `fix`, and `perf` trigger releases and Docker builds!**
+
+Use these types strategically to avoid unnecessary builds:
+
+#### Types that TRIGGER releases/builds (use sparingly):
+- **`feat`**: New user-facing feature or significant functionality
+  - ✅ New API endpoint
+  - ✅ New UI component or page
+  - ✅ New integration with external service
+  - ❌ Adding a comment to code
+  - ❌ Updating .env.example
+
+- **`fix`**: Bug fix that affects runtime behavior
+  - ✅ Fix crash or error in application
+  - ✅ Fix incorrect data processing
+  - ✅ Fix API response issue
+  - ❌ Fix typo in comment
+  - ❌ Fix README formatting
+
+- **`perf`**: Performance improvement that affects runtime
+  - ✅ Optimize database query
+  - ✅ Reduce memory usage
+  - ✅ Improve API response time
+  - ❌ Code cleanup without measurable impact
+
+#### Types that DO NOT trigger releases (use for maintenance):
+- **`docs`**: Documentation-only changes
+  - ✅ Update README.md
+  - ✅ Update .env.example
+  - ✅ Add code comments
+  - ✅ Update documentation files in /docs
+  - ✅ Update copilot-instructions.md
+
+- **`chore`**: Maintenance tasks, config changes, dependencies
+  - ✅ Update dependencies in go.mod
+  - ✅ Update .gitignore
+  - ✅ Update Makefile
+  - ✅ Update docker-compose.yml (non-functional)
+  - ✅ Cleanup temporary files
+
+- **`refactor`**: Code restructuring without changing behavior
+  - ✅ Extract function/method
+  - ✅ Rename variables for clarity
+  - ✅ Move code between files
+  - ❌ If it changes behavior, use `feat` or `fix`
+
+- **`test`**: Adding or updating tests only
+  - ✅ Add unit tests
+  - ✅ Add integration tests
+  - ✅ Update test fixtures
+
+- **`style`**: Code style/formatting changes
+  - ✅ Run gofmt
+  - ✅ Fix linting issues
+  - ✅ Adjust indentation
+
+- **`ci`**: CI/CD configuration changes
+  - ✅ Update GitHub Actions workflows
+  - ✅ Update release configuration
+
+### Decision Tree: Which Commit Type?
+
 ```
-feat(sync): implement intelligent torrent matching with disambiguation
-fix(ui): resolve tooltip not showing on mobile devices
-perf(qbittorrent): optimize bulk torrent fetching with single API call
-docs(readme): update installation instructions
-refactor(models): extract StringSlice type to separate file
-test(radarr): add integration tests for client
-chore(deps): update Go dependencies
+Does it change runtime behavior?
+├─ YES → Does it add functionality?
+│         ├─ YES → feat
+│         └─ NO → Does it fix a bug?
+│                  ├─ YES → fix
+│                  └─ NO → Does it improve performance?
+│                           ├─ YES → perf
+│                           └─ NO → refactor
+│
+└─ NO → What does it change?
+         ├─ Documentation → docs
+         ├─ Tests → test
+         ├─ Dependencies/Config → chore
+         ├─ CI/CD → ci
+         └─ Code formatting → style
 ```
 
-**BAD Examples** (Spanish - DO NOT USE):
+### Examples - GOOD:
+
+```bash
+# TRIGGERS BUILD (runtime changes)
+feat(api): add endpoint for bulk media deletion
+fix(sync): correct torrent hash matching algorithm
+perf(db): add index on media.created_at for faster queries
+
+# DOES NOT TRIGGER BUILD (maintenance)
+docs(config): update .env.example with Bazarr configuration
+chore(deps): update Go dependencies to latest versions
+refactor(handler): extract validation logic to separate function
+test(repository): add unit tests for media queries
+style(models): format code with gofmt
+ci(release): update semantic-release configuration
 ```
+
+### Examples - BAD (Spanish - DO NOT USE):
+
+```bash
 ❌ feat(sync): implementar matching inteligente de torrents
 ❌ fix: arreglar tooltip en móviles
 ❌ actualizar dependencias
+```
+
+### Breaking Changes
+
+If a commit introduces breaking changes, add `!` after the type or add `BREAKING CHANGE:` in the footer:
+
+```bash
+feat!: change API response format for /api/media
+fix(api)!: remove deprecated endpoint /api/v1/cleanup
+
+# Or in commit body:
+feat(config): migrate to YAML configuration
+
+BREAKING CHANGE: .env configuration is no longer supported, use config.yaml
 ```
 
 ## 🐛 Debugging Guidelines
