@@ -284,7 +284,7 @@
                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
                             <div class="space-y-1">
                                 <div x-show="details.state"><span class="text-indigo-400">Estado:</span> <span x-text="details.state"></span></div>
-                                <div x-show="details.ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="details.ratio?.toFixed(2)"></span></div>
+                                <div x-show="details.ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="details.ratio.toFixed(2)"></span></div>
                                 <div x-show="details.seeding" class="text-green-400">⬆️ Seedeando</div>
                             </div>
                         </div>
