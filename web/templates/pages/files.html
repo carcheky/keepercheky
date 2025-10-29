@@ -562,5 +562,187 @@ function filesPage() {
         }
     };
 }
+
+// Health Status Badge Component
+function healthStatusBadge(status, severity, size = 'md') {
+    const statusConfig = {
+        ok: { icon: '✅', label: 'Saludable', color: 'border-green-600 bg-green-900/20 text-green-300' },
+        orphan_download: { icon: '📥', label: 'Huérfano', color: 'border-yellow-600 bg-yellow-900/20 text-yellow-300' },
+        only_hardlink: { icon: '🔗', label: 'Hardlink', color: 'border-blue-600 bg-blue-900/20 text-blue-300' },
+        not_seeding: { icon: '💀', label: 'Muerto', color: 'border-red-600 bg-red-900/20 text-red-300' },
+        missing_metadata: { icon: '❓', label: 'Sin metadata', color: 'border-purple-600 bg-purple-900/20 text-purple-300' },
+        critical: { icon: '🔴', label: 'Crítico', color: 'border-red-600 bg-red-900/20 text-red-300' }
+    };
+
+    const sizeConfig = {
+        sm: 'px-2 py-1 text-xs',
+        md: 'px-3 py-1.5 text-sm',
+        lg: 'px-4 py-2 text-base'
+    };
+
+    const config = statusConfig[status] || statusConfig.ok;
+
+    return {
+        icon: config.icon,
+        label: config.label,
+        colorClasses: config.color,
+        sizeClasses: sizeConfig[size] || sizeConfig.md
+    };
+}
+
+// Health Card Component
+function healthCard(type, count, severity, onClick) {
+    const cardConfig = {
+        ok: { 
+            icon: '✅', 
+            title: 'Archivos Saludables',
+            description: 'Sin problemas detectados',
+            bgColor: 'bg-dark-surface border-green-600/30 hover:bg-green-900/10'
+        },
+        orphan_download: { 
+            icon: '📥', 
+            title: 'Huérfanos en Descargas',
+            description: 'En descargas, no en biblioteca',
+            bgColor: 'bg-dark-surface border-yellow-600/30 hover:bg-yellow-900/10'
+        },
+        only_hardlink: { 
+            icon: '🔗', 
+            title: 'Solo Hardlinks',
+            description: 'Archivos con hardlinks',
+            bgColor: 'bg-dark-surface border-blue-600/30 hover:bg-blue-900/10'
+        },
+        not_seeding: { 
+            icon: '💀', 
+            title: 'Torrents Muertos',
+            description: 'Sin seeds activos',
+            bgColor: 'bg-dark-surface border-red-600/30 hover:bg-red-900/10'
+        },
+        critical: { 
+            icon: '🔴', 
+            title: 'Críticos',
+            description: 'Requieren atención inmediata',
+            bgColor: 'bg-dark-surface border-red-600/30 hover:bg-red-900/10'
+        }
+    };
+
+    const config = cardConfig[type] || cardConfig.ok;
+
+    return {
+        icon: config.icon,
+        title: config.title,
+        description: config.description,
+        count: count,
+        bgColorClasses: config.bgColor,
+        filterByStatus: onClick
+    };
+}
+
+// Service Status Indicator Component
+function serviceStatusIndicator(serviceName, isActive, details = {}) {
+    const serviceConfig = {
+        qbittorrent: { icon: '🧲', label: 'qBittorrent' },
+        radarr: { icon: '🎬', label: 'Radarr' },
+        sonarr: { icon: '📺', label: 'Sonarr' },
+        jellyfin: { icon: '📽️', label: 'Jellyfin' },
+        jellyseerr: { icon: '🎫', label: 'Jellyseerr' },
+        bazarr: { icon: '💬', label: 'Bazarr' }
+    };
+
+    const config = serviceConfig[serviceName] || { icon: '❓', label: serviceName };
+    
+    const colorClasses = isActive 
+        ? 'border-green-600 bg-green-900/20 text-green-300' 
+        : 'border-slate-600 bg-slate-800/20 text-slate-400';
+
+    return {
+        icon: config.icon,
+        label: config.label,
+        colorClasses: colorClasses,
+        showTooltip: false,
+        hasDetails: details && Object.keys(details).length > 0,
+        details: details
+    };
+}
+
+// Health Filters Component
+function healthFilters() {
+    return {
+        selectedProblem: 'all',
+        selectedService: 'all',
+        selectedSize: 'all',
+        selectedAge: 'all',
+        searchQuery: '',
+        
+        problemOptions: [
+            { value: 'all', label: 'Todos' },
+            { value: 'orphan', label: 'Huérfanos' },
+            { value: 'dead_torrent', label: 'Torrents Muertos' },
+            { value: 'hardlink', label: 'Solo Hardlink' },
+            { value: 'unwatched', label: 'Sin Reproducir' }
+        ],
+        
+        serviceOptions: [
+            { value: 'all', label: 'Todos' },
+            { value: 'qbittorrent', label: 'qBittorrent' },
+            { value: 'radarr', label: 'Radarr' },
+            { value: 'sonarr', label: 'Sonarr' },
+            { value: 'jellyfin', label: 'Jellyfin' },
+            { value: 'jellyseerr', label: 'Jellyseerr' }
+        ],
+        
+        sizeOptions: [
+            { value: 'all', label: 'Todos' },
+            { value: 'small', label: '< 5 GB' },
+            { value: 'medium', label: '5-20 GB' },
+            { value: 'large', label: '> 20 GB' }
+        ],
+        
+        ageOptions: [
+            { value: 'all', label: 'Todos' },
+            { value: 'recent', label: '< 1 mes' },
+            { value: 'old', label: '1-6 meses' },
+            { value: 'very_old', label: '> 6 meses' }
+        ],
+        
+        get hasActiveFilters() {
+            return this.selectedProblem !== 'all' || 
+                   this.selectedService !== 'all' || 
+                   this.selectedSize !== 'all' || 
+                   this.selectedAge !== 'all' || 
+                   this.searchQuery.trim() !== '';
+        },
+        
+        get activeFilterCount() {
+            let count = 0;
+            if (this.selectedProblem !== 'all') count++;
+            if (this.selectedService !== 'all') count++;
+            if (this.selectedSize !== 'all') count++;
+            if (this.selectedAge !== 'all') count++;
+            if (this.searchQuery.trim() !== '') count++;
+            return count;
+        },
+        
+        applyFilters() {
+            const filterData = {
+                problem: this.selectedProblem,
+                service: this.selectedService,
+                size: this.selectedSize,
+                age: this.selectedAge,
+                search: this.searchQuery
+            };
+            
+            this.$dispatch('filters-changed', filterData);
+        },
+        
+        clearFilters() {
+            this.selectedProblem = 'all';
+            this.selectedService = 'all';
+            this.selectedSize = 'all';
+            this.selectedAge = 'all';
+            this.searchQuery = '';
+            this.applyFilters();
+        }
+    };
+}
 </script>
 {{end}}
