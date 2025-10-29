@@ -600,8 +600,8 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
             }
 
             // Special handling for qBittorrent based on torrent state
-            if (serviceName === 'qbittorrent' && details.state) {
-                const state = details.state.toLowerCase();
+            if (serviceName === 'qbittorrent' && this.details.state) {
+                const state = this.details.state.toLowerCase();
                 
                 // Error states
                 if (state === 'error' || state === 'missingfiles') {
@@ -609,7 +609,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
                 }
                 
                 // Seeding/uploading states
-                if (state === 'uploading' || state === 'seeding' || (state === 'stalledUP' && details.seeding)) {
+                if (state === 'uploading' || state === 'seeding' || (state === 'stalledUP' && this.details.seeding)) {
                     return 'bg-green-900/30 border-green-600/50 text-green-300';
                 }
                 
