@@ -2,13 +2,14 @@
 .env.local
 .env.*.local
 
-# Generated directories
-config/
-data/
-logs/
+# Docker Compose override for local testing
+docker-compose.override.yml
 
-# Docker volumes
+# Generated directories
 volumes/
+
+# Logs
+logs/
 
 # Backup files
 *.bak

@@ -14,7 +14,8 @@ help:
 	@echo ""
 	@echo "Build:"
 	@echo "  make build        - Build production binary"
-	@echo "  make docker-build - Build production Docker image"
+	@echo "  make docker-build - Build production Docker image (default: production target)"
+	@echo "  make docker-build-dev - Build development Docker image (with hot-reload)"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test         - Run all tests"
@@ -90,7 +91,19 @@ build:
 # Build production Docker image
 docker-build:
 	@echo "🐳 Building production Docker image..."
-	@docker build -t keepercheky:latest -f Dockerfile .
+	@docker build -t keepercheky:latest .
+	@echo "✅ Production image built successfully"
+	@echo "   - Uses multi-stage build with 'production' target (default)"
+	@echo "   - Final image based on scratch (~25MB)"
+	@echo "   - To run: make docker-run"
+
+# Build development Docker image (for testing)
+docker-build-dev:
+	@echo "🐳 Building development Docker image..."
+	@docker build --target=development -t keepercheky:dev .
+	@echo "✅ Development image built successfully"
+	@echo "   - Uses 'development' target with hot-reload"
+	@echo "   - Based on golang:alpine with Air installed"
 
 # Run production Docker image
 docker-run:

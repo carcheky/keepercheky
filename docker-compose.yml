@@ -3,7 +3,8 @@ services:
   keepercheky:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: development
     container_name: keepercheky-dev
     ports:
       - "8000:8000"

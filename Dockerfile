@@ -1,8 +1,56 @@
-# Production Dockerfile - Multi-stage build for minimal final image
-# Target: <25MB image, <50MB RAM usage
+# Multi-stage Dockerfile for both development and production
+# By default builds production image. Use --target=development for dev.
+# Target: <25MB production image, <50MB RAM usage
 
-# Build stage
-FROM golang:1.25-alpine AS builder
+# ============================================================================
+# Base stage - Common dependencies
+# ============================================================================
+FROM golang:1.25-alpine AS base
+
+WORKDIR /app
+
+# Install common dependencies
+RUN apk add --no-cache \
+    git \
+    ca-certificates \
+    tzdata \
+    gcc \
+    musl-dev \
+    sqlite-dev
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download && \
+    go mod verify
+
+# ============================================================================
+# Development stage - With hot-reload support
+# ============================================================================
+FROM base AS development
+
+# Install Air for hot-reload
+RUN go install github.com/air-verse/air@latest
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 8000
+
+# Set development environment
+ENV KEEPERCHEKY_APP_ENVIRONMENT=development \
+    KEEPERCHEKY_SERVER_PORT=8000 \
+    KEEPERCHEKY_SERVER_HOST=0.0.0.0
+
+# Run with Air for hot-reload
+CMD ["air", "-c", ".air.toml"]
+
+# ============================================================================
+# Builder stage - Compile production binary
+# ============================================================================
+FROM base AS builder
 
 # Build arguments for versioning
 ARG VERSION=dev
@@ -11,21 +59,6 @@ ARG COMMIT_SHA=unknown
 # Platform-specific build arguments (automatically set by buildx)
 ARG TARGETOS
 ARG TARGETARCH
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apk add --no-cache \
-    git \
-    ca-certificates \
-    tzdata
-
-# Copy go mod files
-COPY go.mod go.sum ./
-
-# Download dependencies
-RUN go mod download && \
-    go mod verify
 
 # Copy source code
 COPY cmd/ ./cmd/
@@ -41,8 +74,7 @@ COPY web/ ./web/
 # - -X: Inject version information at build time
 # - -linkmode external: Use external linker for CGO
 # - -extldflags '-static': Force static linking
-RUN apk add --no-cache gcc musl-dev && \
-    CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags="-w -s -linkmode external -extldflags '-static' -X main.Version=${VERSION} -X main.CommitSHA=${COMMIT_SHA}" \
     -trimpath \
     -o /app/bin/keepercheky \
@@ -51,29 +83,35 @@ RUN apk add --no-cache gcc musl-dev && \
 # Verify binary exists and is executable
 RUN ls -lh /app/bin/keepercheky
 
-# Final stage - Use scratch for absolute minimal image
-FROM scratch
+# ============================================================================
+# Production stage - Minimal final image (default)
+# ============================================================================
+FROM alpine:3.19 AS production
 
-# Copy certificates and timezone data from builder
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+# Install runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    tzdata \
+    wget
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/data /app/config /app/logs && \
+    chown -R 65534:65534 /app
+
+# Set working directory
+WORKDIR /app
 
 # Copy binary
-COPY --from=builder /app/bin/keepercheky /keepercheky
+COPY --from=builder /app/bin/keepercheky /app/keepercheky
 
 # Copy web assets
-COPY --from=builder /app/web /web
+COPY --from=builder /app/web /app/web
 
-# Create non-root user (note: in scratch, this is just metadata)
+# Create non-root user and switch to it
 USER 65534:65534
 
 # Expose port
 EXPOSE 8000
-
-# Health check - Disabled: requires running server with database
-# Use docker-compose healthcheck with curl/wget instead
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#     CMD ["/keepercheky", "healthcheck"]
 
 # Set environment
 ENV KEEPERCHEKY_APP_ENVIRONMENT=production \
@@ -81,4 +119,4 @@ ENV KEEPERCHEKY_APP_ENVIRONMENT=production \
     KEEPERCHEKY_SERVER_HOST=0.0.0.0
 
 # Run
-ENTRYPOINT ["/keepercheky"]
+ENTRYPOINT ["/app/keepercheky"]

@@ -35,7 +35,7 @@ docker-compose up -d
 Open your browser and navigate to:
 
 ```
-http://localhost:8080
+http://localhost:8780
 ```
 
 ### 4. Check Logs
@@ -58,7 +58,7 @@ docker-compose down
 
 ### Port Comparison
 
-- **Quickstart (production image)**: `http://localhost:8080`
+- **Quickstart (production image)**: `http://localhost:8780`
 - **Dev environment**: `http://localhost:8000`
 
 This allows you to run both simultaneously for comparison!
@@ -143,12 +143,12 @@ make dev  # Runs on port 8000
 
 # Terminal 2: Run quickstart
 cd /home/user/projects/keepercheky/quickstart
-docker-compose up  # Runs on port 8080
+docker-compose up  # Runs on port 8780
 ```
 
 Now you can compare:
 - Dev: http://localhost:8000
-- Production: http://localhost:8080
+- Production: http://localhost:8780
 
 ### 2. Test Configuration Changes
 
@@ -167,7 +167,7 @@ docker-compose logs -f
 
 ```bash
 # Check health endpoint
-curl http://localhost:8080/health
+curl http://localhost:8780/health
 
 # Check container health
 docker-compose ps
@@ -182,7 +182,7 @@ docker-compose ps
 docker-compose logs
 
 # Check if port is already in use
-sudo lsof -i :8080
+sudo lsof -i :8780
 
 # Change port in .env if needed
 KEEPERCHEKY_PORT=8081

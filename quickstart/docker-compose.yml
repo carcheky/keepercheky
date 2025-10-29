@@ -1,60 +1,56 @@
-version: '3.8'
-
 services:
   keepercheky:
-    image: ghcr.io/carcheky/keepercheky:latest
+    image: ghcr.io/carcheky/keepercheky:develop # or latest
     container_name: keepercheky-quickstart
+    # Run container process as host user so mounted volumes are writable
+    user: "${PUID:-1000}:${PGID:-1000}"
     restart: unless-stopped
     ports:
-      - "${KEEPERCHEKY_PORT:-8080}:8000"
+      - "${KEEPERCHEKY_PORT:-8780}:8000"
     volumes:
-      # Configuration
-      - ./config:/config
-      # Database persistence
-      - ./data:/data
-      # Media library (read-only recommended)
-      - ${MEDIA_PATH:-/path/to/media}:/media:ro
-      # Logs
-      - ./logs:/logs
+      - ./volumes/keepercheky-data:/app/data
+      - ./volumes/keepercheky-config:/app/config
+      - ./logs:/app/logs
+      - ${MEDIA_PATH:-/path/to/media}:/media-library:ro
     environment:
       # Server Configuration
-      - SERVER_PORT=8000
-      - SERVER_HOST=0.0.0.0
+      - KEEPERCHEKY_SERVER_PORT=8000
+      - KEEPERCHEKY_SERVER_HOST=0.0.0.0
       
       # Database Configuration
-      - DB_TYPE=${DB_TYPE:-sqlite}
-      - DB_PATH=${DB_PATH:-/data/keepercheky.db}
+      - KEEPERCHEKY_DATABASE_TYPE=${DB_TYPE:-sqlite}
+      - KEEPERCHEKY_DATABASE_PATH=${DB_PATH:-/app/data/keepercheky.db}
       
       # Application Settings
-      - APP_DRY_RUN=${APP_DRY_RUN:-true}
-      - APP_LOG_LEVEL=${APP_LOG_LEVEL:-info}
-      - APP_LEAVING_SOON_DAYS=${APP_LEAVING_SOON_DAYS:-7}
+      - KEEPERCHEKY_APP_DRY_RUN=${APP_DRY_RUN:-true}
+      - KEEPERCHEKY_APP_LOG_LEVEL=${APP_LOG_LEVEL:-info}
+      - KEEPERCHEKY_APP_LEAVING_SOON_DAYS=${APP_LEAVING_SOON_DAYS:-7}
       
       # Radarr Configuration
-      - RADARR_ENABLED=${RADARR_ENABLED:-false}
-      - RADARR_URL=${RADARR_URL:-}
-      - RADARR_API_KEY=${RADARR_API_KEY:-}
+      - KEEPERCHEKY_CLIENTS_RADARR_ENABLED=${RADARR_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_RADARR_URL=${RADARR_URL:-}
+      - KEEPERCHEKY_CLIENTS_RADARR_API_KEY=${RADARR_API_KEY:-}
       
       # Sonarr Configuration
-      - SONARR_ENABLED=${SONARR_ENABLED:-false}
-      - SONARR_URL=${SONARR_URL:-}
-      - SONARR_API_KEY=${SONARR_API_KEY:-}
+      - KEEPERCHEKY_CLIENTS_SONARR_ENABLED=${SONARR_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_SONARR_URL=${SONARR_URL:-}
+      - KEEPERCHEKY_CLIENTS_SONARR_API_KEY=${SONARR_API_KEY:-}
       
       # Jellyfin Configuration
-      - JELLYFIN_ENABLED=${JELLYFIN_ENABLED:-false}
-      - JELLYFIN_URL=${JELLYFIN_URL:-}
-      - JELLYFIN_API_KEY=${JELLYFIN_API_KEY:-}
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED=${JELLYFIN_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_URL=${JELLYFIN_URL:-}
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_API_KEY=${JELLYFIN_API_KEY:-}
       
       # Jellyseerr Configuration
-      - JELLYSEERR_ENABLED=${JELLYSEERR_ENABLED:-false}
-      - JELLYSEERR_URL=${JELLYSEERR_URL:-}
-      - JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY:-}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED=${JELLYSEERR_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_URL=${JELLYSEERR_URL:-}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY:-}
       
       # qBittorrent Configuration
-      - QBITTORRENT_ENABLED=${QBITTORRENT_ENABLED:-false}
-      - QBITTORRENT_URL=${QBITTORRENT_URL:-}
-      - QBITTORRENT_USERNAME=${QBITTORRENT_USERNAME:-}
-      - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD:-}
+      - KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED=${QBITTORRENT_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_QBITTORRENT_URL=${QBITTORRENT_URL:-}
+      - KEEPERCHEKY_CLIENTS_QBITTORRENT_USERNAME=${QBITTORRENT_USERNAME:-}
+      - KEEPERCHEKY_CLIENTS_QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD:-}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
       interval: 30s
