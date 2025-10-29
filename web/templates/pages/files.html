@@ -292,7 +292,7 @@
                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
                             <div class="space-y-1">
                                 <div x-show="details.state"><span class="text-indigo-400">Estado:</span> <span x-text="details.state"></span></div>
-                                <div x-show="details.ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="details.ratio?.toFixed(2)"></span></div>
+                                <div x-show="details.ratio !== undefined"><span class="text-indigo-400">Ratio:</span> <span x-text="details.ratio.toFixed(2)"></span></div>
                                 <div x-show="details.seeding" class="text-green-400">⬆️ Seedeando</div>
                             </div>
                         </div>
@@ -683,7 +683,7 @@ function filesPage() {
                 const diffMins = Math.floor(diffMs / 60000);
                 
                 if (diffMins < 1) return 'hace un momento';
-                if (diffMins < 60) return `hace ${diffMins} min`;
+                if (diffMins < 60) return `hace ${diffMins} minuto(s)`;
                 
                 const diffHours = Math.floor(diffMs / 3600000);
                 if (diffHours < 24) return `hace ${diffHours}h`;
@@ -697,6 +697,80 @@ function filesPage() {
             } catch (e) {
                 return timestamp;
             }
+        }
+    };
+}
+
+function serviceStatusIndicator(serviceName, isPresent, details = {}) {
+    // Service configuration
+    const serviceConfig = {
+        qbittorrent: { icon: '🧲', name: 'qBittorrent' },
+        radarr: { icon: '🎬', name: 'Radarr' },
+        sonarr: { icon: '📺', name: 'Sonarr' },
+        jellyfin: { icon: '🍿', name: 'Jellyfin' },
+        jellyseerr: { icon: '🎫', name: 'Jellyseerr' },
+        jellystat: { icon: '📊', name: 'JellyStat' }
+    };
+
+    const config = serviceConfig[serviceName] || { 
+        icon: '❓', 
+        name: serviceName.charAt(0).toUpperCase() + serviceName.slice(1) 
+    };
+
+    return {
+        serviceName,
+        isPresent,
+        details,
+        config,
+        showTooltip: false,
+
+        get icon() {
+            return config.icon;
+        },
+
+        get label() {
+            return config.name;
+        },
+
+        get colorClasses() {
+            if (!this.isPresent) {
+                return 'bg-slate-800/50 border-slate-600 text-slate-500';
+            }
+
+            // Special handling for qBittorrent based on torrent state
+            if (serviceName === 'qbittorrent' && this.details.state) {
+                const state = this.details.state.toLowerCase();
+                
+                // Error states
+                if (state === 'error' || state === 'missingfiles') {
+                    return 'bg-red-900/30 border-red-600/50 text-red-300';
+                }
+                
+                // Seeding/uploading states
+                if (state === 'uploading' || state === 'seeding' || (state === 'stalledUP' && this.details.seeding)) {
+                    return 'bg-green-900/30 border-green-600/50 text-green-300';
+                }
+                
+                // Downloading states
+                if (state === 'downloading' || state === 'stalledDL') {
+                    return 'bg-blue-900/30 border-blue-600/50 text-blue-300';
+                }
+                
+                // Paused states
+                if (state === 'pausedUP' || state === 'pausedDL') {
+                    return 'bg-yellow-900/30 border-yellow-600/50 text-yellow-300';
+                }
+                
+                // Completed/stalled
+                return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
+            }
+
+            // Default present state
+            return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
+        },
+
+        get hasDetails() {
+            return this.isPresent && Object.keys(this.details).length > 0;
         }
     };
 }
