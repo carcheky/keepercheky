@@ -1,54 +1,62 @@
 services:
   keepercheky:
     image: ghcr.io/carcheky/keepercheky:develop # or latest
-    container_name: keepercheky-quickstart
-    # Run container process as host user so mounted volumes are writable
-    user: "${PUID:-1000}:${PGID:-1000}"
+    container_name: keepercheky
+    user: "${PUID}:${PGID}"
     restart: unless-stopped
     ports:
       - "${KEEPERCHEKY_PORT:-8780}:8000"
     volumes:
       - ./volumes/keepercheky-data:/app/data
       - ./volumes/keepercheky-config:/app/config
-      - ./logs:/app/logs
-      - ${MEDIA_PATH:-/path/to/media}:/media-library:ro
+      - ./volumes/keepercheky-logs:/app/logs
+      - ${RASPIMEDIA}:/BibliotecaMultimedia:rw
     environment:
+      # System Configuration
+      - TZ=${TIMEZONE}
+      - UMASK=${UMASK}
+      
       # Server Configuration
-      - KEEPERCHEKY_SERVER_PORT=8000
+      - KEEPERCHEKY_SERVER_PORT=${KEEPERCHEKY_SERVER_PORT:-8000}
       - KEEPERCHEKY_SERVER_HOST=0.0.0.0
       
       # Database Configuration
-      - KEEPERCHEKY_DATABASE_TYPE=${DB_TYPE:-sqlite}
-      - KEEPERCHEKY_DATABASE_PATH=${DB_PATH:-/app/data/keepercheky.db}
+      - KEEPERCHEKY_DATABASE_TYPE=${KEEPERCHEKY_DATABASE_TYPE:-sqlite}
+      - KEEPERCHEKY_DATABASE_PATH=${KEEPERCHEKY_DATABASE_PATH:-/app/data/keepercheky.db}
       
       # Application Settings
-      - KEEPERCHEKY_APP_DRY_RUN=${APP_DRY_RUN:-true}
-      - KEEPERCHEKY_APP_LOG_LEVEL=${APP_LOG_LEVEL:-info}
-      - KEEPERCHEKY_APP_LEAVING_SOON_DAYS=${APP_LEAVING_SOON_DAYS:-7}
+      - KEEPERCHEKY_APP_ENVIRONMENT=${KEEPERCHEKY_APP_ENVIRONMENT:-development}
+      - KEEPERCHEKY_APP_DRY_RUN=${KEEPERCHEKY_APP_DRY_RUN:-true}
+      - KEEPERCHEKY_APP_LOG_LEVEL=${KEEPERCHEKY_APP_LOG_LEVEL:-info}
       
       # Radarr Configuration
-      - KEEPERCHEKY_CLIENTS_RADARR_ENABLED=${RADARR_ENABLED:-false}
-      - KEEPERCHEKY_CLIENTS_RADARR_URL=${RADARR_URL:-}
+      - KEEPERCHEKY_CLIENTS_RADARR_ENABLED=${KEEPERCHEKY_CLIENTS_RADARR_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_RADARR_URL=${KEEPERCHEKY_CLIENTS_RADARR_URL:-}
       - KEEPERCHEKY_CLIENTS_RADARR_API_KEY=${RADARR_API_KEY:-}
       
       # Sonarr Configuration
-      - KEEPERCHEKY_CLIENTS_SONARR_ENABLED=${SONARR_ENABLED:-false}
-      - KEEPERCHEKY_CLIENTS_SONARR_URL=${SONARR_URL:-}
+      - KEEPERCHEKY_CLIENTS_SONARR_ENABLED=${KEEPERCHEKY_CLIENTS_SONARR_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_SONARR_URL=${KEEPERCHEKY_CLIENTS_SONARR_URL:-}
       - KEEPERCHEKY_CLIENTS_SONARR_API_KEY=${SONARR_API_KEY:-}
       
       # Jellyfin Configuration
-      - KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED=${JELLYFIN_ENABLED:-false}
-      - KEEPERCHEKY_CLIENTS_JELLYFIN_URL=${JELLYFIN_URL:-}
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED=${KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_JELLYFIN_URL=${KEEPERCHEKY_CLIENTS_JELLYFIN_URL:-}
       - KEEPERCHEKY_CLIENTS_JELLYFIN_API_KEY=${JELLYFIN_API_KEY:-}
       
       # Jellyseerr Configuration
-      - KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED=${JELLYSEERR_ENABLED:-false}
-      - KEEPERCHEKY_CLIENTS_JELLYSEERR_URL=${JELLYSEERR_URL:-}
-      - KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY:-}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED=${KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_URL=${KEEPERCHEKY_CLIENTS_JELLYSEERR_URL:-}
+      - KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY=${JELLYSEER_API_KEY:-}
+      
+      # Jellystat Configuration
+      - KEEPERCHEKY_CLIENTS_JELLYSTAT_ENABLED=${KEEPERCHEKY_CLIENTS_JELLYSTAT_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_JELLYSTAT_URL=${KEEPERCHEKY_CLIENTS_JELLYSTAT_URL:-}
+      - KEEPERCHEKY_CLIENTS_JELLYSTAT_API_KEY=${JELLYSTAT_API_KEY:-}
       
       # qBittorrent Configuration
-      - KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED=${QBITTORRENT_ENABLED:-false}
-      - KEEPERCHEKY_CLIENTS_QBITTORRENT_URL=${QBITTORRENT_URL:-}
+      - KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED=${KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED:-false}
+      - KEEPERCHEKY_CLIENTS_QBITTORRENT_URL=${KEEPERCHEKY_CLIENTS_QBITTORRENT_URL:-}
       - KEEPERCHEKY_CLIENTS_QBITTORRENT_USERNAME=${QBITTORRENT_USERNAME:-}
       - KEEPERCHEKY_CLIENTS_QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD:-}
     healthcheck:
@@ -57,9 +65,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    networks:
-      - keepercheky-network
-
-networks:
-  keepercheky-network:
-    name: keepercheky-quickstart-network
