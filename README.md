@@ -224,7 +224,16 @@ schedules:
 - [ ] Docker Hub publish
 - [ ] Release 1.0.0
 
-## 🤝 Contributing
+## � AI Agent Development
+
+This project includes comprehensive instructions for AI coding agents like GitHub Copilot:
+
+- **[AGENTS.md](AGENTS.md)** - Practical guide for Copilot Coding Agent with commands and workflows
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Detailed project guidelines and architecture patterns
+
+These files help AI agents understand the project structure, development workflows, and critical safety rules.
+
+## �🤝 Contributing
 
 This project is currently in the planning phase. Contributions will be welcome once we start implementation.
 
@@ -232,7 +241,8 @@ This project is currently in the planning phase. Contributions will be welcome o
 
 1. Review the [technical proposals](docs/propuestas/)
 2. Share your thoughts on the [recommended stack](docs/COMPARACION_Y_RECOMENDACIONES.md)
-3. Star this repo to stay updated
+3. Check out [AGENTS.md](AGENTS.md) for development guidelines
+4. Star this repo to stay updated
 
 ## 📝 License
 
