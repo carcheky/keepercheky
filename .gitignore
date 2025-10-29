@@ -51,6 +51,9 @@ yarn-error.log*
 
 # IDEs
 .vscode/
+!.vscode/copilot-instructions.md
+!.vscode/copilot-commit-message-instructions.md
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo
