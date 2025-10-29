@@ -2,8 +2,13 @@
 
 > Modern web-based media library cleanup manager - A complete rewrite of Janitorr with a beautiful UI
 
-[![Status](https://img.shields.io/badge/status-planning-yellow)](https://github.com/carcheky/keepercheky)
+[![develop](https://img.shields.io/github/actions/workflow/status/carcheky/keepercheky/release.yml?branch=develop&label=develop&logo=github)](https://github.com/carcheky/keepercheky/actions/workflows/release.yml)
+[![stable](https://img.shields.io/github/actions/workflow/status/carcheky/keepercheky/release.yml?branch=stable&label=stable&logo=github)](https://github.com/carcheky/keepercheky/actions/workflows/release.yml)
+[![develop version](https://img.shields.io/github/v/release/carcheky/keepercheky?include_prereleases&label=develop&filter=*-dev*)](https://github.com/carcheky/keepercheky/releases)
+[![stable version](https://img.shields.io/github/v/release/carcheky/keepercheky?label=stable)](https://github.com/carcheky/keepercheky/releases)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io-blue?logo=docker)](https://github.com/carcheky/keepercheky/pkgs/container/keepercheky)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/carcheky/keepercheky)](go.mod)
 
 ## 📖 What is KeeperCheky?
 
