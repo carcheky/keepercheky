@@ -1118,6 +1118,22 @@ When implementing features, refer to:
 - 💬 Pull request descriptions in **Spanish**
 - 📖 User-facing documentation in **Spanish**
 
+**⚠️ IMPORTANT - GitHub Communication:**
+- ✅ **ALL GitHub interactions MUST be in Spanish**
+- ✅ This includes: PR comments, code review comments, issue comments, discussions
+- ✅ When approving/reviewing PRs, write comments in Spanish
+- ✅ When requesting changes, explain them in Spanish
+- ❌ NEVER write GitHub comments in English unless interacting with external contributors
+
+**Examples:**
+```markdown
+✅ GOOD - GitHub PR Review in Spanish:
+"Excelente trabajo implementando los componentes Alpine.js. El código se ve limpio y bien estructurado. ✅"
+
+❌ BAD - GitHub PR Review in English:
+"Great work implementing the Alpine.js components. Code looks clean and well structured. ✅"
+```
+
 ---
 
 **Last Updated**: October 25, 2025  
