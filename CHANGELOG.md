@@ -1,3 +1,25 @@
+# [1.0.0-dev.4](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2025-10-29)
+
+
+### Bug Fixes
+
+* **files:** corregir click handlers y pluralización en español ([f7ecd3a](https://github.com/carcheky/keepercheky/commit/f7ecd3aa11cdf5883c2a464844650ee063ae5874)), closes [#20](https://github.com/carcheky/keepercheky/issues/20)
+* **files:** implement functional advanced filters ([#24](https://github.com/carcheky/keepercheky/issues/24)) ([d6b2e76](https://github.com/carcheky/keepercheky/commit/d6b2e768e98167f27623242dd7a80d25e54fe2ac))
+* **files:** implement missing Alpine.js components for health dashboard ([#21](https://github.com/carcheky/keepercheky/issues/21)) ([22fcc51](https://github.com/carcheky/keepercheky/commit/22fcc5123fc2bd35def452172024c65942243062))
+* **files:** improve serviceStatusIndicator component logic ([0fee93f](https://github.com/carcheky/keepercheky/commit/0fee93f088f1f7c3e8ec54d75c9496cdb427bcc0))
+* **files:** use this.details consistently in serviceStatusIndicator ([6186bc5](https://github.com/carcheky/keepercheky/commit/6186bc50b4265b777bea6a4efd16eb08a4920e2d))
+
+
+### Features
+
+* **files:** define missing Alpine.js component functions ([#22](https://github.com/carcheky/keepercheky/issues/22)) ([61dfc66](https://github.com/carcheky/keepercheky/commit/61dfc669b723594549633114f542db34563e893d))
+* **files:** implement functional advanced filters without separate component ([639258a](https://github.com/carcheky/keepercheky/commit/639258a1373bbac80b8dc147ec47f7c482bd9d27))
+* **files:** implement serviceStatusIndicator Alpine.js component ([95bbcd5](https://github.com/carcheky/keepercheky/commit/95bbcd58aa278fa20f2069040c6a7ff6176f270b))
+* **files:** Integración del Dashboard de Salud del Almacenamiento con Componentes Alpine.js ([#20](https://github.com/carcheky/keepercheky/issues/20)) ([a2a32d1](https://github.com/carcheky/keepercheky/commit/a2a32d1c1a2eb7d90d9ad9c0c049fc5d81d31988)), closes [#14](https://github.com/carcheky/keepercheky/issues/14) [#15](https://github.com/carcheky/keepercheky/issues/15) [#14](https://github.com/carcheky/keepercheky/issues/14) [#15](https://github.com/carcheky/keepercheky/issues/15) [#15](https://github.com/carcheky/keepercheky/issues/15) [#14](https://github.com/carcheky/keepercheky/issues/14) [#14](https://github.com/carcheky/keepercheky/issues/14) [#15](https://github.com/carcheky/keepercheky/issues/15)
+* **files:** integrate health dashboard with Alpine.js components ([dec4cfd](https://github.com/carcheky/keepercheky/commit/dec4cfd66236cc76fba48abb11a188f03ff397d0)), closes [#14](https://github.com/carcheky/keepercheky/issues/14) [#15](https://github.com/carcheky/keepercheky/issues/15) [#14](https://github.com/carcheky/keepercheky/issues/14) [#15](https://github.com/carcheky/keepercheky/issues/15) [#14](https://github.com/carcheky/keepercheky/issues/14) [#15](https://github.com/carcheky/keepercheky/issues/15)
+* **files:** restore SSE-based sync with real-time progress updates ([20982fc](https://github.com/carcheky/keepercheky/commit/20982fc30042c88ff71a8809fa51ec21935eb09e))
+* Implement missing serviceStatusIndicator Alpine.js component ([#26](https://github.com/carcheky/keepercheky/issues/26)) ([d2382fa](https://github.com/carcheky/keepercheky/commit/d2382fad6344e16d1c7132d8958bef000fa36f33))
+
 # [1.0.0-dev.3](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2025-10-29)
 
 
