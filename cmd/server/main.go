@@ -201,6 +201,14 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/sonarr/calendar", h.Sonarr.GetCalendar)
 		api.Get("/sonarr/quality-profiles", h.Sonarr.GetQualityProfiles)
 
+		// Bazarr endpoints
+		api.Get("/bazarr/system", h.Bazarr.GetSystemInfo)
+		api.Get("/bazarr/history", h.Bazarr.GetHistory)
+		api.Get("/bazarr/wanted/movies", h.Bazarr.GetWantedMovies)
+		api.Get("/bazarr/wanted/series", h.Bazarr.GetWantedSeries)
+		api.Get("/bazarr/subtitles/movie/:radarr_id", h.Bazarr.GetMovieSubtitles)
+		api.Get("/bazarr/subtitles/series/:sonarr_id", h.Bazarr.GetSeriesSubtitles)
+
 		// Jellyfin endpoints
 		api.Get("/jellyfin/stats", h.Settings.GetJellyfinStats)
 		api.Get("/jellyfin/sessions", h.Settings.GetJellyfinSessions)

@@ -22,6 +22,7 @@ type Handlers struct {
 	Radarr      *RadarrHandler
 	Sonarr      *SonarrHandler
 	QBittorrent *QBittorrentHandler
+	Bazarr      *BazarrHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
@@ -76,5 +77,6 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Radarr:      NewRadarrHandler(cfg, logger),
 		Sonarr:      NewSonarrHandler(cfg, logger),
 		QBittorrent: NewQBittorrentHandler(cfg, logger),
+		Bazarr:      NewBazarrHandler(cfg, logger),
 	}
 }
