@@ -292,7 +292,7 @@
                 // Use defined fields
                 return this.fieldsDef.map(field => ({
                     ...field,
-                    value: this.formatValue(field.key, this.systemInfo[field.key]),
+                    value: field.format ? field.format(this.systemInfo[field.key]) : this.formatValue(field.key, this.systemInfo[field.key]),
                     html: field.html || this.needsHtml(this.systemInfo[field.key])
                 }));
             },
