@@ -1,3 +1,10 @@
+# [1.0.0-dev.13](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2025-10-30)
+
+
+### Features
+
+* integrate Jellyseerr request statistics and dashboard widget ([#52](https://github.com/carcheky/keepercheky/issues/52)) ([39211a4](https://github.com/carcheky/keepercheky/commit/39211a4ce74a40c8c55d83ffd45785e7b7f61d06))
+
 # [1.0.0-dev.12](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2025-10-30)
 
 
