@@ -1,3 +1,10 @@
+# [1.0.0-dev.16](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2025-10-30)
+
+
+### Performance Improvements
+
+* implement server-side pagination for files API to fix slow loading in large libraries ([#56](https://github.com/carcheky/keepercheky/issues/56)) ([1362479](https://github.com/carcheky/keepercheky/commit/1362479fbfe0300ff256134f1038a50e414b38be))
+
 # [1.0.0-dev.15](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2025-10-30)
 
 
