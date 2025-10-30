@@ -193,6 +193,13 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/radarr/history", h.Radarr.GetHistory)
 		api.Get("/radarr/calendar", h.Radarr.GetCalendar)
 		api.Get("/radarr/quality-profiles", h.Radarr.GetQualityProfiles)
+
+		// Sonarr endpoints
+		api.Get("/sonarr/system", h.Sonarr.GetSystemInfo)
+		api.Get("/sonarr/queue", h.Sonarr.GetQueue)
+		api.Get("/sonarr/history", h.Sonarr.GetHistory)
+		api.Get("/sonarr/calendar", h.Sonarr.GetCalendar)
+		api.Get("/sonarr/quality-profiles", h.Sonarr.GetQualityProfiles)
 	}
 }
 
