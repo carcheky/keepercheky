@@ -206,6 +206,13 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/jellyfin/sessions", h.Settings.GetJellyfinSessions)
 		api.Get("/jellyfin/recently-added", h.Settings.GetJellyfinRecentlyAdded)
 		api.Get("/jellyfin/activity", h.Settings.GetJellyfinActivity)
+
+		// qBittorrent endpoints
+		api.Get("/qbittorrent/transfer", h.QBittorrent.GetTransferInfo)
+		api.Get("/qbittorrent/state", h.QBittorrent.GetServerState)
+		api.Get("/qbittorrent/active", h.QBittorrent.GetActiveTorrents)
+		api.Get("/qbittorrent/torrent/:hash/properties", h.QBittorrent.GetTorrentProperties)
+		api.Get("/qbittorrent/torrent/:hash/trackers", h.QBittorrent.GetTorrentTrackers)
 	}
 }
 

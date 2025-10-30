@@ -289,6 +289,129 @@
         </div>
     </div>
 
+    <!-- qBittorrent Stats and Active Torrents (if enabled) -->
+    <div x-data="qbittorrentDashboard()" x-init="init()" x-show="enabled" 
+         class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-dark-text">📡 qBittorrent</h2>
+            <button @click="refresh()" :disabled="loading" 
+                    class="px-3 py-1 text-sm bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50">
+                <span x-show="!loading">Actualizar</span>
+                <span x-show="loading">Cargando...</span>
+            </button>
+        </div>
+
+        <!-- Transfer Stats -->
+        <div x-show="state" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-dark-bg rounded-lg p-4 border border-dark-border">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">⬇️</span>
+                    <div>
+                        <p class="text-xs text-dark-muted">Velocidad Descarga</p>
+                        <p class="text-lg font-bold text-blue-400" x-text="formatSpeed(state?.dl_info_speed || 0)"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark-bg rounded-lg p-4 border border-dark-border">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">⬆️</span>
+                    <div>
+                        <p class="text-xs text-dark-muted">Velocidad Subida</p>
+                        <p class="text-lg font-bold text-green-400" x-text="formatSpeed(state?.up_info_speed || 0)"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark-bg rounded-lg p-4 border border-dark-border">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">🌐</span>
+                    <div>
+                        <p class="text-xs text-dark-muted">Nodos DHT</p>
+                        <p class="text-lg font-bold text-purple-400" x-text="state?.dht_nodes || 0"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark-bg rounded-lg p-4 border border-dark-border">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl" x-text="state?.connection_status === 'connected' ? '✅' : '❌'"></span>
+                    <div>
+                        <p class="text-xs text-dark-muted">Estado</p>
+                        <p class="text-sm font-semibold" 
+                           :class="state?.connection_status === 'connected' ? 'text-green-400' : 'text-red-400'"
+                           x-text="state?.connection_status || 'Desconocido'"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Torrents -->
+        <div x-show="activeTorrents.length > 0" class="mt-4">
+            <h3 class="text-lg font-semibold text-dark-text mb-3">Torrents Activos</h3>
+            <div class="space-y-3">
+                <template x-for="torrent in activeTorrents.slice(0, 5)" :key="torrent.hash">
+                    <div class="bg-dark-bg rounded-lg p-4 border border-dark-border">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-dark-text truncate flex-1" x-text="torrent.name"></h4>
+                            <span class="text-xs px-2 py-1 rounded ml-2" 
+                                  :class="{
+                                      'bg-blue-600 text-white': torrent.state === 'downloading',
+                                      'bg-green-600 text-white': torrent.is_seeding,
+                                      'bg-gray-600 text-white': !torrent.is_seeding && torrent.state !== 'downloading'
+                                  }"
+                                  x-text="torrent.state"></span>
+                        </div>
+                        
+                        <!-- Progress bar -->
+                        <div class="mb-2">
+                            <div class="flex justify-between text-xs text-dark-muted mb-1">
+                                <span x-text="(torrent.progress * 100).toFixed(1) + '%'"></span>
+                                <span x-show="torrent.eta > 0" x-text="'ETA: ' + formatETA(torrent.eta)"></span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="h-2 rounded-full transition-all" 
+                                     :class="torrent.state === 'downloading' ? 'bg-blue-600' : 'bg-green-600'"
+                                     :style="'width: ' + (torrent.progress * 100) + '%'"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Details -->
+                        <div class="flex flex-wrap gap-3 text-xs text-dark-muted">
+                            <span x-show="torrent.dlspeed > 0">
+                                <strong>⬇️</strong> <span x-text="formatSpeed(torrent.dlspeed)"></span>
+                            </span>
+                            <span x-show="torrent.upspeed > 0">
+                                <strong>⬆️</strong> <span x-text="formatSpeed(torrent.upspeed)"></span>
+                            </span>
+                            <span x-show="torrent.ratio">
+                                <strong>Ratio:</strong> <span x-text="torrent.ratio.toFixed(2)"></span>
+                            </span>
+                            <span x-show="torrent.num_seeds >= 0">
+                                <strong>Seeds:</strong> <span x-text="torrent.num_seeds"></span>
+                            </span>
+                            <span x-show="torrent.num_peers >= 0">
+                                <strong>Peers:</strong> <span x-text="torrent.num_peers"></span>
+                            </span>
+                            <span x-show="torrent.category">
+                                <strong>Cat:</strong> <span x-text="torrent.category"></span>
+                            </span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <div x-show="activeTorrents.length > 5" class="mt-3 text-center">
+                <p class="text-xs text-dark-muted">
+                    Mostrando 5 de <span x-text="activeTorrents.length"></span> torrents activos
+                </p>
+            </div>
+        </div>
+
+        <div x-show="activeTorrents.length === 0 && !loading" class="text-center py-4">
+            <p class="text-dark-muted">No hay torrents activos</p>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-4">Quick Actions</h2>
@@ -598,6 +721,87 @@
                 if (diffDays < 7) return `Hace ${diffDays} días`;
                 if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
                 return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+            }
+        }
+    }
+
+    function qbittorrentDashboard() {
+        return {
+            enabled: false,
+            state: null,
+            activeTorrents: [],
+            loading: false,
+            intervalId: null,
+            REFRESH_INTERVAL_MS: 15000, // 15 seconds
+
+            async init() {
+                await this.refresh();
+                
+                // Only enable auto-refresh if qBittorrent is configured
+                if (this.enabled) {
+                    this.intervalId = setInterval(() => this.refresh(), this.REFRESH_INTERVAL_MS);
+                    
+                    // Cleanup interval when component is destroyed
+                    this.$cleanup(() => {
+                        if (this.intervalId) {
+                            clearInterval(this.intervalId);
+                            this.intervalId = null;
+                        }
+                    });
+                }
+            },
+
+            async refresh() {
+                this.loading = true;
+                try {
+                    // Try to fetch server state first to check if qBittorrent is enabled
+                    const stateResponse = await fetch('/api/qbittorrent/state');
+                    if (stateResponse.ok) {
+                        this.enabled = true;
+                        this.state = await stateResponse.json();
+                        
+                        // Also fetch active torrents
+                        const torrentsResponse = await fetch('/api/qbittorrent/active');
+                        if (torrentsResponse.ok) {
+                            const data = await torrentsResponse.json();
+                            this.activeTorrents = data.items || [];
+                        }
+                    } else if (stateResponse.status === 503) {
+                        // qBittorrent not configured
+                        this.enabled = false;
+                        this.state = null;
+                        this.activeTorrents = [];
+                    }
+                } catch (error) {
+                    console.error('Error loading qBittorrent data:', error);
+                    this.enabled = false;
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            formatSpeed(bytesPerSec) {
+                if (bytesPerSec === 0) return '0 B/s';
+                const k = 1024;
+                const sizes = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+                const i = Math.floor(Math.log(bytesPerSec) / Math.log(k));
+                return parseFloat((bytesPerSec / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            },
+
+            formatETA(seconds) {
+                if (seconds === 8640000 || seconds <= 0) return '∞';
+                
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                
+                if (hours > 24) {
+                    const days = Math.floor(hours / 24);
+                    return `${days}d ${hours % 24}h`;
+                }
+                if (hours > 0) {
+                    return `${hours}h ${minutes}m`;
+                }
+                return `${minutes}m`;
             }
         }
     }

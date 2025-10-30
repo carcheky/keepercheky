@@ -21,6 +21,7 @@ type Handlers struct {
 	FileActions *FileActionsHandler
 	Radarr      *RadarrHandler
 	Sonarr      *SonarrHandler
+	QBittorrent *QBittorrentHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
@@ -72,7 +73,8 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 			oldSyncService.GetJellyfinClient(),
 			logger.Desugar(),
 		),
-		Radarr: NewRadarrHandler(cfg, logger),
-		Sonarr: NewSonarrHandler(cfg, logger),
+		Radarr:      NewRadarrHandler(cfg, logger),
+		Sonarr:      NewSonarrHandler(cfg, logger),
+		QBittorrent: NewQBittorrentHandler(cfg, logger),
 	}
 }
