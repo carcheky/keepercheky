@@ -18,6 +18,7 @@ type EnrichedFile struct {
 	InSonarr      bool
 	InJellyfin    bool
 	InJellyseerr  bool
+	InJellystat   bool
 	InQBittorrent bool
 
 	// Service IDs
@@ -305,6 +306,35 @@ func (e *Enricher) applyJellyfinData(file *EnrichedFile, jellyfin *models.Media)
 		timestamp := jellyfin.LastWatched.Unix()
 		file.LastWatched = &timestamp
 	}
+}
+
+// EnrichWithJellystat sets the InJellystat flag for files tracked by Jellystat
+// Since Jellystat monitors all Jellyfin activity, files in Jellyfin are tracked by Jellystat
+func (e *Enricher) EnrichWithJellystat(
+	ctx context.Context,
+	files map[string]*EnrichedFile,
+	jellystatEnabled bool,
+) int {
+	if !jellystatEnabled {
+		return 0
+	}
+
+	e.logger.Info("Enriching with Jellystat tracking")
+
+	enriched := 0
+	for _, file := range files {
+		// Jellystat tracks all items in Jellyfin
+		if file.InJellyfin {
+			file.InJellystat = true
+			enriched++
+		}
+	}
+
+	e.logger.Info("Jellystat enrichment complete",
+		zap.Int("files_tracked", enriched),
+	)
+
+	return enriched
 }
 
 func (e *Enricher) applyTorrentData(file *EnrichedFile, torrent *models.TorrentInfo) {

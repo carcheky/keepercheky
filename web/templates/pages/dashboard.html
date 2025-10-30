@@ -495,7 +495,7 @@
         <div x-show="stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <div class="bg-dark-bg rounded-lg p-3 border border-dark-border">
                 <p class="text-xs text-dark-muted">Total Reproducciones</p>
-                <p class="text-2xl font-bold text-dark-text" x-text="stats?.total || 0"></p>
+                <p class="text-2xl font-bold text-dark-text" x-text="stats?.total ?? 0"></p>
                 <p class="text-xs text-dark-muted mt-1">Últimos 7 días</p>
             </div>
             <div class="bg-dark-bg rounded-lg p-3 border border-purple-700/50">
@@ -919,7 +919,6 @@
                     } else {
                         // If Jellystat is not configured, disable the section
                         this.enabled = false;
-                        this.loading = false;
                         return;
                     }
 
