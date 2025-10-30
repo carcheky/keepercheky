@@ -790,3 +790,10 @@ func (h *FilesHandler) GetFilesHealthAPI(c *fiber.Ctx) error {
 		"total":   len(healthReports),
 	})
 }
+
+// RenderExamplePage renders the components example/demo page
+func (h *FilesHandler) RenderExamplePage(c *fiber.Ctx) error {
+	return c.Render("pages/files-example", fiber.Map{
+		"Title": "Alpine.js Components - Demostración",
+	})
+}
