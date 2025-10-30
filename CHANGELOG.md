@@ -1,3 +1,10 @@
+# [1.0.0-dev.10](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2025-10-30)
+
+
+### Features
+
+* add Sonarr queue, history, calendar, and quality profiles endpoints ([#49](https://github.com/carcheky/keepercheky/issues/49)) ([ed10dc1](https://github.com/carcheky/keepercheky/commit/ed10dc12bbe923b285b9f19449762c96b337300a))
+
 # [1.0.0-dev.9](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2025-10-30)
 
 
