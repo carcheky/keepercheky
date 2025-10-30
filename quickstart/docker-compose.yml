@@ -1,9 +1,9 @@
 services:
   keepercheky:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-    # image: ghcr.io/carcheky/keepercheky:develop # or latest
+    # build:
+    #   context: ..
+    #   dockerfile: Dockerfile
+    image: ghcr.io/carcheky/keepercheky:develop # or latest
     container_name: keepercheky
     user: "${PUID}:${PGID}"
     restart: unless-stopped
