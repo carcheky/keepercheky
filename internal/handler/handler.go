@@ -19,6 +19,7 @@ type Handlers struct {
 	Sync        *SyncHandler
 	Files       *FilesHandler
 	FileActions *FileActionsHandler
+	Radarr      *RadarrHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
@@ -70,5 +71,6 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 			oldSyncService.GetJellyfinClient(),
 			logger.Desugar(),
 		),
+		Radarr: NewRadarrHandler(cfg, logger),
 	}
 }

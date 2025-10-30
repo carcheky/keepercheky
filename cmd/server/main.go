@@ -186,6 +186,13 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		// Sync - GET for SSE (Server-Sent Events)
 		api.Get("/sync", h.Sync.Sync)
 		api.Get("/sync/files", h.Sync.SyncFiles) // Filesystem-first sync for Files view
+
+		// Radarr endpoints
+		api.Get("/radarr/system", h.Radarr.GetSystemInfo)
+		api.Get("/radarr/queue", h.Radarr.GetQueue)
+		api.Get("/radarr/history", h.Radarr.GetHistory)
+		api.Get("/radarr/calendar", h.Radarr.GetCalendar)
+		api.Get("/radarr/quality-profiles", h.Radarr.GetQualityProfiles)
 	}
 }
 
