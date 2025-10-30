@@ -97,6 +97,57 @@
         </div>
     </div>
 
+    <!-- Radarr Queue (if enabled) -->
+    <div x-data="radarrQueue()" x-init="init()" x-show="queueItems && queueItems.length > 0" 
+         class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-dark-text">📥 Radarr Download Queue</h2>
+            <button @click="loadQueue()" :disabled="loading" 
+                    class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+                <span x-show="!loading">Refresh</span>
+                <span x-show="loading">Loading...</span>
+            </button>
+        </div>
+        
+        <div class="space-y-3">
+            <template x-for="item in queueItems" :key="item.id">
+                <div class="bg-dark-bg rounded-lg p-4 border border-dark-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-semibold text-dark-text" x-text="item.title"></h3>
+                        <span class="text-xs px-2 py-1 rounded" 
+                              :class="item.status === 'downloading' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'"
+                              x-text="item.status"></span>
+                    </div>
+                    
+                    <!-- Progress bar -->
+                    <div class="mb-2">
+                        <div class="flex justify-between text-xs text-dark-muted mb-1">
+                            <span x-text="formatBytes(item.size - item.size_left) + ' / ' + formatBytes(item.size)"></span>
+                            <span x-text="item.progress.toFixed(1) + '%'"></span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all" 
+                                 :style="'width: ' + item.progress + '%'"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Details -->
+                    <div class="flex flex-wrap gap-3 text-xs text-dark-muted">
+                        <span x-show="item.download_client">
+                            <strong>Client:</strong> <span x-text="item.download_client"></span>
+                        </span>
+                        <span x-show="item.protocol">
+                            <strong>Protocol:</strong> <span x-text="item.protocol"></span>
+                        </span>
+                        <span x-show="item.indexer">
+                            <strong>Indexer:</strong> <span x-text="item.indexer"></span>
+                        </span>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-4">Quick Actions</h2>
@@ -179,6 +230,49 @@
                 setTimeout(() => {
                     this.message = '';
                 }, 5000);
+            },
+
+            formatBytes(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        }
+    }
+
+    function radarrQueue() {
+        return {
+            queueItems: [],
+            loading: false,
+
+            async init() {
+                await this.loadQueue();
+                // Refresh queue every 30 seconds
+                setInterval(() => this.loadQueue(), 30000);
+            },
+
+            async loadQueue() {
+                this.loading = true;
+                try {
+                    const response = await fetch('/api/radarr/queue');
+                    if (!response.ok) {
+                        // If Radarr is not configured, just hide the section
+                        if (response.status === 503) {
+                            this.queueItems = [];
+                            return;
+                        }
+                        throw new Error('Failed to load queue');
+                    }
+                    const data = await response.json();
+                    this.queueItems = data.items || [];
+                } catch (error) {
+                    console.error('Error loading Radarr queue:', error);
+                    this.queueItems = [];
+                } finally {
+                    this.loading = false;
+                }
             },
 
             formatBytes(bytes) {
