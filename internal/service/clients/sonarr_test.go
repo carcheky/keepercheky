@@ -118,7 +118,7 @@ func TestSonarrClient_GetQueue(t *testing.T) {
 	queue, err := client.GetQueue(context.Background())
 	require.NoError(t, err)
 	assert.Len(t, queue, 2)
-	
+
 	// Check first item
 	assert.Equal(t, 1, queue[0].ID)
 	assert.Equal(t, 123, queue[0].SeriesID)
@@ -199,13 +199,13 @@ func TestSonarrClient_GetHistory(t *testing.T) {
 	history, err := client.GetHistory(context.Background(), 50)
 	require.NoError(t, err)
 	assert.Len(t, history, 2)
-	
+
 	assert.Equal(t, 1, history[0].ID)
 	assert.Equal(t, 456, history[0].EpisodeID)
 	assert.Equal(t, 123, history[0].SeriesID)
 	assert.Equal(t, "grabbed", history[0].EventType)
 	assert.Equal(t, "Bluray-1080p", history[0].Quality)
-	
+
 	assert.Equal(t, 2, history[1].ID)
 	assert.Equal(t, "downloadFolderImported", history[1].EventType)
 }
@@ -265,7 +265,7 @@ func TestSonarrClient_GetCalendar(t *testing.T) {
 	calendar, err := client.GetCalendar(context.Background(), startDate, endDate)
 	require.NoError(t, err)
 	assert.Len(t, calendar, 2)
-	
+
 	assert.Equal(t, 1, calendar[0].ID)
 	assert.Equal(t, 123, calendar[0].SeriesID)
 	assert.Equal(t, "Test Series", calendar[0].SeriesTitle)
@@ -303,10 +303,10 @@ func TestSonarrClient_GetQualityProfiles(t *testing.T) {
 	profiles, err := client.GetQualityProfiles(context.Background())
 	require.NoError(t, err)
 	assert.Len(t, profiles, 5)
-	
+
 	assert.Equal(t, 1, profiles[0].ID)
 	assert.Equal(t, "Any", profiles[0].Name)
-	
+
 	assert.Equal(t, 5, profiles[4].ID)
 	assert.Equal(t, "Ultra-HD", profiles[4].Name)
 }

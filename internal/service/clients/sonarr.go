@@ -151,53 +151,53 @@ type sonarrQueueItem struct {
 
 // sonarrQueueResponse represents the queue response.
 type sonarrQueueResponse struct {
-	Page          int               `json:"page"`
-	PageSize      int               `json:"pageSize"`
-	TotalRecords  int               `json:"totalRecords"`
-	Records       []sonarrQueueItem `json:"records"`
+	Page         int               `json:"page"`
+	PageSize     int               `json:"pageSize"`
+	TotalRecords int               `json:"totalRecords"`
+	Records      []sonarrQueueItem `json:"records"`
 }
 
 // SonarrQueueItem represents a processed queue item for public API.
 type SonarrQueueItem struct {
-	ID                    int       `json:"id"`
-	SeriesID              int       `json:"series_id"`
-	EpisodeID             int       `json:"episode_id"`
-	Title                 string    `json:"title"`
-	Size                  int64     `json:"size"`
-	SizeLeft              int64     `json:"size_left"`
-	Progress              float64   `json:"progress"`
-	Status                string    `json:"status"`
-	DownloadStatus        string    `json:"download_status"`
-	DownloadState         string    `json:"download_state"`
-	Protocol              string    `json:"protocol"`
-	DownloadClient        string    `json:"download_client"`
-	Indexer               string    `json:"indexer"`
-	TimedOut              bool      `json:"timed_out"`
-	EstimatedCompletion   time.Time `json:"estimated_completion"`
+	ID                  int       `json:"id"`
+	SeriesID            int       `json:"series_id"`
+	EpisodeID           int       `json:"episode_id"`
+	Title               string    `json:"title"`
+	Size                int64     `json:"size"`
+	SizeLeft            int64     `json:"size_left"`
+	Progress            float64   `json:"progress"`
+	Status              string    `json:"status"`
+	DownloadStatus      string    `json:"download_status"`
+	DownloadState       string    `json:"download_state"`
+	Protocol            string    `json:"protocol"`
+	DownloadClient      string    `json:"download_client"`
+	Indexer             string    `json:"indexer"`
+	TimedOut            bool      `json:"timed_out"`
+	EstimatedCompletion time.Time `json:"estimated_completion"`
 }
 
 // sonarrHistoryItem represents a history entry.
 type sonarrHistoryItem struct {
-	ID                  int       `json:"id"`
-	EpisodeID           int       `json:"episodeId"`
-	SeriesID            int       `json:"seriesId"`
-	SourceTitle         string    `json:"sourceTitle"`
-	Quality             struct {
+	ID          int    `json:"id"`
+	EpisodeID   int    `json:"episodeId"`
+	SeriesID    int    `json:"seriesId"`
+	SourceTitle string `json:"sourceTitle"`
+	Quality     struct {
 		Quality struct {
 			Name string `json:"name"`
 		} `json:"quality"`
 	} `json:"quality"`
-	Date                time.Time `json:"date"`
-	EventType           string    `json:"eventType"`
-	DownloadID          string    `json:"downloadId"`
+	Date       time.Time `json:"date"`
+	EventType  string    `json:"eventType"`
+	DownloadID string    `json:"downloadId"`
 }
 
 // sonarrHistoryResponse represents the history response.
 type sonarrHistoryResponse struct {
-	Page          int                 `json:"page"`
-	PageSize      int                 `json:"pageSize"`
-	TotalRecords  int                 `json:"totalRecords"`
-	Records       []sonarrHistoryItem `json:"records"`
+	Page         int                 `json:"page"`
+	PageSize     int                 `json:"pageSize"`
+	TotalRecords int                 `json:"totalRecords"`
+	Records      []sonarrHistoryItem `json:"records"`
 }
 
 // SonarrHistoryItem represents a processed history item for public API.
@@ -214,17 +214,17 @@ type SonarrHistoryItem struct {
 
 // sonarrCalendarItem represents a calendar entry.
 type sonarrCalendarItem struct {
-	ID           int       `json:"id"`
-	SeriesID     int       `json:"seriesId"`
-	EpisodeFileID int      `json:"episodeFileId"`
-	SeasonNumber int       `json:"seasonNumber"`
-	EpisodeNumber int      `json:"episodeNumber"`
-	Title        string    `json:"title"`
-	AirDate      string    `json:"airDate"`
-	AirDateUtc   time.Time `json:"airDateUtc"`
-	HasFile      bool      `json:"hasFile"`
-	Monitored    bool      `json:"monitored"`
-	Series       struct {
+	ID            int       `json:"id"`
+	SeriesID      int       `json:"seriesId"`
+	EpisodeFileID int       `json:"episodeFileId"`
+	SeasonNumber  int       `json:"seasonNumber"`
+	EpisodeNumber int       `json:"episodeNumber"`
+	Title         string    `json:"title"`
+	AirDate       string    `json:"airDate"`
+	AirDateUtc    time.Time `json:"airDateUtc"`
+	HasFile       bool      `json:"hasFile"`
+	Monitored     bool      `json:"monitored"`
+	Series        struct {
 		Title string `json:"title"`
 	} `json:"series"`
 }

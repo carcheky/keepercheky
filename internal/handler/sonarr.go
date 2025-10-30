@@ -18,7 +18,7 @@ type SonarrHandler struct {
 
 func NewSonarrHandler(cfg *config.Config, appLogger *logger.Logger) *SonarrHandler {
 	var sonarrClient *clients.SonarrClient
-	
+
 	if cfg.Clients.Sonarr.Enabled {
 		zapLogger := appLogger.Desugar()
 		sonarrClient = clients.NewSonarrClient(
