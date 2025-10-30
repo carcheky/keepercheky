@@ -84,3 +84,45 @@ func (h *DashboardHandler) GetJellyseerrRequests(c *fiber.Ctx) error {
 		"count":    len(requests),
 	})
 }
+
+// GetJellystatStats returns detailed Jellystat statistics for the dashboard.
+func (h *DashboardHandler) GetJellystatStats(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	// Get days from query params, default to 7 days for dashboard
+	days := c.QueryInt("days", 7)
+
+	stats, err := h.syncService.GetJellystatStatistics(ctx, days)
+	if err != nil {
+		h.logger.Error("Failed to get Jellystat stats",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(stats)
+}
+
+// GetJellystatViewsByType returns views by library type for the dashboard.
+func (h *DashboardHandler) GetJellystatViewsByType(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get days from query params, default to 7 days for dashboard
+	days := c.QueryInt("days", 7)
+
+	views, err := h.syncService.GetJellystatViewsByLibraryType(ctx, days)
+	if err != nil {
+		h.logger.Error("Failed to get Jellystat views by type",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(views)
+}

@@ -781,6 +781,58 @@ func (s *SyncService) GetJellystatSystemInfo(ctx context.Context) (*clients.Jell
 	return s.jellystatClient.GetSystemInfo(ctx)
 }
 
+// GetJellystatStatistics retrieves general statistics from Jellystat.
+func (s *SyncService) GetJellystatStatistics(ctx context.Context, days int) (*clients.JellystatStatistics, error) {
+	if s.jellystatClient == nil {
+		return nil, fmt.Errorf("Jellystat not configured")
+	}
+
+	if days <= 0 {
+		days = 30 // Default to 30 days
+	}
+
+	return s.jellystatClient.GetStatistics(ctx, days)
+}
+
+// GetJellystatViewsByLibraryType retrieves views aggregated by library type.
+func (s *SyncService) GetJellystatViewsByLibraryType(ctx context.Context, days int) (*clients.ViewsByLibraryType, error) {
+	if s.jellystatClient == nil {
+		return nil, fmt.Errorf("Jellystat not configured")
+	}
+
+	if days <= 0 {
+		days = 30 // Default to 30 days
+	}
+
+	return s.jellystatClient.GetViewsByLibraryType(ctx, days)
+}
+
+// GetJellystatUserActivity retrieves user activity statistics.
+func (s *SyncService) GetJellystatUserActivity(ctx context.Context, days int) ([]clients.UserActivity, error) {
+	if s.jellystatClient == nil {
+		return nil, fmt.Errorf("Jellystat not configured")
+	}
+
+	if days <= 0 {
+		days = 30 // Default to 30 days
+	}
+
+	return s.jellystatClient.GetUserActivity(ctx, days)
+}
+
+// GetJellystatLibraryStats retrieves statistics for all libraries.
+func (s *SyncService) GetJellystatLibraryStats(ctx context.Context, days int) ([]clients.JellystatLibraryStats, error) {
+	if s.jellystatClient == nil {
+		return nil, fmt.Errorf("Jellystat not configured")
+	}
+
+	if days <= 0 {
+		days = 30 // Default to 30 days
+	}
+
+	return s.jellystatClient.GetLibraryStats(ctx, days)
+}
+
 // GetQBittorrentSystemInfo returns complete system information from qBittorrent.
 func (s *SyncService) GetQBittorrentSystemInfo(ctx context.Context) (*clients.QBittorrentSystemInfo, error) {
 	if s.qbittorrentClient == nil {

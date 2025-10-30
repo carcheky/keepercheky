@@ -338,6 +338,27 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		})
 	}
 
+	// For Jellystat, get complete system information
+	if service == "jellystat" {
+		systemInfo, err := h.syncService.GetJellystatSystemInfo(ctx)
+		if err != nil {
+			h.logger.Error("Failed to get Jellystat system info",
+				"error", err,
+			)
+			// Still return success for connection, but without detailed info
+			return c.JSON(fiber.Map{
+				"success": true,
+				"message": "Connection test successful",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"success":     true,
+			"message":     "Connection successful",
+			"system_info": systemInfo,
+		})
+	}
+
 	// For other services, return basic success
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -429,5 +450,95 @@ func (h *SettingsHandler) GetJellyfinActivity(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"entries": entries,
 		"count":   len(entries),
+	})
+}
+
+// GetJellystatStats returns detailed Jellystat statistics.
+func (h *SettingsHandler) GetJellystatStats(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	// Get days from query params, default to 30
+	days := c.QueryInt("days", 30)
+
+	stats, err := h.syncService.GetJellystatStatistics(ctx, days)
+	if err != nil {
+		h.logger.Error("Failed to get Jellystat stats",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(stats)
+}
+
+// GetJellystatViewsByType returns views aggregated by library type.
+func (h *SettingsHandler) GetJellystatViewsByType(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get days from query params, default to 30
+	days := c.QueryInt("days", 30)
+
+	views, err := h.syncService.GetJellystatViewsByLibraryType(ctx, days)
+	if err != nil {
+		h.logger.Error("Failed to get Jellystat views by type",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(views)
+}
+
+// GetJellystatUserActivity returns user activity statistics.
+func (h *SettingsHandler) GetJellystatUserActivity(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get days from query params, default to 30
+	days := c.QueryInt("days", 30)
+
+	activity, err := h.syncService.GetJellystatUserActivity(ctx, days)
+	if err != nil {
+		h.logger.Error("Failed to get Jellystat user activity",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"activity": activity,
+		"count":    len(activity),
+	})
+}
+
+// GetJellystatLibraryStats returns library statistics.
+func (h *SettingsHandler) GetJellystatLibraryStats(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get days from query params, default to 30
+	days := c.QueryInt("days", 30)
+
+	libraries, err := h.syncService.GetJellystatLibraryStats(ctx, days)
+	if err != nil {
+		h.logger.Error("Failed to get Jellystat library stats",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"libraries": libraries,
+		"count":     len(libraries),
 	})
 }

@@ -479,6 +479,69 @@
         </div>
     </div>
 
+    <!-- Jellystat Statistics (if enabled) -->
+    <div x-data="jellystatStats()" x-init="init()" x-show="enabled" 
+         class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-dark-text">📊 Jellystat - Estadísticas de Uso</h2>
+            <button @click="refresh()" :disabled="loading" 
+                    class="px-3 py-1 text-sm bg-cyan-600 text-white rounded hover:bg-cyan-700 disabled:opacity-50">
+                <span x-show="!loading">Actualizar</span>
+                <span x-show="loading">Cargando...</span>
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div x-show="stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-dark-bg rounded-lg p-3 border border-dark-border">
+                <p class="text-xs text-dark-muted">Total Reproducciones</p>
+                <p class="text-2xl font-bold text-dark-text" x-text="stats?.total ?? 0"></p>
+                <p class="text-xs text-dark-muted mt-1">Últimos 7 días</p>
+            </div>
+            <div class="bg-dark-bg rounded-lg p-3 border border-purple-700/50">
+                <p class="text-xs text-purple-400">🎬 Películas</p>
+                <p class="text-2xl font-bold text-purple-400" x-text="stats?.movies || 0"></p>
+            </div>
+            <div class="bg-dark-bg rounded-lg p-3 border border-cyan-700/50">
+                <p class="text-xs text-cyan-400">📺 Episodios</p>
+                <p class="text-2xl font-bold text-cyan-400" x-text="stats?.episodes || 0"></p>
+            </div>
+            <div class="bg-dark-bg rounded-lg p-3 border border-orange-700/50">
+                <p class="text-xs text-orange-400">🎵 Canciones</p>
+                <p class="text-2xl font-bold text-orange-400" x-text="stats?.songs || 0"></p>
+            </div>
+        </div>
+
+        <!-- Views by Type Chart -->
+        <div x-show="viewsByType" class="space-y-3 mt-4">
+            <h3 class="text-sm font-semibold text-dark-muted mb-2">Visualizaciones por Tipo</h3>
+            <div class="space-y-2">
+                <div class="bg-dark-bg rounded-lg p-3 border border-purple-700/50">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-purple-300">🎬 Películas</span>
+                        <span class="text-lg font-bold text-purple-300" x-text="viewsByType?.movie || 0"></span>
+                    </div>
+                </div>
+                <div class="bg-dark-bg rounded-lg p-3 border border-cyan-700/50">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-cyan-300">📺 Episodios</span>
+                        <span class="text-lg font-bold text-cyan-300" x-text="viewsByType?.episode || 0"></span>
+                    </div>
+                </div>
+                <div class="bg-dark-bg rounded-lg p-3 border border-orange-700/50">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-orange-300">🎵 Música</span>
+                        <span class="text-lg font-bold text-orange-300" x-text="viewsByType?.music || 0"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="!stats && !loading" class="text-center py-4">
+            <p class="text-dark-muted">No hay estadísticas disponibles</p>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-4">Quick Actions</h2>
@@ -826,6 +889,46 @@
                     }
                 } catch (error) {
                     console.error('Error loading Jellyseerr data:', error);
+                    this.enabled = false;
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }
+    }
+
+    function jellystatStats() {
+        return {
+            enabled: false,
+            stats: null,
+            viewsByType: null,
+            loading: false,
+
+            async init() {
+                await this.refresh();
+            },
+
+            async refresh() {
+                this.loading = true;
+                try {
+                    // Load general stats (last 7 days for dashboard)
+                    const statsResponse = await fetch('/api/jellystat/dashboard/stats?days=7');
+                    if (statsResponse.ok) {
+                        this.stats = await statsResponse.json();
+                        this.enabled = true;
+                    } else {
+                        // If Jellystat is not configured, disable the section
+                        this.enabled = false;
+                        return;
+                    }
+
+                    // Load views by type
+                    const viewsResponse = await fetch('/api/jellystat/dashboard/views-by-type?days=7');
+                    if (viewsResponse.ok) {
+                        this.viewsByType = await viewsResponse.json();
+                    }
+                } catch (error) {
+                    console.error('Error loading Jellystat data:', error);
                     this.enabled = false;
                 } finally {
                     this.loading = false;

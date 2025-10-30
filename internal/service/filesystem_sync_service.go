@@ -171,6 +171,14 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 				Message: fmt.Sprintf("✅ Jellyfin: %d archivos enriquecidos", count),
 				Status:  "success",
 			}
+
+			// Enrich with Jellystat tracking (tracks Jellyfin items)
+			if s.config.Clients.Jellystat.Enabled {
+				jellystatCount := enricher.EnrichWithJellystat(ctx, enrichedFiles, true)
+				s.logger.Info("Jellystat tracking enabled",
+					zap.Int("tracked_files", jellystatCount),
+				)
+			}
 		}
 	}
 
@@ -288,6 +296,7 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 		InSonarr:      ef.InSonarr,
 		InJellyfin:    ef.InJellyfin,
 		InJellyseerr:  ef.InJellyseerr,
+		InJellystat:   ef.InJellystat, // Set by enrichment process
 		InQBittorrent: ef.InQBittorrent,
 
 		// Service IDs
@@ -295,6 +304,7 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 		SonarrID:     ef.SonarrID,
 		JellyfinID:   ef.JellyfinID,
 		JellyseerrID: ef.JellyseerrID,
+		// JellystatID not needed - Jellystat uses Jellyfin IDs for tracking
 
 		// Torrent info
 		TorrentHash:     ef.TorrentHash,
