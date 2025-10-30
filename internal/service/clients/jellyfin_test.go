@@ -141,7 +141,7 @@ func TestJellyfinClient_GetLibraryStats(t *testing.T) {
 
 	server := setupJellyfinTestServer(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		if r.URL.Path == "/Items" {
 			json.NewEncoder(w).Encode(mockItems)
 		} else if r.URL.Path == "/Library/VirtualFolders" {

@@ -490,46 +490,46 @@ func (c *JellyfinClient) GetVirtualFolders(ctx context.Context) ([]VirtualFolder
 
 // SessionInfo represents an active Jellyfin session.
 type SessionInfo struct {
-	ID                string    `json:"Id"`
-	UserID            string    `json:"UserId"`
-	UserName          string    `json:"UserName"`
-	Client            string    `json:"Client"`
-	DeviceName        string    `json:"DeviceName"`
-	DeviceID          string    `json:"DeviceId"`
-	ApplicationVersion string   `json:"ApplicationVersion"`
-	RemoteEndPoint    string    `json:"RemoteEndPoint"`
-	LastActivityDate  time.Time `json:"LastActivityDate"`
-	SupportsRemoteControl bool `json:"SupportsRemoteControl"`
-	NowPlayingItem    *struct {
+	ID                    string    `json:"Id"`
+	UserID                string    `json:"UserId"`
+	UserName              string    `json:"UserName"`
+	Client                string    `json:"Client"`
+	DeviceName            string    `json:"DeviceName"`
+	DeviceID              string    `json:"DeviceId"`
+	ApplicationVersion    string    `json:"ApplicationVersion"`
+	RemoteEndPoint        string    `json:"RemoteEndPoint"`
+	LastActivityDate      time.Time `json:"LastActivityDate"`
+	SupportsRemoteControl bool      `json:"SupportsRemoteControl"`
+	NowPlayingItem        *struct {
 		ID        string `json:"Id"`
 		Name      string `json:"Name"`
 		Type      string `json:"Type"`
 		MediaType string `json:"MediaType"`
 	} `json:"NowPlayingItem,omitempty"`
 	PlayState *struct {
-		PositionTicks      int64  `json:"PositionTicks"`
-		CanSeek            bool   `json:"CanSeek"`
-		IsPaused           bool   `json:"IsPaused"`
-		IsMuted            bool   `json:"IsMuted"`
-		VolumeLevel        int    `json:"VolumeLevel"`
-		AudioStreamIndex   int    `json:"AudioStreamIndex"`
-		SubtitleStreamIndex int   `json:"SubtitleStreamIndex"`
-		MediaSourceID      string `json:"MediaSourceId"`
-		PlayMethod         string `json:"PlayMethod"` // DirectPlay, DirectStream, Transcode
+		PositionTicks       int64  `json:"PositionTicks"`
+		CanSeek             bool   `json:"CanSeek"`
+		IsPaused            bool   `json:"IsPaused"`
+		IsMuted             bool   `json:"IsMuted"`
+		VolumeLevel         int    `json:"VolumeLevel"`
+		AudioStreamIndex    int    `json:"AudioStreamIndex"`
+		SubtitleStreamIndex int    `json:"SubtitleStreamIndex"`
+		MediaSourceID       string `json:"MediaSourceId"`
+		PlayMethod          string `json:"PlayMethod"` // DirectPlay, DirectStream, Transcode
 	} `json:"PlayState,omitempty"`
 	TranscodingInfo *struct {
-		VideoCodec          string  `json:"VideoCodec"`
-		AudioCodec          string  `json:"AudioCodec"`
-		Container           string  `json:"Container"`
-		IsVideoDirect       bool    `json:"IsVideoDirect"`
-		IsAudioDirect       bool    `json:"IsAudioDirect"`
-		Bitrate             int     `json:"Bitrate"`
-		Framerate           float64 `json:"Framerate"`
-		CompletionPercentage float64 `json:"CompletionPercentage"`
-		Width               int     `json:"Width"`
-		Height              int     `json:"Height"`
-		AudioChannels       int     `json:"AudioChannels"`
-		TranscodeReasons    []string `json:"TranscodeReasons"`
+		VideoCodec           string   `json:"VideoCodec"`
+		AudioCodec           string   `json:"AudioCodec"`
+		Container            string   `json:"Container"`
+		IsVideoDirect        bool     `json:"IsVideoDirect"`
+		IsAudioDirect        bool     `json:"IsAudioDirect"`
+		Bitrate              int      `json:"Bitrate"`
+		Framerate            float64  `json:"Framerate"`
+		CompletionPercentage float64  `json:"CompletionPercentage"`
+		Width                int      `json:"Width"`
+		Height               int      `json:"Height"`
+		AudioChannels        int      `json:"AudioChannels"`
+		TranscodeReasons     []string `json:"TranscodeReasons"`
 	} `json:"TranscodingInfo,omitempty"`
 }
 
@@ -567,14 +567,14 @@ func (c *JellyfinClient) GetActiveSessions(ctx context.Context) ([]SessionInfo, 
 
 // LibraryStats represents statistics for a Jellyfin library.
 type LibraryStats struct {
-	TotalItems      int   `json:"total_items"`
-	MovieCount      int   `json:"movie_count"`
-	SeriesCount     int   `json:"series_count"`
-	EpisodeCount    int   `json:"episode_count"`
-	AlbumCount      int   `json:"album_count"`
-	SongCount       int   `json:"song_count"`
-	TotalSize       int64 `json:"total_size"`
-	LibraryFolders  []VirtualFolder `json:"library_folders,omitempty"`
+	TotalItems     int             `json:"total_items"`
+	MovieCount     int             `json:"movie_count"`
+	SeriesCount    int             `json:"series_count"`
+	EpisodeCount   int             `json:"episode_count"`
+	AlbumCount     int             `json:"album_count"`
+	SongCount      int             `json:"song_count"`
+	TotalSize      int64           `json:"total_size"`
+	LibraryFolders []VirtualFolder `json:"library_folders,omitempty"`
 }
 
 // GetLibraryStats retrieves detailed statistics about the Jellyfin library.
@@ -583,7 +583,7 @@ func (c *JellyfinClient) GetLibraryStats(ctx context.Context) (*LibraryStats, er
 
 	// Get all items to calculate stats
 	var response jellyfinItemsResponse
-	
+
 	err := c.callWithRetry(ctx, func() error {
 		resp, err := c.client.R().
 			SetContext(ctx).
@@ -673,12 +673,12 @@ func (c *JellyfinClient) GetRecentlyAdded(ctx context.Context, limit int) ([]Rec
 			SetContext(ctx).
 			SetResult(&response).
 			SetQueryParams(map[string]string{
-				"SortBy":    "DateCreated",
-				"SortOrder": "Descending",
-				"Recursive": "true",
+				"SortBy":           "DateCreated",
+				"SortOrder":        "Descending",
+				"Recursive":        "true",
 				"IncludeItemTypes": "Movie,Series",
-				"Limit":     fmt.Sprintf("%d", limit),
-				"Fields":    "Overview,DateCreated",
+				"Limit":            fmt.Sprintf("%d", limit),
+				"Fields":           "Overview,DateCreated",
 			}).
 			Get("/Items")
 
@@ -725,18 +725,18 @@ func (c *JellyfinClient) GetRecentlyAdded(ctx context.Context, limit int) ([]Rec
 
 // ActivityLogEntry represents an entry in the Jellyfin activity log.
 type ActivityLogEntry struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	Type      string    `json:"type"`
-	UserID    string    `json:"user_id"`
-	Date      time.Time `json:"date"`
-	Severity  string    `json:"severity"`
-	ShortOverview string `json:"short_overview,omitempty"`
+	ID            int64     `json:"id"`
+	Name          string    `json:"name"`
+	Type          string    `json:"type"`
+	UserID        string    `json:"user_id"`
+	Date          time.Time `json:"date"`
+	Severity      string    `json:"severity"`
+	ShortOverview string    `json:"short_overview,omitempty"`
 }
 
 // jellyfinActivityResponse represents the response from the activity log endpoint.
 type jellyfinActivityResponse struct {
-	Items      []struct {
+	Items []struct {
 		ID            int64     `json:"Id"`
 		Name          string    `json:"Name"`
 		Type          string    `json:"Type"`

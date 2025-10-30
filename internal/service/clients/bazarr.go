@@ -22,7 +22,7 @@ type BazarrClient struct {
 func NewBazarrClient(config ClientConfig, logger *zap.Logger) *BazarrClient {
 	client := resty.New()
 	client.SetBaseURL(config.BaseURL)
-	
+
 	// Bazarr uses apikey parameter instead of header
 	client.SetQueryParam("apikey", config.APIKey)
 
@@ -47,26 +47,26 @@ func NewBazarrClient(config ClientConfig, logger *zap.Logger) *BazarrClient {
 
 // bazarrSystemStatus represents the system status response from Bazarr API.
 type bazarrSystemStatus struct {
-	BazarrVersion  string `json:"bazarr_version"`
-	SonarrVersion  string `json:"sonarr_version"`
-	RadarrVersion  string `json:"radarr_version"`
-	OSName         string `json:"operating_system"`
-	OSVersion      string `json:"operating_system_version"`
-	PythonVersion  string `json:"python_version"`
+	BazarrVersion   string `json:"bazarr_version"`
+	SonarrVersion   string `json:"sonarr_version"`
+	RadarrVersion   string `json:"radarr_version"`
+	OSName          string `json:"operating_system"`
+	OSVersion       string `json:"operating_system_version"`
+	PythonVersion   string `json:"python_version"`
 	BazarrDirectory string `json:"bazarr_directory"`
-	StartTime      string `json:"start_time"`
+	StartTime       string `json:"start_time"`
 }
 
 // BazarrSystemInfo represents complete system information from Bazarr.
 type BazarrSystemInfo struct {
-	BazarrVersion  string `json:"bazarr_version"`
-	SonarrVersion  string `json:"sonarr_version"`
-	RadarrVersion  string `json:"radarr_version"`
-	OS             string `json:"os"`
-	OSVersion      string `json:"os_version"`
-	PythonVersion  string `json:"python_version"`
-	Directory      string `json:"directory"`
-	StartTime      string `json:"start_time"`
+	BazarrVersion string `json:"bazarr_version"`
+	SonarrVersion string `json:"sonarr_version"`
+	RadarrVersion string `json:"radarr_version"`
+	OS            string `json:"os"`
+	OSVersion     string `json:"os_version"`
+	PythonVersion string `json:"python_version"`
+	Directory     string `json:"directory"`
+	StartTime     string `json:"start_time"`
 }
 
 // bazarrMovieSubtitle represents subtitle information for a movie.
@@ -109,17 +109,17 @@ type bazarrSeries struct {
 
 // bazarrHistoryItem represents a history entry from Bazarr.
 type bazarrHistoryItem struct {
-	ID           int       `json:"id"`
-	Action       int       `json:"action"`
-	Title        string    `json:"title"`
-	Timestamp    time.Time `json:"timestamp"`
-	Description  string    `json:"description"`
-	SonarrID     int       `json:"sonarrSeriesId"`
-	SonarrEpisodeID int    `json:"sonarrEpisodeId"`
-	RadarrID     int       `json:"radarrId"`
-	Provider     string    `json:"provider"`
-	Language     string    `json:"language"`
-	Score        int       `json:"score"`
+	ID              int       `json:"id"`
+	Action          int       `json:"action"`
+	Title           string    `json:"title"`
+	Timestamp       time.Time `json:"timestamp"`
+	Description     string    `json:"description"`
+	SonarrID        int       `json:"sonarrSeriesId"`
+	SonarrEpisodeID int       `json:"sonarrEpisodeId"`
+	RadarrID        int       `json:"radarrId"`
+	Provider        string    `json:"provider"`
+	Language        string    `json:"language"`
+	Score           int       `json:"score"`
 }
 
 // BazarrHistoryItem represents a processed history item for public API.

@@ -62,11 +62,11 @@ type qbTorrent struct {
 	SavePath    string  `json:"save_path"`
 	ContentPath string  `json:"content_path"`
 	AmountLeft  int64   `json:"amount_left"`
-	AddedOn     int64   `json:"added_on"`      // Unix timestamp
-	CompletedOn int64   `json:"completed_on"`  // Unix timestamp
-	ETA         int64   `json:"eta"`           // Seconds
-	NumSeeds    int     `json:"num_seeds"`     // Seeds connected
-	NumLeechs   int     `json:"num_leechs"`    // Leechers connected
+	AddedOn     int64   `json:"added_on"`     // Unix timestamp
+	CompletedOn int64   `json:"completed_on"` // Unix timestamp
+	ETA         int64   `json:"eta"`          // Seconds
+	NumSeeds    int     `json:"num_seeds"`    // Seeds connected
+	NumLeechs   int     `json:"num_leechs"`   // Leechers connected
 }
 
 // qbBuildInfo represents build info from qBittorrent API.
@@ -751,7 +751,7 @@ func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash str
 	}
 
 	torrent := torrents[0]
-	
+
 	// Get enhanced properties
 	props, err := c.GetTorrentProperties(ctx, hash)
 	if err != nil {
@@ -760,7 +760,7 @@ func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash str
 			zap.String("hash", hash),
 			zap.Error(err),
 		)
-		
+
 		return &models.TorrentInfo{
 			Hash:        torrent.Hash,
 			Name:        torrent.Name,
