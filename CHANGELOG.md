@@ -1,3 +1,10 @@
+# [1.0.0-dev.7](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2025-10-30)
+
+
+### Features
+
+* **files:** implement Storage Health dashboard UI with bulk actions, accessibility, and pagination ([#32](https://github.com/carcheky/keepercheky/issues/32)) ([4176f75](https://github.com/carcheky/keepercheky/commit/4176f75a45de92409893d9c3f2367801205108b0))
+
 # [1.0.0-dev.6](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2025-10-30)
 
 
