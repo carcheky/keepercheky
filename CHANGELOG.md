@@ -1,3 +1,10 @@
+# [1.0.0-dev.9](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2025-10-30)
+
+
+### Features
+
+* **radarr:** add queue, history, calendar, and quality profiles endpoints ([#48](https://github.com/carcheky/keepercheky/issues/48)) ([39d3483](https://github.com/carcheky/keepercheky/commit/39d34836464d6c290a001a320005af0bc92143cd))
+
 # [1.0.0-dev.8](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2025-10-30)
 
 
