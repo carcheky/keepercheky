@@ -123,11 +123,11 @@
                     <div class="mb-2">
                         <div class="flex justify-between text-xs text-dark-muted mb-1">
                             <span x-text="formatBytes(item.size - item.size_left) + ' / ' + formatBytes(item.size)"></span>
-                            <span x-text="item.progress.toFixed(1) + '%'"></span>
+                            <span x-text="(item.progress || 0).toFixed(1) + '%'"></span>
                         </div>
                         <div class="w-full bg-gray-700 rounded-full h-2">
                             <div class="bg-blue-600 h-2 rounded-full transition-all" 
-                                 :style="'width: ' + item.progress + '%'"></div>
+                                 :style="'width: ' + (item.progress || 0) + '%'"></div>
                         </div>
                     </div>
                     
@@ -177,6 +177,15 @@
 </div>
 
 <script>
+    // Shared utility function
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
     function dashboard() {
         return {
             stats: {},
@@ -232,13 +241,7 @@
                 }, 5000);
             },
 
-            formatBytes(bytes) {
-                if (bytes === 0) return '0 B';
-                const k = 1024;
-                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
+            formatBytes
         }
     }
 
@@ -246,11 +249,20 @@
         return {
             queueItems: [],
             loading: false,
+            intervalId: null,
 
             async init() {
                 await this.loadQueue();
                 // Refresh queue every 30 seconds
-                setInterval(() => this.loadQueue(), 30000);
+                this.intervalId = setInterval(() => this.loadQueue(), 30000);
+            },
+
+            destroy() {
+                // Clear interval on component destroy
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
             },
 
             async loadQueue() {
@@ -275,13 +287,7 @@
                 }
             },
 
-            formatBytes(bytes) {
-                if (bytes === 0) return '0 B';
-                const k = 1024;
-                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
+            formatBytes
         }
     }
 </script>
