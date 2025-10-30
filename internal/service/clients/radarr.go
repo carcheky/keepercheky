@@ -528,6 +528,12 @@ func (c *RadarrClient) GetQueue(ctx context.Context) ([]RadarrQueueItem, error) 
 		progress := 0.0
 		if record.Size > 0 {
 			progress = float64(record.Size-record.Sizeleft) / float64(record.Size) * 100
+			// Ensure progress is within 0-100 range (handle inconsistent data from Radarr)
+			if progress < 0 {
+				progress = 0
+			} else if progress > 100 {
+				progress = 100
+			}
 		}
 
 		items = append(items, RadarrQueueItem{

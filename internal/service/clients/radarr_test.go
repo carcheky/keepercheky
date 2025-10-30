@@ -345,3 +345,68 @@ func TestRadarrClient_ErrorHandling(t *testing.T) {
 	_, err = client.GetQualityProfiles(context.Background())
 	assert.Error(t, err)
 }
+
+func TestRadarrClient_GetQueue_ProgressValidation(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Test cases with invalid data that could cause negative or >100% progress
+		response := radarrQueueResponse{
+			Page:         1,
+			PageSize:     100,
+			TotalRecords: 3,
+			Records: []radarrQueueItem{
+				{
+					ID:       1,
+					MovieID:  123,
+					Title:    "Movie with inconsistent size (negative progress)",
+					Size:     1000000000,
+					Sizeleft: 1500000000, // More left than total - invalid!
+					Status:   "downloading",
+				},
+				{
+					ID:       2,
+					MovieID:  456,
+					Title:    "Movie with zero size",
+					Size:     0,
+					Sizeleft: 0,
+					Status:   "downloading",
+				},
+				{
+					ID:       3,
+					MovieID:  789,
+					Title:    "Normal movie",
+					Size:     1000000000,
+					Sizeleft: 250000000,
+					Status:   "downloading",
+				},
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	logger := zap.NewNop()
+	client := NewRadarrClient(ClientConfig{
+		BaseURL: server.URL,
+		APIKey:  "test-api-key",
+		Timeout: 5 * time.Second,
+	}, logger)
+
+	queue, err := client.GetQueue(context.Background())
+	require.NoError(t, err)
+	assert.Len(t, queue, 3)
+
+	// First item: negative progress should be clamped to 0
+	assert.Equal(t, 1, queue[0].ID)
+	assert.Equal(t, 0.0, queue[0].Progress, "Progress should be 0 when SizeLeft > Size")
+
+	// Second item: zero size should result in 0% progress
+	assert.Equal(t, 2, queue[1].ID)
+	assert.Equal(t, 0.0, queue[1].Progress, "Progress should be 0 when Size is 0")
+
+	// Third item: normal progress calculation
+	assert.Equal(t, 3, queue[2].ID)
+	assert.Equal(t, 75.0, queue[2].Progress, "Progress should be 75%")
+}
+
