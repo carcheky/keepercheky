@@ -1,3 +1,10 @@
+# [1.0.0-dev.14](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2025-10-30)
+
+
+### Features
+
+* integrate Jellystat API endpoints and dashboard widgets ([#53](https://github.com/carcheky/keepercheky/issues/53)) ([fb00545](https://github.com/carcheky/keepercheky/commit/fb00545c0c469ccc2f8ea20daa042d48a32f9f9d))
+
 # [1.0.0-dev.13](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2025-10-30)
 
 
