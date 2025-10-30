@@ -147,6 +147,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 	app.Get("/", h.Dashboard.Index)
 	// app.Get("/media", h.Media.List) // Removed from navigation - functionality available via API
 	app.Get("/files", h.Files.RenderFilesPage)
+	app.Get("/files-example", h.Files.RenderExamplePage) // Components demo page
 	app.Get("/schedules", h.Schedule.List)
 	app.Get("/settings", h.Settings.Index)
 	app.Get("/logs", h.Logs.Index)
