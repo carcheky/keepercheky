@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the refactoring of the settings page to eliminate code duplication and improve maintainability by using reusable Alpine.js components.
+This document describes the refactoring of the settings page to eliminate code duplication and improve maintainability by using reusable Alpine.js components, plus the transition from a tabbed interface to a unified single-page view.
 
 ## Problem
 
@@ -11,6 +11,7 @@ The original `settings.html` file had 986 lines with significant duplication:
 - Connection test UI was duplicated 6 times
 - System info display was duplicated with slight variations
 - Adding a new service required ~140 lines of mostly duplicated code
+- Tab-based navigation required switching views to see different services
 
 ## Solution
 
@@ -19,6 +20,8 @@ Refactored the page to use data-driven rendering with Alpine.js:
 - Single reusable panel template for all services
 - Service configuration defined as metadata
 - Dynamic field generation based on service definitions
+- **Unified single-page view**: All services visible simultaneously without tabs
+- **Test All functionality**: Test all enabled services with one click
 
 ## Architecture
 
@@ -69,23 +72,16 @@ systemInfoDisplay()                     // System info display component
 
 ### Dynamic Rendering Flow
 
-1. **Tab Generation**
+1. **Panel Generation** (All visible simultaneously)
    ```html
    <template x-for="service in services" :key="service.id">
-       <button @click="activeTab = service.id" x-text="service.label"></button>
-   </template>
-   ```
-
-2. **Panel Generation**
-   ```html
-   <template x-for="service in services" :key="service.id">
-       <div x-show="activeTab === service.id">
-           <!-- Panel content -->
+       <div class="bg-dark-surface ...">
+           <!-- Panel content always visible -->
        </div>
    </template>
    ```
 
-3. **Field Generation**
+2. **Field Generation**
    ```html
    <template x-for="field in service.fields" :key="field.name">
        <input 
@@ -95,12 +91,29 @@ systemInfoDisplay()                     // System info display component
    </template>
    ```
 
-4. **System Info Display**
+3. **System Info Display**
    ```html
    <template x-for="field in getSystemInfoDisplay(service.id)" :key="field.key">
        <p x-show="field.html" x-html="field.value"></p>
        <p x-show="!field.html" x-text="field.value"></p>
    </template>
+   ```
+
+4. **Test All Connections**
+   ```javascript
+   async testAllConnections() {
+       this.testing = true;
+       this.connectionResults = {};
+       
+       // Test all enabled services sequentially
+       for (const service of this.services) {
+           if (this.config.services[service.id]?.enabled) {
+               await this.testConnection(service.id);
+           }
+       }
+       
+       this.testing = false;
+   }
    ```
 
 ## Key Improvements
@@ -133,11 +146,19 @@ formatValue(key, value) {
 ### 2. Performance
 
 **Avoided Re-initialization**: System info display computed once in parent component
-- Before: Nested `x-data` re-initialized on every visibility change
-- After: `getSystemInfoDisplay()` method called from parent scope
-- Improves performance when switching between tabs
+- Removed nested `x-data` that re-initialized on visibility changes
+- `getSystemInfoDisplay()` method called from parent scope
+- Improved performance with all panels visible simultaneously
 
-### 3. Maintainability
+### 3. User Experience
+
+**Unified Single-Page View**: All configurations visible without navigation
+- **Before**: Tab-based interface, one service visible at a time
+- **After**: All services visible on one scrollable page
+- **Benefit**: Complete overview of system configuration
+- **Test All**: Single button to test all enabled services at once
+
+### 4. Maintainability
 
 **Before**: Adding a new service
 ```html
@@ -175,7 +196,7 @@ formatValue(key, value) {
 }
 ```
 
-### 2. Consistency
+### 5. Consistency
 
 All services automatically have:
 - Same visual styling
@@ -183,7 +204,24 @@ All services automatically have:
 - Same validation
 - Same error handling
 
-### 3. Bug Fixes
+### 6. Testing Workflow
+
+**Individual Tests**: Test specific services independently
+```html
+<button @click="testConnection(service.id)">Test Connection</button>
+```
+
+**Bulk Testing**: Test all enabled services at once
+```html
+<button @click="testAllConnections()">Test All Connections</button>
+```
+
+The `testAllConnections()` method:
+- Tests all enabled services sequentially
+- Displays individual results for each service
+- Provides complete validation in one operation
+
+### 7. Bug Fixes
 
 Fixed once → applies to all services
 - Before: Had to fix 6 times
