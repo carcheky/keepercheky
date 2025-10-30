@@ -45,68 +45,58 @@
         </div>
     </div>
 
-    <!-- Health Statistics Cards (usando componentes reutilizables) -->
+    <!-- Health Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <!-- Archivos Saludables -->
-        <div x-data="healthCard('ok', healthyFiles.length, 'ok', () => selectedTab = 'healthy')"
-            @click="filterByStatus()"
-            :class="bgColorClasses"
-            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border">
+        <div @click="switchTab('healthy')"
+            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border bg-green-900/20 border-green-600/30 hover:bg-green-900/30">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-3xl" x-text="icon"></span>
-                <span class="text-2xl font-bold text-dark-text" x-text="count"></span>
+                <span class="text-3xl">✅</span>
+                <span class="text-2xl font-bold text-dark-text" x-text="healthyFiles.length"></span>
             </div>
-            <h3 class="text-sm font-semibold text-dark-text mb-1" x-text="title"></h3>
-            <p class="text-xs text-dark-muted" x-text="description"></p>
+            <h3 class="text-sm font-semibold text-dark-text mb-1">Archivos Saludables</h3>
+            <p class="text-xs text-dark-muted">Todo funcionando bien</p>
         </div>
 
         <!-- Huérfanos en Descargas -->
-        <div x-data="healthCard('orphan_download', orphanDownloads.length, 'warning', () => selectedTab = 'attention')"
-            @click="filterByStatus()"
-            :class="bgColorClasses"
-            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border">
+        <div @click="switchTab('attention')"
+            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border bg-yellow-900/20 border-yellow-600/30 hover:bg-yellow-900/30">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-3xl" x-text="icon"></span>
-                <span class="text-2xl font-bold text-dark-text" x-text="count"></span>
+                <span class="text-3xl">⚠️</span>
+                <span class="text-2xl font-bold text-dark-text" x-text="orphanDownloads.length"></span>
             </div>
-            <h3 class="text-sm font-semibold text-dark-text mb-1" x-text="title"></h3>
-            <p class="text-xs text-dark-muted" x-text="description"></p>
+            <h3 class="text-sm font-semibold text-dark-text mb-1">Huérfanos en Descargas</h3>
+            <p class="text-xs text-dark-muted">En qBT pero no en biblioteca</p>
         </div>
 
         <!-- Solo Hardlinks -->
-        <div x-data="healthCard('only_hardlink', hardlinkFiles.length, 'info', () => selectedTab = 'hardlinks')"
-            @click="filterByStatus()"
-            :class="bgColorClasses"
-            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border">
+        <div @click="switchTab('hardlinks')"
+            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border bg-blue-900/20 border-blue-600/30 hover:bg-blue-900/30">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-3xl" x-text="icon"></span>
-                <span class="text-2xl font-bold text-dark-text" x-text="count"></span>
+                <span class="text-3xl">🔗</span>
+                <span class="text-2xl font-bold text-dark-text" x-text="hardlinkFiles.length"></span>
             </div>
-            <h3 class="text-sm font-semibold text-dark-text mb-1" x-text="title"></h3>
-            <p class="text-xs text-dark-muted" x-text="description"></p>
+            <h3 class="text-sm font-semibold text-dark-text mb-1">Solo Hardlinks</h3>
+            <p class="text-xs text-dark-muted">Hardlinks sin torrent</p>
         </div>
 
         <!-- Torrents Muertos -->
-        <div x-data="healthCard('not_seeding', deadTorrents.length, 'critical', () => selectedTab = 'critical')"
-            @click="filterByStatus()"
-            :class="bgColorClasses"
-            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border">
+        <div @click="switchTab('critical')"
+            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border bg-red-900/20 border-red-600/30 hover:bg-red-900/30">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-3xl" x-text="icon"></span>
-                <span class="text-2xl font-bold text-dark-text" x-text="count"></span>
+                <span class="text-3xl">💀</span>
+                <span class="text-2xl font-bold text-dark-text" x-text="deadTorrents.length"></span>
             </div>
             <h3 class="text-sm font-semibold text-dark-text mb-1">Torrents Muertos</h3>
             <p class="text-xs text-dark-muted">Sin seeds activos</p>
         </div>
 
         <!-- Sin Reproducir -->
-        <div x-data="healthCard('missing_metadata', unwatchedFiles.length, 'warning', () => selectedTab = 'unwatched')"
-            @click="filterByStatus()"
-            :class="bgColorClasses"
-            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border">
+        <div @click="switchTab('unwatched')"
+            class="rounded-lg shadow-lg p-4 cursor-pointer transition-all border bg-yellow-900/20 border-yellow-600/30 hover:bg-yellow-900/30">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-3xl" x-text="icon"></span>
-                <span class="text-2xl font-bold text-dark-text" x-text="count"></span>
+                <span class="text-3xl">👁️</span>
+                <span class="text-2xl font-bold text-dark-text" x-text="unwatchedFiles.length"></span>
             </div>
             <h3 class="text-sm font-semibold text-dark-text mb-1">Sin Reproducir</h3>
             <p class="text-xs text-dark-muted">Nunca vistos en Jellyfin</p>
