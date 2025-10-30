@@ -1,5 +1,5 @@
 // Package clients provides interfaces and implementations for external service clients.
-// It includes clients for Radarr, Sonarr, Jellyfin, and Jellyseerr APIs.
+// It includes clients for Radarr, Sonarr, Jellyfin, Jellyseerr, and Bazarr APIs.
 package clients
 
 import (
@@ -56,6 +56,18 @@ type RequestClient interface {
 
 	// DeleteRequest removes a request from the service
 	DeleteRequest(ctx context.Context, id int) error
+}
+
+// SubtitleClient defines the interface for subtitle management clients (Bazarr).
+type SubtitleClient interface {
+	// TestConnection verifies the connection to the service
+	TestConnection(ctx context.Context) error
+
+	// GetMovieSubtitles retrieves subtitle information for a specific movie
+	GetMovieSubtitles(ctx context.Context, radarrID int) ([]models.Subtitle, error)
+
+	// GetSeriesSubtitles retrieves subtitle information for a specific series
+	GetSeriesSubtitles(ctx context.Context, sonarrID int) ([]models.Subtitle, error)
 }
 
 // ClientConfig holds common configuration for all clients.

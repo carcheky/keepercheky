@@ -18,7 +18,7 @@ type RadarrHandler struct {
 
 func NewRadarrHandler(cfg *config.Config, appLogger *logger.Logger) *RadarrHandler {
 	var radarrClient *clients.RadarrClient
-	
+
 	if cfg.Clients.Radarr.Enabled {
 		zapLogger := appLogger.Desugar()
 		radarrClient = clients.NewRadarrClient(

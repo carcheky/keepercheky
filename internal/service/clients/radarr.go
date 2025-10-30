@@ -135,51 +135,51 @@ type radarrQueueItem struct {
 
 // radarrQueueResponse represents the queue response.
 type radarrQueueResponse struct {
-	Page          int               `json:"page"`
-	PageSize      int               `json:"pageSize"`
-	TotalRecords  int               `json:"totalRecords"`
-	Records       []radarrQueueItem `json:"records"`
+	Page         int               `json:"page"`
+	PageSize     int               `json:"pageSize"`
+	TotalRecords int               `json:"totalRecords"`
+	Records      []radarrQueueItem `json:"records"`
 }
 
 // RadarrQueueItem represents a processed queue item for public API.
 type RadarrQueueItem struct {
-	ID                    int       `json:"id"`
-	MovieID               int       `json:"movie_id"`
-	Title                 string    `json:"title"`
-	Size                  int64     `json:"size"`
-	SizeLeft              int64     `json:"size_left"`
-	Progress              float64   `json:"progress"`
-	Status                string    `json:"status"`
-	DownloadStatus        string    `json:"download_status"`
-	DownloadState         string    `json:"download_state"`
-	Protocol              string    `json:"protocol"`
-	DownloadClient        string    `json:"download_client"`
-	Indexer               string    `json:"indexer"`
-	TimedOut              bool      `json:"timed_out"`
-	EstimatedCompletion   time.Time `json:"estimated_completion"`
+	ID                  int       `json:"id"`
+	MovieID             int       `json:"movie_id"`
+	Title               string    `json:"title"`
+	Size                int64     `json:"size"`
+	SizeLeft            int64     `json:"size_left"`
+	Progress            float64   `json:"progress"`
+	Status              string    `json:"status"`
+	DownloadStatus      string    `json:"download_status"`
+	DownloadState       string    `json:"download_state"`
+	Protocol            string    `json:"protocol"`
+	DownloadClient      string    `json:"download_client"`
+	Indexer             string    `json:"indexer"`
+	TimedOut            bool      `json:"timed_out"`
+	EstimatedCompletion time.Time `json:"estimated_completion"`
 }
 
 // radarrHistoryItem represents a history entry.
 type radarrHistoryItem struct {
-	ID                  int       `json:"id"`
-	MovieID             int       `json:"movieId"`
-	SourceTitle         string    `json:"sourceTitle"`
-	Quality             struct {
+	ID          int    `json:"id"`
+	MovieID     int    `json:"movieId"`
+	SourceTitle string `json:"sourceTitle"`
+	Quality     struct {
 		Quality struct {
 			Name string `json:"name"`
 		} `json:"quality"`
 	} `json:"quality"`
-	Date                time.Time `json:"date"`
-	EventType           string    `json:"eventType"`
-	DownloadID          string    `json:"downloadId"`
+	Date       time.Time `json:"date"`
+	EventType  string    `json:"eventType"`
+	DownloadID string    `json:"downloadId"`
 }
 
 // radarrHistoryResponse represents the history response.
 type radarrHistoryResponse struct {
-	Page          int                 `json:"page"`
-	PageSize      int                 `json:"pageSize"`
-	TotalRecords  int                 `json:"totalRecords"`
-	Records       []radarrHistoryItem `json:"records"`
+	Page         int                 `json:"page"`
+	PageSize     int                 `json:"pageSize"`
+	TotalRecords int                 `json:"totalRecords"`
+	Records      []radarrHistoryItem `json:"records"`
 }
 
 // RadarrHistoryItem represents a processed history item for public API.
@@ -195,14 +195,14 @@ type RadarrHistoryItem struct {
 
 // radarrCalendarItem represents a calendar entry.
 type radarrCalendarItem struct {
-	ID             int       `json:"id"`
-	Title          string    `json:"title"`
-	InCinemas      time.Time `json:"inCinemas"`
+	ID              int       `json:"id"`
+	Title           string    `json:"title"`
+	InCinemas       time.Time `json:"inCinemas"`
 	PhysicalRelease time.Time `json:"physicalRelease"`
-	DigitalRelease time.Time `json:"digitalRelease"`
-	Year           int       `json:"year"`
-	HasFile        bool      `json:"hasFile"`
-	Monitored      bool      `json:"monitored"`
+	DigitalRelease  time.Time `json:"digitalRelease"`
+	Year            int       `json:"year"`
+	HasFile         bool      `json:"hasFile"`
+	Monitored       bool      `json:"monitored"`
 }
 
 // RadarrCalendarItem represents a processed calendar item for public API.

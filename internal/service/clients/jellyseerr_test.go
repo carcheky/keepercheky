@@ -87,7 +87,7 @@ func TestJellyseerrClient_GetRequests(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callCount++
 		t.Logf("Test server called %d times, path: %s", callCount, r.URL.Path)
-		
+
 		if r.URL.Path != "/api/v1/request" {
 			t.Errorf("Expected path /api/v1/request, got %s", r.URL.Path)
 		}
