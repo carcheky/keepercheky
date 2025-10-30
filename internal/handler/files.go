@@ -83,6 +83,7 @@ type MediaFileInfo struct {
 	InSonarr      bool `json:"in_sonarr" gorm:"column:in_sonarr"`
 	InJellyfin    bool `json:"in_jellyfin" gorm:"column:in_jellyfin"`
 	InJellyseerr  bool `json:"in_jellyseerr" gorm:"column:in_jellyseerr"`
+	InJellystat   bool `json:"in_jellystat" gorm:"column:in_jellystat"`
 	InQBittorrent bool `json:"in_qbittorrent" gorm:"column:in_qbittorrent"`
 
 	// Service IDs
@@ -90,6 +91,7 @@ type MediaFileInfo struct {
 	SonarrID     *int    `json:"sonarr_id" gorm:"column:sonarr_id"`
 	JellyfinID   *string `json:"jellyfin_id" gorm:"column:jellyfin_id"`
 	JellyseerrID *int    `json:"jellyseerr_id" gorm:"column:jellyseerr_id"`
+	JellystatID  *string `json:"jellystat_id" gorm:"column:jellystat_id"`
 
 	// Torrent info
 	TorrentHash     string  `json:"torrent_hash" gorm:"column:torrent_hash"`
@@ -719,8 +721,8 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		Select(`
 			id, title, type, file_path, size, poster_url, quality,
 			is_hardlink, hardlink_paths, primary_path,
-			in_radarr, in_sonarr, in_jellyfin, in_jellyseerr, in_q_bittorrent,
-			radarr_id, sonarr_id, jellyfin_id, jellyseerr_id,
+			in_radarr, in_sonarr, in_jellyfin, in_jellyseerr, in_jellystat, in_q_bittorrent,
+			radarr_id, sonarr_id, jellyfin_id, jellyseerr_id, jellystat_id,
 			torrent_hash, torrent_category, torrent_state, torrent_tags,
 			is_seeding, seed_ratio, excluded
 		`)
