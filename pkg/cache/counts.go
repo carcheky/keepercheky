@@ -5,16 +5,6 @@ import (
 	"time"
 )
 
-// CategoryCounts holds category count data
-type CategoryCounts struct {
-	Healthy   int64
-	Attention int64
-	Critical  int64
-	Hardlinks int64
-	Unwatched int64
-	Total     int64
-}
-
 // CountsCache holds cached category counts with expiration
 type CountsCache struct {
 	counts    map[string]int64
@@ -49,11 +39,16 @@ func (c *CountsCache) Get() (map[string]int64, bool) {
 }
 
 // Set stores counts in the cache with TTL expiration
+// Creates a defensive copy to prevent external modifications
 func (c *CountsCache) Set(counts map[string]int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	
-	c.counts = counts
+	// Create defensive copy
+	c.counts = make(map[string]int64, len(counts))
+	for k, v := range counts {
+		c.counts[k] = v
+	}
 	c.expiresAt = time.Now().Add(c.TTL)
 }
 

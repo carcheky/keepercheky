@@ -806,12 +806,13 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
 	// Get category counts (for summary cards) - only if not filtering by tab
-	countsStart := time.Now()
 	var counts map[string]int64
+	var countsElapsed time.Duration
 	if tab == "" {
+		countsStart := time.Now()
 		counts = h.getCategoryCounts()
+		countsElapsed = time.Since(countsStart)
 	}
-	countsElapsed := time.Since(countsStart)
 
 	// Get last sync time from settings
 	var lastSyncSetting struct {
