@@ -265,7 +265,12 @@ func (c *BazarrClient) GetMovieSubtitles(ctx context.Context, radarrID int) ([]m
 					Language: sub.Language,
 					Path:     sub.Path,
 					Forced:   sub.Forced,
-					Default:  false, // Bazarr doesn't track default flag
+					// Bazarr API does not provide a "default" flag for subtitles.
+					// As a result, we always set Default: false here.
+					// TODO: Investigate if future Bazarr versions add support for the default flag.
+					// Implication: The application cannot determine which subtitle is marked as default in Bazarr,
+					// so UI and selection logic should not rely on this field for Bazarr-managed subtitles.
+					Default: false,
 				})
 			}
 
@@ -315,7 +320,12 @@ func (c *BazarrClient) GetSeriesSubtitles(ctx context.Context, sonarrID int) ([]
 					Language: sub.Language,
 					Path:     sub.Path,
 					Forced:   sub.Forced,
-					Default:  false,
+					// Bazarr API does not provide a "default" flag for subtitles.
+					// As a result, we always set Default: false here.
+					// TODO: Investigate if future Bazarr versions add support for the default flag.
+					// Implication: The application cannot determine which subtitle is marked as default in Bazarr,
+					// so UI and selection logic should not rely on this field for Bazarr-managed subtitles.
+					Default: false,
 				})
 			}
 
