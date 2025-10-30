@@ -42,6 +42,11 @@ type EnvSourceMap struct {
 		Password bool `json:"password"`
 		URL      bool `json:"url"`
 	} `json:"qbittorrent"`
+	Bazarr struct {
+		Enabled bool `json:"enabled"`
+		APIKey  bool `json:"api_key"`
+		URL     bool `json:"url"`
+	} `json:"bazarr"`
 }
 
 // GetEnvSourceMap returns a map indicating which config values come from environment variables
@@ -78,6 +83,11 @@ func GetEnvSourceMap() *EnvSourceMap {
 	envMap.QBittorrent.URL = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_URL") != ""
 	envMap.QBittorrent.Username = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_USERNAME") != ""
 	envMap.QBittorrent.Password = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_PASSWORD") != ""
+
+	// Check Bazarr
+	envMap.Bazarr.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_ENABLED") != ""
+	envMap.Bazarr.URL = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_URL") != ""
+	envMap.Bazarr.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_API_KEY") != ""
 
 	return envMap
 }
@@ -137,6 +147,7 @@ type ClientsConfig struct {
 	Jellyseerr  ServiceClient     `mapstructure:"jellyseerr" yaml:"jellyseerr"`
 	Jellystat   JellystatClient   `mapstructure:"jellystat" yaml:"jellystat"`
 	QBittorrent QBittorrentClient `mapstructure:"qbittorrent" yaml:"qbittorrent"`
+	Bazarr      ServiceClient     `mapstructure:"bazarr" yaml:"bazarr"`
 }
 
 type ServiceClient struct {
@@ -177,6 +188,7 @@ func Load() (*Config, error) {
 	_ = viper.BindEnv("clients.jellystat.api_key", "JELLYSTAT_API_KEY")
 	_ = viper.BindEnv("clients.qbittorrent.username", "QBITTORRENT_USERNAME")
 	_ = viper.BindEnv("clients.qbittorrent.password", "QBITTORRENT_PASSWORD")
+	_ = viper.BindEnv("clients.bazarr.api_key", "BAZARR_API_KEY")
 
 	// 3. Configure config file paths
 	viper.SetConfigName("config")
@@ -338,6 +350,19 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 		return true
 	}
 
+	if envSources.Bazarr.Enabled && original.Clients.Bazarr.Enabled != merged.Clients.Bazarr.Enabled {
+		fmt.Printf("  📝 Change detected: bazarr.enabled (%v → %v)\n", original.Clients.Bazarr.Enabled, merged.Clients.Bazarr.Enabled)
+		return true
+	}
+	if envSources.Bazarr.URL && original.Clients.Bazarr.URL != merged.Clients.Bazarr.URL {
+		fmt.Printf("  📝 Change detected: bazarr.url (%s → %s)\n", original.Clients.Bazarr.URL, merged.Clients.Bazarr.URL)
+		return true
+	}
+	if envSources.Bazarr.APIKey && original.Clients.Bazarr.APIKey != merged.Clients.Bazarr.APIKey {
+		fmt.Printf("  📝 Change detected: bazarr.api_key (****** → ******)\n")
+		return true
+	}
+
 	// No changes detected
 	return false
 } // hasAnyEnvVars checks if any environment variables are set
@@ -347,7 +372,8 @@ func hasAnyEnvVars(envMap *EnvSourceMap) bool {
 		envMap.Jellyfin.Enabled || envMap.Jellyfin.URL || envMap.Jellyfin.APIKey ||
 		envMap.Jellyseerr.Enabled || envMap.Jellyseerr.URL || envMap.Jellyseerr.APIKey ||
 		envMap.Jellystat.Enabled || envMap.Jellystat.URL || envMap.Jellystat.APIKey ||
-		envMap.QBittorrent.Enabled || envMap.QBittorrent.URL || envMap.QBittorrent.Username || envMap.QBittorrent.Password
+		envMap.QBittorrent.Enabled || envMap.QBittorrent.URL || envMap.QBittorrent.Username || envMap.QBittorrent.Password ||
+		envMap.Bazarr.Enabled || envMap.Bazarr.URL || envMap.Bazarr.APIKey
 }
 
 // logEnvOverrides prints which config values come from environment variables
@@ -408,6 +434,15 @@ func logEnvOverrides(envMap *EnvSourceMap) {
 	}
 	if envMap.QBittorrent.Password {
 		fmt.Println("  - clients.qbittorrent.password (from QBITTORRENT_PASSWORD)")
+	}
+	if envMap.Bazarr.Enabled {
+		fmt.Println("  - clients.bazarr.enabled (from KEEPERCHEKY_CLIENTS_BAZARR_ENABLED)")
+	}
+	if envMap.Bazarr.URL {
+		fmt.Println("  - clients.bazarr.url (from KEEPERCHEKY_CLIENTS_BAZARR_URL)")
+	}
+	if envMap.Bazarr.APIKey {
+		fmt.Println("  - clients.bazarr.api_key (from BAZARR_API_KEY)")
 	}
 }
 
@@ -486,6 +521,7 @@ func setDefaults() {
 	viper.SetDefault("clients.jellyseerr.enabled", false)
 	viper.SetDefault("clients.jellystat.enabled", false)
 	viper.SetDefault("clients.qbittorrent.enabled", false)
+	viper.SetDefault("clients.bazarr.enabled", false)
 
 	// Filesystem defaults
 	viper.SetDefault("filesystem.scan_enabled", false)
