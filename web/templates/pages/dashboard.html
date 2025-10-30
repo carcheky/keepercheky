@@ -508,13 +508,27 @@
 </div>
 
 <script>
-    // Shared utility function
+    // Shared utility functions
     function formatBytes(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Hoy';
+        if (diffDays === 1) return 'Ayer';
+        if (diffDays < 7) return `Hace ${diffDays} días`;
+        if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
+        return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
     }
 
     function dashboard() {
@@ -774,20 +788,6 @@
                 } finally {
                     this.loading = false;
                 }
-            },
-
-            formatDate(dateStr) {
-                if (!dateStr) return '';
-                const date = new Date(dateStr);
-                const now = new Date();
-                const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Hoy';
-                if (diffDays === 1) return 'Ayer';
-                if (diffDays < 7) return `Hace ${diffDays} días`;
-                if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
-                return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
             }
         }
     }
@@ -830,20 +830,6 @@
                 } finally {
                     this.loading = false;
                 }
-            },
-
-            formatDate(dateStr) {
-                if (!dateStr) return '';
-                const date = new Date(dateStr);
-                const now = new Date();
-                const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Hoy';
-                if (diffDays === 1) return 'Ayer';
-                if (diffDays < 7) return `Hace ${diffDays} días`;
-                if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
-                return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
             }
         }
     }
