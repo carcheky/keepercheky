@@ -322,7 +322,7 @@
                 </div>
                 
                 <!-- Servicios (usando serviceStatusIndicator) -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-3">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
                     <div x-data="serviceStatusIndicator('qbittorrent', file.in_qbittorrent, { 
                         state: file.torrent_state, 
                         ratio: file.seed_ratio,
@@ -438,7 +438,7 @@
                             aria-live="polite"
                             class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
-                            <div class="font-semibold text-emerald-400 mb-2">🎞️ Jellyfin</div>
+                            <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                             <div class="space-y-1">
                                 <div x-show="details.id"><span class="text-emerald-400">ID:</span> <span x-text="details.id" class="font-mono text-xs"></span></div>
                                 <div x-show="details.watched !== undefined">
@@ -742,7 +742,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         },
         jellyfin: { 
-            icon: '🎞️', 
+            icon: '🍿', 
             name: 'Jellyfin',
             presentColor: 'bg-emerald-900/40 border-emerald-600/50 text-emerald-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
