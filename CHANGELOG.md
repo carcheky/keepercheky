@@ -1,3 +1,10 @@
+# [1.0.0-dev.12](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2025-10-30)
+
+
+### Features
+
+* extend qBittorrent integration with transfer stats, server state, and enhanced torrent data ([#51](https://github.com/carcheky/keepercheky/issues/51)) ([cabb61d](https://github.com/carcheky/keepercheky/commit/cabb61da11eb031037c29a35a4970e962311a648))
+
 # [1.0.0-dev.11](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2025-10-30)
 
 
