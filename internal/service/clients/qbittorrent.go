@@ -11,6 +11,16 @@ import (
 	"go.uber.org/zap"
 )
 
+// Torrent state constants from qBittorrent API
+const (
+	TorrentStateDownloading = "downloading"
+	TorrentStateUploading   = "uploading"
+	TorrentStateStalledUP   = "stalledUP"
+	TorrentStateCheckingUP  = "checkingUP"
+	TorrentStateForcedUP    = "forcedUP"
+	TorrentStateQueuedUP    = "queuedUP"
+)
+
 // QBittorrentClient implements the TorrentClient interface for qBittorrent.
 type QBittorrentClient struct {
 	client   *resty.Client
@@ -450,11 +460,11 @@ func (c *QBittorrentClient) IsSeeding(ctx context.Context, filePath string) (boo
 // isStateSeeding determines if a torrent state indicates seeding.
 func (c *QBittorrentClient) isStateSeeding(state string) bool {
 	seedingStates := map[string]bool{
-		"uploading":  true,
-		"stalledUP":  true,
-		"checkingUP": true,
-		"forcedUP":   true,
-		"queuedUP":   true,
+		TorrentStateUploading:  true,
+		TorrentStateStalledUP:  true,
+		TorrentStateCheckingUP: true,
+		TorrentStateForcedUP:   true,
+		TorrentStateQueuedUP:   true,
 	}
 
 	return seedingStates[state]
@@ -713,6 +723,13 @@ func (c *QBittorrentClient) GetTorrentTrackers(ctx context.Context, hash string)
 // GetEnhancedTorrentInfo retrieves basic torrent info with enhanced details from properties endpoint.
 // This provides a richer dataset for displaying in the UI.
 func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash string) (*models.TorrentInfo, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
 	// Get basic torrent info
 	var torrents []qbTorrent
 	resp, err := c.client.R().

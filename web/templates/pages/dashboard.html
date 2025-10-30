@@ -726,20 +726,23 @@
     }
 
     function qbittorrentDashboard() {
+        // qBittorrent API constants
+        const QB_INFINITE_ETA = 8640000; // qBittorrent uses 8640000 (100 days in seconds) as sentinel value for infinite/unknown ETA
+        const REFRESH_INTERVAL_MS = 30000; // 30 seconds - balance between freshness and server load
+
         return {
             enabled: false,
             state: null,
             activeTorrents: [],
             loading: false,
             intervalId: null,
-            REFRESH_INTERVAL_MS: 15000, // 15 seconds
 
             async init() {
                 await this.refresh();
                 
                 // Only enable auto-refresh if qBittorrent is configured
                 if (this.enabled) {
-                    this.intervalId = setInterval(() => this.refresh(), this.REFRESH_INTERVAL_MS);
+                    this.intervalId = setInterval(() => this.refresh(), REFRESH_INTERVAL_MS);
                     
                     // Cleanup interval when component is destroyed
                     this.$cleanup(() => {
@@ -789,7 +792,7 @@
             },
 
             formatETA(seconds) {
-                if (seconds === 8640000 || seconds <= 0) return '∞';
+                if (seconds === QB_INFINITE_ETA || seconds <= 0) return '∞';
                 
                 const hours = Math.floor(seconds / 3600);
                 const minutes = Math.floor((seconds % 3600) / 60);

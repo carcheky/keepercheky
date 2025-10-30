@@ -99,7 +99,7 @@ func (h *QBittorrentHandler) GetActiveTorrents(c *fiber.Ctx) error {
 		seen[torrent.Hash] = true
 
 		// Include downloading or seeding torrents with activity
-		if torrent.DlSpeed > 0 || torrent.UpSpeed > 0 || torrent.State == "downloading" {
+		if torrent.DlSpeed > 0 || torrent.UpSpeed > 0 || torrent.State == clients.TorrentStateDownloading {
 			activeTorrents = append(activeTorrents, fiber.Map{
 				"hash":         torrent.Hash,
 				"name":         torrent.Name,
