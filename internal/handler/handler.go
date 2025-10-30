@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
 	"github.com/carcheky/keepercheky/internal/service/cleanup"
+	"github.com/carcheky/keepercheky/pkg/cache"
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"gorm.io/gorm"
 )
@@ -26,6 +29,9 @@ type Handlers struct {
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
+	// Initialize category counts cache with 30 second TTL
+	countsCache := cache.NewCountsCache(30 * time.Second)
+
 	// Initialize OLD SyncService (for client access and backward compatibility)
 	oldSyncService := service.NewSyncService(repos.Media, logger, cfg)
 
@@ -40,6 +46,7 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		oldSyncService.GetQBittorrentClient(),
 		logger.Desugar(),
 		cfg,
+		countsCache,
 	)
 
 	// Initialize CleanupService
@@ -64,7 +71,7 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),
 		Logs:      NewLogsHandler(repos, logger),
 		Sync:      NewSyncHandler(filesystemSyncService, logger), // Use NEW filesystem-first sync
-		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, healthAnalyzer, logger.Desugar()),
+		Files:     NewFilesHandler(repos.Media, cfg, oldSyncService, healthAnalyzer, logger.Desugar(), countsCache),
 		FileActions: NewFileActionsHandler(
 			repos.Media,
 			repos.History,

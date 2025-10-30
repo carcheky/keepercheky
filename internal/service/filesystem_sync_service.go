@@ -9,6 +9,7 @@ import (
 	"github.com/carcheky/keepercheky/internal/models"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service/clients"
+	"github.com/carcheky/keepercheky/pkg/cache"
 	"github.com/carcheky/keepercheky/pkg/filesystem"
 	"go.uber.org/zap"
 )
@@ -24,6 +25,7 @@ type FilesystemSyncService struct {
 	qbittorrentClient *clients.QBittorrentClient
 	logger            *zap.Logger
 	config            *config.Config
+	countsCache       *cache.CountsCache
 }
 
 // NewFilesystemSyncService creates a new filesystem-first sync service
@@ -37,6 +39,7 @@ func NewFilesystemSyncService(
 	qbittorrentClient *clients.QBittorrentClient,
 	logger *zap.Logger,
 	config *config.Config,
+	countsCache *cache.CountsCache,
 ) *FilesystemSyncService {
 	return &FilesystemSyncService{
 		mediaRepo:         mediaRepo,
@@ -48,6 +51,7 @@ func NewFilesystemSyncService(
 		qbittorrentClient: qbittorrentClient,
 		logger:            logger,
 		config:            config,
+		countsCache:       countsCache,
 	}
 }
 
@@ -248,6 +252,12 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 	// Save last sync timestamp
 	if err := s.settingsRepo.Set("last_files_sync", time.Now().Format(time.RFC3339)); err != nil {
 		s.logger.Error("Failed to save last sync timestamp", zap.Error(err))
+	}
+
+	// Invalidate category counts cache to force refresh with new data
+	if s.countsCache != nil {
+		s.countsCache.Invalidate()
+		s.logger.Debug("Category counts cache invalidated after sync")
 	}
 
 	progressChan <- SyncProgress{

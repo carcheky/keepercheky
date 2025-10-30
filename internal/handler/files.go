@@ -6,11 +6,13 @@ import (
 	"math"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
 	"github.com/carcheky/keepercheky/internal/service/clients"
+	"github.com/carcheky/keepercheky/pkg/cache"
 	"github.com/carcheky/keepercheky/pkg/filesystem"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -25,6 +27,7 @@ type FilesHandler struct {
 	syncService    *service.SyncService
 	healthAnalyzer *service.HealthAnalyzer
 	logger         *zap.Logger
+	countsCache    *cache.CountsCache
 }
 
 // NewFilesHandler creates a new files handler
@@ -34,6 +37,7 @@ func NewFilesHandler(
 	syncService *service.SyncService,
 	healthAnalyzer *service.HealthAnalyzer,
 	logger *zap.Logger,
+	countsCache *cache.CountsCache,
 ) *FilesHandler {
 	return &FilesHandler{
 		mediaRepo:      mediaRepo,
@@ -41,6 +45,7 @@ func NewFilesHandler(
 		syncService:    syncService,
 		healthAnalyzer: healthAnalyzer,
 		logger:         logger,
+		countsCache:    countsCache,
 	}
 }
 
@@ -105,38 +110,23 @@ type MediaFileInfo struct {
 	Excluded bool     `json:"excluded" gorm:"column:excluded"`
 }
 
+// CountResult holds the result of category count aggregation query
+type CountResult struct {
+	Healthy   int64 `gorm:"column:healthy"`
+	Attention int64 `gorm:"column:attention"`
+	Critical  int64 `gorm:"column:critical"`
+	Hardlinks int64 `gorm:"column:hardlinks"`
+	Unwatched int64 `gorm:"column:unwatched"`
+	Total     int64 `gorm:"column:total"`
+}
+
 // RenderFilesPage renders the files listing page
+// This is the initial HTML render - actual data is loaded via JavaScript calling /api/files
 func (h *FilesHandler) RenderFilesPage(c *fiber.Ctx) error {
-	// Get all media sorted by:
-	// 1. InQBittorrent DESC (downloads first)
-	// 2. InJellyfin DESC (library items)
-	// 3. FilePath ASC (alphabetical)
-	ctx := context.Background()
-
-	// Get service paths first (for scanning)
-	servicePaths := h.getServicePaths(ctx)
-
-	// Scan filesystem directly from those paths
-	scannedFiles, err := h.scanFilesystemFromPaths(servicePaths)
-	if err != nil {
-		h.logger.Error("Failed to scan filesystem",
-			zap.Error(err),
-		)
-		return c.Status(500).Render("pages/files", fiber.Map{
-			"Title": "Archivos del Sistema",
-			"Files": []MediaFileInfo{},
-			"Paths": servicePaths,
-		}, "layouts/main")
-	}
-
-	h.logger.Info("Files scanned from filesystem",
-		zap.Int("total_files", len(scannedFiles)),
-	)
-
+	// Just render the empty page template - Alpine.js will load data from /api/files
+	// This prevents slow filesystem scanning on every page load
 	return c.Render("pages/files", fiber.Map{
 		"Title": "Archivos del Sistema",
-		"Files": scannedFiles,
-		"Paths": servicePaths,
 	}, "layouts/main")
 }
 
@@ -678,6 +668,8 @@ func (h *FilesHandler) inferTitleFromPath(path string) string {
 
 // GetFilesAPI returns files as JSON for API access with pagination support
 func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
+	requestStart := time.Now()
+	
 	// Get pagination parameters
 	page := c.QueryInt("page", 1)
 	perPage := c.QueryInt("perPage", 25)
@@ -759,9 +751,11 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	}
 
 	// Get total count for this filter
+	countStart := time.Now()
 	var totalCount int64
 	countQuery := query.Session(&gorm.Session{})
 	err := countQuery.Count(&totalCount).Error
+	countElapsed := time.Since(countStart)
 	if err != nil {
 		h.logger.Error("Failed to count media", zap.Error(err))
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to count media"})
@@ -782,12 +776,14 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		})
 	}
 
-	// Apply pagination
+	// Apply pagination and fetch data
+	queryStart := time.Now()
 	var media []MediaFileInfo
 	err = query.
 		Limit(perPage).
 		Offset(offset).
 		Find(&media).Error
+	queryElapsed := time.Since(queryStart)
 
 	if err != nil {
 		h.logger.Error("Failed to query media from database", zap.Error(err))
@@ -799,8 +795,11 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 
 	// Get category counts (for summary cards) - only if not filtering by tab
 	var counts map[string]int64
+	var countsElapsed time.Duration
 	if tab == "" {
+		countsStart := time.Now()
 		counts = h.getCategoryCounts()
+		countsElapsed = time.Since(countsStart)
 	}
 
 	// Get last sync time from settings
@@ -818,12 +817,17 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		lastSyncTime = lastSyncSetting.Value
 	}
 
-	h.logger.Info("Files API query complete",
+	totalElapsed := time.Since(requestStart)
+	h.logger.Info("Files API request completed",
 		zap.Int("page", page),
 		zap.Int("perPage", perPage),
 		zap.String("tab", tab),
 		zap.Int64("total", totalCount),
 		zap.Int("returned", len(media)),
+		zap.Duration("total_time", totalElapsed),
+		zap.Duration("count_time", countElapsed),
+		zap.Duration("query_time", queryElapsed),
+		zap.Duration("counts_time", countsElapsed),
 	)
 
 	response := fiber.Map{
@@ -843,59 +847,74 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// getCategoryCounts returns counts for each file category
+// getCategoryCounts returns counts for each file category with caching
 func (h *FilesHandler) getCategoryCounts() map[string]int64 {
-	counts := make(map[string]int64)
+	// Check cache first
+	if cached, ok := h.countsCache.Get(); ok {
+		h.logger.Debug("Category counts served from cache")
+		return cached
+	}
+
+	// Cache miss - recalculate
+	startTime := time.Now()
+	counts := h.calculateCategoryCounts()
+	
+	// Update cache only if calculation succeeded
+	if len(counts) > 0 {
+		h.countsCache.Set(counts)
+		
+		elapsed := time.Since(startTime)
+		h.logger.Info("Category counts calculated and cached",
+			zap.Duration("elapsed", elapsed),
+			zap.Int("total", int(counts["total"])),
+		)
+	}
+	
+	return counts
+}
+
+// calculateCategoryCounts performs the actual category count queries
+// This is separated from getCategoryCounts to allow for caching
+func (h *FilesHandler) calculateCategoryCounts() map[string]int64 {
 	db := h.mediaRepo.GetDB().Table("media")
 
-	// Healthy files
-	var healthyCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_jellyfin = ? AND (in_radarr = ? OR in_sonarr = ?)",
-			true, true, true).
-		Where("(torrent_state IS NULL OR torrent_state NOT IN (?, ?))", "error", "missingFiles").
-		Count(&healthyCount)
-	counts["healthy"] = healthyCount
-
-	// Orphan downloads
-	var attentionCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_q_bittorrent = ? AND in_jellyfin = ? AND in_radarr = ? AND in_sonarr = ?",
-			true, false, false, false).
-		Count(&attentionCount)
-	counts["attention"] = attentionCount
-
-	// Dead torrents
-	var criticalCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_q_bittorrent = ? AND (torrent_state = ? OR torrent_state = ?)",
-			true, "error", "missingFiles").
-		Count(&criticalCount)
-	counts["critical"] = criticalCount
-
-	// Hardlinks
-	var hardlinksCount int64
-	db.Session(&gorm.Session{}).
-		Where("is_hardlink = ?", true).
-		Count(&hardlinksCount)
-	counts["hardlinks"] = hardlinksCount
-
-	// Unwatched (approximation - counts all files in Jellyfin)
-	// NOTE: has_been_watched is computed at runtime, so this count represents
-	// all files in Jellyfin, not necessarily unwatched ones. The actual unwatched
-	// count may be lower than this approximation.
-	var unwatchedCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_jellyfin = ?", true).
-		Count(&unwatchedCount)
-	counts["unwatched"] = unwatchedCount
-
-	// Total
-	var totalCount int64
-	db.Session(&gorm.Session{}).
-		Count(&totalCount)
-	counts["total"] = totalCount
-
+	// Use a single query with CASE statements for better performance
+	var result CountResult
+	err := db.Select(`
+		COUNT(CASE 
+			WHEN in_jellyfin = true 
+			AND (in_radarr = true OR in_sonarr = true)
+			AND (torrent_state IS NULL OR torrent_state NOT IN ('error', 'missingFiles'))
+			THEN 1 END) as healthy,
+		COUNT(CASE 
+			WHEN in_q_bittorrent = true 
+			AND in_jellyfin = false 
+			AND in_radarr = false 
+			AND in_sonarr = false
+			THEN 1 END) as attention,
+		COUNT(CASE 
+			WHEN in_q_bittorrent = true 
+			AND (torrent_state = 'error' OR torrent_state = 'missingFiles')
+			THEN 1 END) as critical,
+		COUNT(CASE WHEN is_hardlink = true THEN 1 END) as hardlinks,
+		COUNT(CASE WHEN in_jellyfin = true THEN 1 END) as unwatched,
+		COUNT(*) as total
+	`).Scan(&result).Error
+	
+	if err != nil {
+		h.logger.Error("Failed to calculate category counts", zap.Error(err))
+		// Return nil to indicate error (caller should use cached values if available)
+		return nil
+	}
+	
+	counts := make(map[string]int64)
+	counts["healthy"] = result.Healthy
+	counts["attention"] = result.Attention
+	counts["critical"] = result.Critical
+	counts["hardlinks"] = result.Hardlinks
+	counts["unwatched"] = result.Unwatched
+	counts["total"] = result.Total
+	
 	return counts
 }
 
