@@ -387,7 +387,9 @@
                     <div x-data="serviceStatusIndicator('radarr', file.in_radarr, {})">
                         <span :class="colorClasses"
                             class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
-                            :aria-label="'Radarr: ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')">
+                            role="button"
+                            :aria-label="'Radarr: ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
+                            tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
@@ -396,7 +398,9 @@
                     <div x-data="serviceStatusIndicator('sonarr', file.in_sonarr, {})">
                         <span :class="colorClasses"
                             class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
-                            :aria-label="'Sonarr: ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')">
+                            role="button"
+                            :aria-label="'Sonarr: ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
+                            tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
@@ -405,7 +409,9 @@
                     <div x-data="serviceStatusIndicator('jellyfin', file.in_jellyfin, {})">
                         <span :class="colorClasses"
                             class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
-                            :aria-label="'Jellyfin: ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')">
+                            role="button"
+                            :aria-label="'Jellyfin: ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
+                            tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
@@ -414,7 +420,9 @@
                     <div x-data="serviceStatusIndicator('jellyseerr', file.in_jellyseerr, {})">
                         <span :class="colorClasses"
                             class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
-                            :aria-label="'Jellyseerr: ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')">
+                            role="button"
+                            :aria-label="'Jellyseerr: ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
+                            tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
@@ -423,7 +431,9 @@
                     <div x-data="serviceStatusIndicator('jellystat', file.in_jellystat, {})">
                         <span :class="colorClasses"
                             class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
-                            :aria-label="'Jellystat: ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')">
+                            role="button"
+                            :aria-label="'Jellystat: ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
+                            tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
