@@ -25,6 +25,7 @@ type FilesystemSyncService struct {
 	qbittorrentClient *clients.QBittorrentClient
 	logger            *zap.Logger
 	config            *config.Config
+	countsCache       *cache.CountsCache
 }
 
 // NewFilesystemSyncService creates a new filesystem-first sync service
@@ -38,6 +39,7 @@ func NewFilesystemSyncService(
 	qbittorrentClient *clients.QBittorrentClient,
 	logger *zap.Logger,
 	config *config.Config,
+	countsCache *cache.CountsCache,
 ) *FilesystemSyncService {
 	return &FilesystemSyncService{
 		mediaRepo:         mediaRepo,
@@ -49,6 +51,7 @@ func NewFilesystemSyncService(
 		qbittorrentClient: qbittorrentClient,
 		logger:            logger,
 		config:            config,
+		countsCache:       countsCache,
 	}
 }
 
@@ -252,8 +255,10 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 	}
 
 	// Invalidate category counts cache to force refresh with new data
-	cache.GlobalCountsCache.Invalidate()
-	s.logger.Debug("Category counts cache invalidated after sync")
+	if s.countsCache != nil {
+		s.countsCache.Invalidate()
+		s.logger.Debug("Category counts cache invalidated after sync")
+	}
 
 	progressChan <- SyncProgress{
 		Step:    "complete",

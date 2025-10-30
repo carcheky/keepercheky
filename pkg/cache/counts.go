@@ -59,6 +59,3 @@ func (c *CountsCache) Invalidate() {
 	
 	c.expiresAt = time.Now().Add(-1 * time.Second)
 }
-
-// Global cache instance with 30 second TTL
-var GlobalCountsCache = NewCountsCache(30 * time.Second)

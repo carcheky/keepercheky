@@ -27,6 +27,7 @@ type FilesHandler struct {
 	syncService    *service.SyncService
 	healthAnalyzer *service.HealthAnalyzer
 	logger         *zap.Logger
+	countsCache    *cache.CountsCache
 }
 
 // NewFilesHandler creates a new files handler
@@ -36,6 +37,7 @@ func NewFilesHandler(
 	syncService *service.SyncService,
 	healthAnalyzer *service.HealthAnalyzer,
 	logger *zap.Logger,
+	countsCache *cache.CountsCache,
 ) *FilesHandler {
 	return &FilesHandler{
 		mediaRepo:      mediaRepo,
@@ -43,6 +45,7 @@ func NewFilesHandler(
 		syncService:    syncService,
 		healthAnalyzer: healthAnalyzer,
 		logger:         logger,
+		countsCache:    countsCache,
 	}
 }
 
@@ -107,38 +110,23 @@ type MediaFileInfo struct {
 	Excluded bool     `json:"excluded" gorm:"column:excluded"`
 }
 
+// CountResult holds the result of category count aggregation query
+type CountResult struct {
+	Healthy   int64 `gorm:"column:healthy"`
+	Attention int64 `gorm:"column:attention"`
+	Critical  int64 `gorm:"column:critical"`
+	Hardlinks int64 `gorm:"column:hardlinks"`
+	Unwatched int64 `gorm:"column:unwatched"`
+	Total     int64 `gorm:"column:total"`
+}
+
 // RenderFilesPage renders the files listing page
+// This is the initial HTML render - actual data is loaded via JavaScript calling /api/files
 func (h *FilesHandler) RenderFilesPage(c *fiber.Ctx) error {
-	// Get all media sorted by:
-	// 1. InQBittorrent DESC (downloads first)
-	// 2. InJellyfin DESC (library items)
-	// 3. FilePath ASC (alphabetical)
-	ctx := context.Background()
-
-	// Get service paths first (for scanning)
-	servicePaths := h.getServicePaths(ctx)
-
-	// Scan filesystem directly from those paths
-	scannedFiles, err := h.scanFilesystemFromPaths(servicePaths)
-	if err != nil {
-		h.logger.Error("Failed to scan filesystem",
-			zap.Error(err),
-		)
-		return c.Status(500).Render("pages/files", fiber.Map{
-			"Title": "Archivos del Sistema",
-			"Files": []MediaFileInfo{},
-			"Paths": servicePaths,
-		}, "layouts/main")
-	}
-
-	h.logger.Info("Files scanned from filesystem",
-		zap.Int("total_files", len(scannedFiles)),
-	)
-
+	// Just render the empty page template - Alpine.js will load data from /api/files
+	// This prevents slow filesystem scanning on every page load
 	return c.Render("pages/files", fiber.Map{
 		"Title": "Archivos del Sistema",
-		"Files": scannedFiles,
-		"Paths": servicePaths,
 	}, "layouts/main")
 }
 
@@ -862,7 +850,7 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 // getCategoryCounts returns counts for each file category with caching
 func (h *FilesHandler) getCategoryCounts() map[string]int64 {
 	// Check cache first
-	if cached, ok := cache.GlobalCountsCache.Get(); ok {
+	if cached, ok := h.countsCache.Get(); ok {
 		h.logger.Debug("Category counts served from cache")
 		return cached
 	}
@@ -871,14 +859,16 @@ func (h *FilesHandler) getCategoryCounts() map[string]int64 {
 	startTime := time.Now()
 	counts := h.calculateCategoryCounts()
 	
-	// Update cache
-	cache.GlobalCountsCache.Set(counts)
-	
-	elapsed := time.Since(startTime)
-	h.logger.Info("Category counts calculated and cached",
-		zap.Duration("elapsed", elapsed),
-		zap.Int("total", int(counts["total"])),
-	)
+	// Update cache only if calculation succeeded
+	if len(counts) > 0 {
+		h.countsCache.Set(counts)
+		
+		elapsed := time.Since(startTime)
+		h.logger.Info("Category counts calculated and cached",
+			zap.Duration("elapsed", elapsed),
+			zap.Int("total", int(counts["total"])),
+		)
+	}
 	
 	return counts
 }
@@ -886,19 +876,9 @@ func (h *FilesHandler) getCategoryCounts() map[string]int64 {
 // calculateCategoryCounts performs the actual category count queries
 // This is separated from getCategoryCounts to allow for caching
 func (h *FilesHandler) calculateCategoryCounts() map[string]int64 {
-	counts := make(map[string]int64)
 	db := h.mediaRepo.GetDB().Table("media")
 
 	// Use a single query with CASE statements for better performance
-	type CountResult struct {
-		Healthy    int64 `gorm:"column:healthy"`
-		Attention  int64 `gorm:"column:attention"`
-		Critical   int64 `gorm:"column:critical"`
-		Hardlinks  int64 `gorm:"column:hardlinks"`
-		Unwatched  int64 `gorm:"column:unwatched"`
-		Total      int64 `gorm:"column:total"`
-	}
-	
 	var result CountResult
 	err := db.Select(`
 		COUNT(CASE 
@@ -923,10 +903,11 @@ func (h *FilesHandler) calculateCategoryCounts() map[string]int64 {
 	
 	if err != nil {
 		h.logger.Error("Failed to calculate category counts", zap.Error(err))
-		// Return empty counts on error
-		return counts
+		// Return nil to indicate error (caller should use cached values if available)
+		return nil
 	}
 	
+	counts := make(map[string]int64)
 	counts["healthy"] = result.Healthy
 	counts["attention"] = result.Attention
 	counts["critical"] = result.Critical
