@@ -288,6 +288,7 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 		InSonarr:      ef.InSonarr,
 		InJellyfin:    ef.InJellyfin,
 		InJellyseerr:  ef.InJellyseerr,
+		InJellystat:   ef.InJellyfin && s.config.Clients.Jellystat.Enabled, // Track in Jellystat if in Jellyfin and Jellystat is enabled
 		InQBittorrent: ef.InQBittorrent,
 
 		// Service IDs
