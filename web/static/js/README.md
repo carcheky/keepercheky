@@ -506,6 +506,6 @@ function componentName(params) {
 
 ---
 
-**Última actualización**: 30 de octubre de 2025  
+**Última actualización**: 30 de octubre de 2024  
 **Versión**: 1.0.0  
 **Autor**: KeeperCheky Development Team
