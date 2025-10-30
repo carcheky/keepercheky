@@ -203,27 +203,27 @@
     <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg mb-6">
         <div class="border-b border-dark-border">
             <nav class="flex -mb-px overflow-x-auto">
-                <button @click="selectedTab = 'healthy'; currentPage = 1"
+                <button @click="switchTab('healthy')"
                     :class="selectedTab === 'healthy' ? 'border-green-500 text-green-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
                     class="px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">
                     🟢 OK (<span x-text="healthyFiles.length">0</span>)
                 </button>
-                <button @click="selectedTab = 'attention'; currentPage = 1"
+                <button @click="switchTab('attention')"
                     :class="selectedTab === 'attention' ? 'border-yellow-500 text-yellow-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
                     class="px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">
                     🟡 Atención (<span x-text="orphanDownloads.length">0</span>)
                 </button>
-                <button @click="selectedTab = 'critical'; currentPage = 1"
+                <button @click="switchTab('critical')"
                     :class="selectedTab === 'critical' ? 'border-red-500 text-red-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
                     class="px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">
                     🔴 Críticos (<span x-text="deadTorrents.length">0</span>)
                 </button>
-                <button @click="selectedTab = 'hardlinks'; currentPage = 1"
+                <button @click="switchTab('hardlinks')"
                     :class="selectedTab === 'hardlinks' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
                     class="px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">
                     🔗 Hardlinks (<span x-text="hardlinkFiles.length">0</span>)
                 </button>
-                <button @click="selectedTab = 'unwatched'; currentPage = 1"
+                <button @click="switchTab('unwatched')"
                     :class="selectedTab === 'unwatched' ? 'border-purple-500 text-purple-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
                     class="px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">
                     👁️ Sin Ver (<span x-text="unwatchedFiles.length">0</span>)
@@ -575,10 +575,15 @@
             
             <div class="flex items-center gap-1">
                 <template x-for="page in visiblePages" :key="page">
-                    <button @click="currentPage = page" 
-                        :class="currentPage === page ? 'bg-blue-600 text-white border-blue-600' : 'bg-dark-surface text-dark-text border-dark-border hover:bg-slate-700/50'"
-                        class="px-3 py-1 rounded border min-w-[2.5rem]"
-                        x-text="page"></button>
+                    <template x-if="typeof page === 'number'">
+                        <button @click="currentPage = page" 
+                            :class="currentPage === page ? 'bg-blue-600 text-white border-blue-600' : 'bg-dark-surface text-dark-text border-dark-border hover:bg-slate-700/50'"
+                            class="px-3 py-1 rounded border min-w-[2.5rem]"
+                            x-text="page"></button>
+                    </template>
+                    <template x-if="page === '...'">
+                        <span class="px-3 py-1 rounded min-w-[2.5rem] text-dark-muted select-none">...</span>
+                    </template>
                 </template>
             </div>
             
@@ -937,7 +942,17 @@ function filesPage() {
                 pages.push(total);
             }
             
-            return pages.filter(p => p !== '...' || pages.indexOf(p) === pages.lastIndexOf(p));
+            return pages;
+        },
+        
+        // Helper methods
+        switchTab(tabName) {
+            this.selectedTab = tabName;
+            this.currentPage = 1;
+        },
+        
+        getFileIdentifier(file) {
+            return file.id || encodeURIComponent(file.file_path);
         },
         
         // Selection methods
@@ -1005,7 +1020,7 @@ function filesPage() {
             if (!confirm(`¿Importar "${file.title}" a Radarr?`)) return;
             
             try {
-                const response = await fetch(`/api/files/${file.id || encodeURIComponent(file.file_path)}/import-radarr`, {
+                const response = await fetch(`/api/files/${this.getFileIdentifier(file)}/import-radarr`, {
                     method: 'POST'
                 });
                 
@@ -1023,7 +1038,7 @@ function filesPage() {
             if (!confirm(`¿Importar "${file.title}" a Sonarr?`)) return;
             
             try {
-                const response = await fetch(`/api/files/${file.id || encodeURIComponent(file.file_path)}/import-sonarr`, {
+                const response = await fetch(`/api/files/${this.getFileIdentifier(file)}/import-sonarr`, {
                     method: 'POST'
                 });
                 
@@ -1041,7 +1056,7 @@ function filesPage() {
             if (!confirm(`¿Limpiar hardlink de "${file.title}"?\n\nEsto eliminará el hardlink de descargas sin afectar la biblioteca.`)) return;
             
             try {
-                const response = await fetch(`/api/files/${file.id || encodeURIComponent(file.file_path)}/clean-hardlink`, {
+                const response = await fetch(`/api/files/${this.getFileIdentifier(file)}/clean-hardlink`, {
                     method: 'POST'
                 });
                 
@@ -1059,7 +1074,7 @@ function filesPage() {
             if (!confirm(`¿Marcar "${file.title}" como ignorado?`)) return;
             
             try {
-                const response = await fetch(`/api/files/${file.id || encodeURIComponent(file.file_path)}/ignore`, {
+                const response = await fetch(`/api/files/${this.getFileIdentifier(file)}/ignore`, {
                     method: 'POST'
                 });
                 
@@ -1077,7 +1092,7 @@ function filesPage() {
             if (!confirm(`⚠️ ¿ELIMINAR "${file.title}"?\n\nEsta acción NO se puede deshacer.`)) return;
             
             try {
-                const response = await fetch(`/api/files/${file.id || encodeURIComponent(file.file_path)}`, {
+                const response = await fetch(`/api/files/${this.getFileIdentifier(file)}`, {
                     method: 'DELETE'
                 });
                 
@@ -1106,7 +1121,7 @@ function filesPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        files: files.map(f => f.id || f.file_path) 
+                        files: files.map(f => this.getFileIdentifier(f))
                     })
                 });
                 
@@ -1135,7 +1150,7 @@ function filesPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        files: files.map(f => f.id || f.file_path) 
+                        files: files.map(f => this.getFileIdentifier(f))
                     })
                 });
                 
@@ -1163,7 +1178,7 @@ function filesPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        files: this.selectedFiles.map(f => f.id || f.file_path),
+                        files: this.selectedFiles.map(f => this.getFileIdentifier(f)),
                         tag: 'no-delete'
                     })
                 });
@@ -1193,7 +1208,7 @@ function filesPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        files: files.map(f => f.id || f.file_path) 
+                        files: files.map(f => this.getFileIdentifier(f))
                     })
                 });
                 
@@ -1222,7 +1237,7 @@ function filesPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        files: files.map(f => f.id || f.file_path) 
+                        files: files.map(f => this.getFileIdentifier(f))
                     })
                 });
                 
@@ -1243,17 +1258,27 @@ function filesPage() {
                 return;
             }
             
-            if (!confirm(`⚠️ ¿ELIMINAR ${this.selectedFiles.length} archivo(s)?\n\nEsta acción NO se puede deshacer.`)) return;
+            // Improved confirmation with explicit count confirmation
+            const count = this.selectedFiles.length;
+            const confirmText = prompt(
+                `⚠️ ELIMINAR ${count} ARCHIVO(S) ⚠️\n\n` +
+                `Esta acción NO se puede deshacer.\n\n` +
+                `Para confirmar, escribe el número de archivos a eliminar (${count}):`
+            );
             
-            // Double confirmation for safety
-            if (!confirm(`⚠️⚠️ CONFIRMACIÓN FINAL ⚠️⚠️\n\n¿Estás ABSOLUTAMENTE SEGURO de eliminar ${this.selectedFiles.length} archivo(s)?`)) return;
+            if (confirmText === null) return; // User cancelled
+            
+            if (confirmText !== count.toString()) {
+                alert(`Confirmación incorrecta. Se esperaba "${count}" pero se recibió "${confirmText}".`);
+                return;
+            }
             
             try {
                 const response = await fetch('/api/files/bulk-delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        files: this.selectedFiles.map(f => f.id || f.file_path) 
+                    body: JSON.stringify({
+                        files: this.selectedFiles.map(f => this.getFileIdentifier(f))
                     })
                 });
                 
