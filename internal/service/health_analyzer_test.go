@@ -30,7 +30,10 @@ func TestNewHealthAnalyzer(t *testing.T) {
 
 // TestSetNeverWatchedThreshold verifies that the threshold can be set
 func TestSetNeverWatchedThreshold(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	analyzer.SetNeverWatchedThreshold(90)
@@ -42,7 +45,10 @@ func TestSetNeverWatchedThreshold(t *testing.T) {
 
 // TestHealthAnalyzer_DetectOrphanDownloads tests orphan download detection
 func TestHealthAnalyzer_DetectOrphanDownloads(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	tests := []struct {
@@ -133,7 +139,10 @@ func TestHealthAnalyzer_DetectOrphanDownloads(t *testing.T) {
 
 // TestHealthAnalyzer_DetectOnlyHardlinks tests hardlink-only detection
 func TestHealthAnalyzer_DetectOnlyHardlinks(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	tests := []struct {
@@ -217,7 +226,10 @@ func TestHealthAnalyzer_DetectOnlyHardlinks(t *testing.T) {
 
 // TestHealthAnalyzer_DetectDeadTorrents tests dead torrent detection
 func TestHealthAnalyzer_DetectDeadTorrents(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	tests := []struct {
@@ -297,7 +309,10 @@ func TestHealthAnalyzer_DetectDeadTorrents(t *testing.T) {
 
 // TestHealthAnalyzer_DetectNeverWatched tests never watched detection
 func TestHealthAnalyzer_DetectNeverWatched(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	tests := []struct {
@@ -363,7 +378,10 @@ func TestHealthAnalyzer_DetectNeverWatched(t *testing.T) {
 
 // TestHealthAnalyzer_GetHealthSummary tests aggregated statistics
 func TestHealthAnalyzer_GetHealthSummary(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	files := []MediaFileInfo{
@@ -440,7 +458,10 @@ func TestHealthAnalyzer_GetHealthSummary(t *testing.T) {
 
 // TestHealthAnalyzer_AnalyzeFiles tests batch analysis
 func TestHealthAnalyzer_AnalyzeFiles(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	files := []MediaFileInfo{
@@ -475,7 +496,10 @@ func TestHealthAnalyzer_AnalyzeFiles(t *testing.T) {
 
 // TestHealthAnalyzer_ExcludedFiles tests that excluded files are properly handled
 func TestHealthAnalyzer_ExcludedFiles(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	file := &MediaFileInfo{
@@ -498,7 +522,10 @@ func TestHealthAnalyzer_ExcludedFiles(t *testing.T) {
 
 // TestHealthAnalyzer_UnclassifiedFiles tests unclassified file detection
 func TestHealthAnalyzer_UnclassifiedFiles(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	file := &MediaFileInfo{
@@ -522,7 +549,10 @@ func TestHealthAnalyzer_UnclassifiedFiles(t *testing.T) {
 
 // TestHealthAnalyzer_PriorityOrdering tests that issues are detected in the correct priority order
 func TestHealthAnalyzer_PriorityOrdering(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatalf("Failed to create logger: %v", err)
+	}
 	analyzer := NewHealthAnalyzer(logger)
 
 	// File with multiple potential issues - orphan should take priority

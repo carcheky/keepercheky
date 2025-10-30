@@ -126,7 +126,8 @@ func TestFileActionsHandler_DeleteFile_RequiresConfirmation(t *testing.T) {
 	reqBody := DeleteFileRequest{
 		Confirm: false,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/delete", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -137,8 +138,10 @@ func TestFileActionsHandler_DeleteFile_RequiresConfirmation(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "Confirmation required")
@@ -172,7 +175,8 @@ func TestFileActionsHandler_DeleteFile_Success(t *testing.T) {
 		DeleteFromServices: false,
 		DeleteTorrent:      false,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/delete", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -183,8 +187,10 @@ func TestFileActionsHandler_DeleteFile_Success(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, true, response["success"])
 	assert.Contains(t, response["deleted_from"], "filesystem")
@@ -255,7 +261,8 @@ func TestFileActionsHandler_DeleteFile_WithServices(t *testing.T) {
 		DeleteFromServices: true,
 		DeleteTorrent:      false,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/delete", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -266,8 +273,10 @@ func TestFileActionsHandler_DeleteFile_WithServices(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, true, response["success"])
 	deletedFrom := response["deleted_from"].([]interface{})
@@ -302,7 +311,8 @@ func TestFileActionsHandler_IgnoreFile_Success(t *testing.T) {
 		Reason:    "Not interested",
 		Permanent: true,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/ignore", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -313,8 +323,10 @@ func TestFileActionsHandler_IgnoreFile_Success(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, true, response["success"])
 
@@ -356,7 +368,8 @@ func TestFileActionsHandler_CleanupHardlink_ValidatesSameInode(t *testing.T) {
 		KeepPath:   file1,
 		RemovePath: file2,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/cleanup-hardlink", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -367,8 +380,10 @@ func TestFileActionsHandler_CleanupHardlink_ValidatesSameInode(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not hardlinks of the same file")
@@ -407,7 +422,8 @@ func TestFileActionsHandler_CleanupHardlink_Success(t *testing.T) {
 		KeepPath:   file1,
 		RemovePath: file2,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/cleanup-hardlink", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -467,7 +483,8 @@ func TestFileActionsHandler_BulkAction_PartialFailures(t *testing.T) {
 			"delete_torrent":       false,
 		},
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/bulk-action", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -514,7 +531,8 @@ func TestFileActionsHandler_BulkAction_Ignore(t *testing.T) {
 		Action:  "ignore",
 		Params:  map[string]interface{}{},
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/bulk-action", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -525,8 +543,10 @@ func TestFileActionsHandler_BulkAction_Ignore(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, true, response["success"])
 
@@ -565,7 +585,8 @@ func TestFileActionsHandler_ImportToRadarr_NotImplemented(t *testing.T) {
 		QualityProfileID: 1,
 		RootFolderPath:   "/movies",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/import-to-radarr", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -576,8 +597,10 @@ func TestFileActionsHandler_ImportToRadarr_NotImplemented(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not yet implemented")
@@ -605,7 +628,8 @@ func TestFileActionsHandler_ImportToSonarr_NotImplemented(t *testing.T) {
 		QualityProfileID: 1,
 		RootFolderPath:   "/series",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/import-to-sonarr", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -616,8 +640,10 @@ func TestFileActionsHandler_ImportToSonarr_NotImplemented(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not yet implemented")
@@ -635,7 +661,8 @@ func TestFileActionsHandler_DeleteFile_NotFound(t *testing.T) {
 	reqBody := DeleteFileRequest{
 		Confirm: true,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/99999/delete", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -646,8 +673,10 @@ func TestFileActionsHandler_DeleteFile_NotFound(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not found")
@@ -666,7 +695,8 @@ func TestFileActionsHandler_IgnoreFile_NotFound(t *testing.T) {
 		Reason:    "Test",
 		Permanent: true,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/99999/ignore", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -677,8 +707,10 @@ func TestFileActionsHandler_IgnoreFile_NotFound(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not found")
@@ -706,7 +738,8 @@ func TestFileActionsHandler_CleanupHardlink_MissingPaths(t *testing.T) {
 		KeepPath:   "",
 		RemovePath: "",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/cleanup-hardlink", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -717,8 +750,10 @@ func TestFileActionsHandler_CleanupHardlink_MissingPaths(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "required")
@@ -753,7 +788,8 @@ func TestFileActionsHandler_CleanupHardlink_KeepPathNotExist(t *testing.T) {
 		KeepPath:   "/nonexistent/file1.mkv",
 		RemovePath: file2,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/cleanup-hardlink", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -764,8 +800,10 @@ func TestFileActionsHandler_CleanupHardlink_KeepPathNotExist(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not exist")
@@ -785,7 +823,8 @@ func TestFileActionsHandler_BulkAction_InvalidAction(t *testing.T) {
 		Action:  "invalid_action",
 		Params:  map[string]interface{}{},
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/bulk-action", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -796,8 +835,10 @@ func TestFileActionsHandler_BulkAction_InvalidAction(t *testing.T) {
 
 	// Parse response
 	var response map[string]interface{}
-	bodyBytes, _ = io.ReadAll(resp.Body)
-	json.Unmarshal(bodyBytes, &response)
+	bodyBytes, err = io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	err = json.Unmarshal(bodyBytes, &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, false, response["success"])
 	assert.Contains(t, response["error"], "not allowed")
@@ -836,7 +877,8 @@ func TestFileActionsHandler_DeleteFile_HardlinkPath(t *testing.T) {
 		DeleteFromServices: false,
 		DeleteTorrent:      false,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", fmt.Sprintf("/api/files/%d/delete", media.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -871,7 +913,8 @@ func TestFileActionsHandler_DeleteFile_InvalidID(t *testing.T) {
 	reqBody := DeleteFileRequest{
 		Confirm: true,
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/invalid/delete", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -893,7 +936,8 @@ func TestFileActionsHandler_IgnoreFile_InvalidID(t *testing.T) {
 	reqBody := IgnoreFileRequest{
 		Reason: "Test",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/invalid/ignore", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -916,7 +960,8 @@ func TestFileActionsHandler_CleanupHardlink_InvalidID(t *testing.T) {
 		KeepPath:   "/tmp/file1.mkv",
 		RemovePath: "/tmp/file2.mkv",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/invalid/cleanup-hardlink", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -938,7 +983,8 @@ func TestFileActionsHandler_ImportToRadarr_InvalidID(t *testing.T) {
 	reqBody := ImportToRadarrRequest{
 		FilePath: "/tmp/test.mkv",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/invalid/import-to-radarr", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -960,7 +1006,8 @@ func TestFileActionsHandler_ImportToSonarr_InvalidID(t *testing.T) {
 	reqBody := ImportToSonarrRequest{
 		FilePath: "/tmp/test.mkv",
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
+	bodyBytes, err := json.Marshal(reqBody)
+	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/api/files/invalid/import-to-sonarr", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
