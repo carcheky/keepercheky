@@ -1,3 +1,10 @@
+# [1.0.0-dev.17](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2025-10-30)
+
+
+### Bug Fixes
+
+* **files:** optimize loading for large libraries - eliminate 15s page load ([#60](https://github.com/carcheky/keepercheky/issues/60)) ([57c3cd3](https://github.com/carcheky/keepercheky/commit/57c3cd3697cf36432046b427016b41d3edb29da9))
+
 # [1.0.0-dev.16](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2025-10-30)
 
 
