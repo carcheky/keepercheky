@@ -292,7 +292,7 @@
                 // Use defined fields
                 return this.fieldsDef.map(field => ({
                     ...field,
-                    value: this.formatValue(field.key, this.systemInfo[field.key]),
+                    value: field.format ? field.format(this.systemInfo[field.key]) : this.formatValue(field.key, this.systemInfo[field.key]),
                     html: field.html || this.needsHtml(this.systemInfo[field.key])
                 }));
             },
@@ -443,11 +443,16 @@
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' },
-                        { key: 'bitness', label: 'Architecture' },
+                        { key: 'bitness', label: 'Architecture', format: (val) => val ? `${val}-bit` : 'N/A' },
                         { key: 'qt', label: 'Qt Version' },
                         { key: 'libtorrent', label: 'Libtorrent' },
                         { key: 'boost', label: 'Boost' },
                         { key: 'openssl', label: 'OpenSSL' }
+                    ],
+                    preferencesFields: [
+                        { key: 'save_path', label: 'Default Download Path', mono: true, span: true },
+                        { key: 'temp_path', label: 'Temp Path', mono: true, span: true },
+                        { key: 'export_dir', label: 'Export Dir', mono: true, span: true }
                     ]
                 }
             ],
@@ -505,7 +510,8 @@
                         this.connectionResults[service] = {
                             success: true,
                             message: data.message || 'Connection successful',
-                            system_info: data.system_info || null
+                            system_info: data.system_info || null,
+                            preferences: data.preferences || null
                         };
                     } else {
                         this.connectionResults[service] = {
@@ -549,15 +555,29 @@
 
             getSystemInfoDisplay(serviceId) {
                 const service = this.services.find(s => s.id === serviceId);
-                const systemInfo = this.connectionResults[serviceId]?.system_info;
+                const result = this.connectionResults[serviceId];
+                const systemInfo = result?.system_info;
+                const preferences = result?.preferences;
                 
-                if (!systemInfo || !service) {
+                if (!service || (!systemInfo && !preferences)) {
                     return [];
                 }
                 
-                // Use the systemInfoDisplay helper to generate fields
-                const helper = systemInfoDisplay(systemInfo, service.systemInfoFields || []);
-                return helper.displayFields;
+                let fields = [];
+                
+                // Add system info fields
+                if (systemInfo && service.systemInfoFields) {
+                    const helper = systemInfoDisplay(systemInfo, service.systemInfoFields);
+                    fields = fields.concat(helper.displayFields);
+                }
+                
+                // Add preferences fields for qBittorrent
+                if (preferences && service.preferencesFields) {
+                    const prefsHelper = systemInfoDisplay(preferences, service.preferencesFields);
+                    fields = fields.concat(prefsHelper.displayFields);
+                }
+                
+                return fields;
             },
 
             scrollToService(serviceId) {
