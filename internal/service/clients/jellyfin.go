@@ -72,6 +72,7 @@ type jellyfinItem struct {
 	Type        string    `json:"Type"` // "Movie", "Series", "Episode", etc.
 	Path        string    `json:"Path"`
 	DateCreated time.Time `json:"DateCreated"`
+	Overview    string    `json:"Overview"`
 	UserData    struct {
 		PlayCount         int       `json:"PlayCount"`
 		IsFavorite        bool      `json:"IsFavorite"`
@@ -662,7 +663,7 @@ type RecentlyAddedItem struct {
 // GetRecentlyAdded retrieves recently added items from Jellyfin.
 func (c *JellyfinClient) GetRecentlyAdded(ctx context.Context, limit int) ([]RecentlyAddedItem, error) {
 	if limit <= 0 {
-		limit = 20
+		limit = DefaultRecentlyAddedLimit
 	}
 
 	var response jellyfinItemsResponse
@@ -703,7 +704,7 @@ func (c *JellyfinClient) GetRecentlyAdded(ctx context.Context, limit int) ([]Rec
 			Name:        item.Name,
 			Type:        item.Type,
 			DateCreated: item.DateCreated,
-			Overview:    "", // Overview would need to be in the jellyfinItem struct
+			Overview:    item.Overview,
 		}
 
 		// Extract poster URL if available
@@ -750,7 +751,7 @@ type jellyfinActivityResponse struct {
 // GetActivityLog retrieves the activity log from Jellyfin.
 func (c *JellyfinClient) GetActivityLog(ctx context.Context, limit int) ([]ActivityLogEntry, error) {
 	if limit <= 0 {
-		limit = 50
+		limit = DefaultActivityLogLimit
 	}
 
 	var response jellyfinActivityResponse

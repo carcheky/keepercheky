@@ -499,12 +499,14 @@
             sessions: [],
             loading: false,
             intervalId: null,
+            REFRESH_INTERVAL_MS: 15000, // 15 seconds
+            JELLYFIN_TICKS_PER_SECOND: 10000000, // Jellyfin uses 100-nanosecond intervals
 
             async init() {
                 await this.loadSessions();
                 
-                // Refresh every 15 seconds
-                this.intervalId = setInterval(() => this.loadSessions(), 15000);
+                // Refresh every REFRESH_INTERVAL_MS milliseconds
+                this.intervalId = setInterval(() => this.loadSessions(), this.REFRESH_INTERVAL_MS);
                 
                 // Cleanup interval when component is destroyed
                 this.$cleanup(() => {
@@ -539,8 +541,8 @@
 
             formatTicks(ticks) {
                 if (!ticks) return '0:00';
-                // Jellyfin uses ticks (100-nanosecond intervals)
-                const seconds = Math.floor(ticks / 10000000);
+                // Convert Jellyfin ticks to seconds
+                const seconds = Math.floor(ticks / this.JELLYFIN_TICKS_PER_SECOND);
                 const hours = Math.floor(seconds / 3600);
                 const minutes = Math.floor((seconds % 3600) / 60);
                 const secs = seconds % 60;
