@@ -117,6 +117,16 @@ function getStatusLabel(status) {
     return labels[status] || status;
 }
 
+/**
+ * Checks if a file is an orphan download
+ * (in qBittorrent but not in any media management service)
+ * @param {object} file - File object to check
+ * @returns {boolean} True if file is orphan download
+ */
+function isOrphanDownload(file) {
+    return file.in_qbittorrent && !file.in_jellyfin && !file.in_radarr && !file.in_sonarr;
+}
+
 // =============================================================================
 // COMPONENT: healthCard(status, count)
 // =============================================================================
@@ -329,7 +339,7 @@ function fileHealthCard(file, healthReport) {
             };
             
             // Check for orphan downloads
-            if (this.file.in_qbittorrent && !this.file.in_jellyfin && !this.file.in_radarr && !this.file.in_sonarr) {
+            if (isOrphanDownload(this.file)) {
                 report.status = 'orphan_download';
                 report.severity = 'warning';
                 report.issues.push('Archivo en descargas pero no en biblioteca');
@@ -480,7 +490,7 @@ function healthFilters() {
                         case 'missing':
                             return f.torrent_state === 'missingFiles';
                         case 'orphan':
-                            return f.in_qbittorrent && !f.in_jellyfin && !f.in_radarr && !f.in_sonarr;
+                            return isOrphanDownload(f);
                         case 'low_ratio':
                             return f.in_qbittorrent && (f.seed_ratio || 0) < 1.0;
                         default:
@@ -896,6 +906,7 @@ if (typeof module !== 'undefined' && module.exports) {
         getStatusIcon,
         getSeverityColor,
         getStatusLabel,
+        isOrphanDownload,
         
         // Components
         healthCard,

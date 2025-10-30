@@ -335,6 +335,33 @@ getStatusLabel('orphan_download') // "Huérfano en Descargas"
 
 ---
 
+### `isOrphanDownload(file)`
+
+Verifica si un archivo es un huérfano en descargas (en qBittorrent pero no en ningún servicio de gestión de medios).
+
+**Parámetros:**
+- `file` (object): Objeto de archivo a verificar
+
+**Retorna:** Boolean
+
+**Ejemplo:**
+```javascript
+const file = {
+    in_qbittorrent: true,
+    in_jellyfin: false,
+    in_radarr: false,
+    in_sonarr: false
+};
+isOrphanDownload(file) // true
+```
+
+**Ejemplo:**
+```javascript
+getStatusLabel('orphan_download') // "Huérfano en Descargas"
+```
+
+---
+
 ## 🎨 Códigos de Status
 
 ### Health Status
