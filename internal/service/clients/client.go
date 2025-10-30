@@ -73,3 +73,9 @@ const MaxRetries = 3
 
 // RetryDelay is the initial delay between retry attempts.
 const RetryDelay = 1 * time.Second
+
+// DefaultRecentlyAddedLimit is the default number of recently added items to retrieve.
+const DefaultRecentlyAddedLimit = 20
+
+// DefaultActivityLogLimit is the default number of activity log entries to retrieve.
+const DefaultActivityLogLimit = 50

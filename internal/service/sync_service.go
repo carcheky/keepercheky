@@ -677,6 +677,62 @@ func (s *SyncService) GetJellyfinSystemInfo(ctx context.Context) (*clients.Jelly
 	return jellyfinClient.GetSystemInfo(ctx)
 }
 
+// GetJellyfinActiveSessions returns active sessions from Jellyfin.
+func (s *SyncService) GetJellyfinActiveSessions(ctx context.Context) ([]clients.SessionInfo, error) {
+	if s.jellyfinClient == nil {
+		return nil, fmt.Errorf("Jellyfin not configured")
+	}
+
+	jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyfin client type")
+	}
+
+	return jellyfinClient.GetActiveSessions(ctx)
+}
+
+// GetJellyfinLibraryStats returns library statistics from Jellyfin.
+func (s *SyncService) GetJellyfinLibraryStats(ctx context.Context) (*clients.LibraryStats, error) {
+	if s.jellyfinClient == nil {
+		return nil, fmt.Errorf("Jellyfin not configured")
+	}
+
+	jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyfin client type")
+	}
+
+	return jellyfinClient.GetLibraryStats(ctx)
+}
+
+// GetJellyfinRecentlyAdded returns recently added items from Jellyfin.
+func (s *SyncService) GetJellyfinRecentlyAdded(ctx context.Context, limit int) ([]clients.RecentlyAddedItem, error) {
+	if s.jellyfinClient == nil {
+		return nil, fmt.Errorf("Jellyfin not configured")
+	}
+
+	jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyfin client type")
+	}
+
+	return jellyfinClient.GetRecentlyAdded(ctx, limit)
+}
+
+// GetJellyfinActivityLog returns activity log entries from Jellyfin.
+func (s *SyncService) GetJellyfinActivityLog(ctx context.Context, limit int) ([]clients.ActivityLogEntry, error) {
+	if s.jellyfinClient == nil {
+		return nil, fmt.Errorf("Jellyfin not configured")
+	}
+
+	jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyfin client type")
+	}
+
+	return jellyfinClient.GetActivityLog(ctx, limit)
+}
+
 // GetJellyseerrSystemInfo returns complete system information from Jellyseerr.
 func (s *SyncService) GetJellyseerrSystemInfo(ctx context.Context) (*clients.JellyseerrSystemInfo, error) {
 	if s.jellyseerrClient == nil {

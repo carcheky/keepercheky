@@ -200,6 +200,12 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/sonarr/history", h.Sonarr.GetHistory)
 		api.Get("/sonarr/calendar", h.Sonarr.GetCalendar)
 		api.Get("/sonarr/quality-profiles", h.Sonarr.GetQualityProfiles)
+
+		// Jellyfin endpoints
+		api.Get("/jellyfin/stats", h.Settings.GetJellyfinStats)
+		api.Get("/jellyfin/sessions", h.Settings.GetJellyfinSessions)
+		api.Get("/jellyfin/recently-added", h.Settings.GetJellyfinRecentlyAdded)
+		api.Get("/jellyfin/activity", h.Settings.GetJellyfinActivity)
 	}
 }
 
