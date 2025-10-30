@@ -332,7 +332,8 @@
                     jellyfin: { enabled: false, url: '', api_key: '' },
                     jellyseerr: { enabled: false, url: '', api_key: '' },
                     jellystat: { enabled: false, url: '', api_key: '' },
-                    qbittorrent: { enabled: false, url: '', username: '', password: '' }
+                    qbittorrent: { enabled: false, url: '', username: '', password: '' },
+                    bazarr: { enabled: false, url: '', api_key: '' }
                 },
                 cleanup: {
                     dry_run: true,
@@ -453,6 +454,26 @@
                         { key: 'save_path', label: 'Default Download Path', mono: true, span: true },
                         { key: 'temp_path', label: 'Temp Path', mono: true, span: true },
                         { key: 'export_dir', label: 'Export Dir', mono: true, span: true }
+                    ]
+                },
+                {
+                    id: 'bazarr',
+                    label: 'Bazarr',
+                    icon: '🗣️',
+                    description: 'Subtitle management companion for Radarr and Sonarr',
+                    fields: [
+                        { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:6767' },
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Bazarr API Key' }
+                    ],
+                    systemInfoFields: [
+                        { key: 'bazarr_version', label: 'Bazarr Version' },
+                        { key: 'sonarr_version', label: 'Sonarr Version (Connected)' },
+                        { key: 'radarr_version', label: 'Radarr Version (Connected)' },
+                        { key: 'os', label: 'Operating System' },
+                        { key: 'os_version', label: 'OS Version' },
+                        { key: 'python_version', label: 'Python Version' },
+                        { key: 'directory', label: 'Install Directory', mono: true, span: true },
+                        { key: 'start_time', label: 'Start Time', span: true }
                     ]
                 }
             ],

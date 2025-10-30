@@ -24,6 +24,7 @@ type SyncService struct {
 	jellyseerrClient  clients.RequestClient
 	jellystatClient   *clients.JellystatClient
 	qbittorrentClient *clients.QBittorrentClient
+	bazarrClient      *clients.BazarrClient
 	logger            *zap.Logger
 	config            *config.Config
 }
@@ -104,6 +105,18 @@ func NewSyncService(
 			cfg.Clients.QBittorrent.URL,
 			cfg.Clients.QBittorrent.Username,
 			cfg.Clients.QBittorrent.Password,
+			zapLogger,
+		)
+	}
+
+	// Initialize Bazarr client if enabled
+	if cfg.Clients.Bazarr.Enabled {
+		svc.bazarrClient = clients.NewBazarrClient(
+			clients.ClientConfig{
+				BaseURL: cfg.Clients.Bazarr.URL,
+				APIKey:  cfg.Clients.Bazarr.APIKey,
+				Timeout: 30 * time.Second,
+			},
 			zapLogger,
 		)
 	}
@@ -627,6 +640,12 @@ func (s *SyncService) TestConnection(ctx context.Context, service string) error 
 		}
 		return s.qbittorrentClient.TestConnection(ctx)
 
+	case "bazarr":
+		if s.bazarrClient == nil {
+			return fmt.Errorf("Bazarr not configured")
+		}
+		return s.bazarrClient.TestConnection(ctx)
+
 	default:
 		return fmt.Errorf("unknown service: %s", service)
 	}
@@ -869,6 +888,11 @@ func (s *SyncService) GetJellyfinClient() clients.StreamingClient {
 // GetQBittorrentClient returns the qBittorrent client instance.
 func (s *SyncService) GetQBittorrentClient() *clients.QBittorrentClient {
 	return s.qbittorrentClient
+}
+
+// GetBazarrClient returns the Bazarr client instance.
+func (s *SyncService) GetBazarrClient() *clients.BazarrClient {
+	return s.bazarrClient
 }
 
 // cleanupOrphanedMedia removes media from database that no longer exists in any service.
