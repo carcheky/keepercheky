@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-dark-text dark:text-dark-text">Settings</h1>
         <div class="flex gap-3">
-            <button @click="testAllConnections()" :disabled="testing"
+            <button @click="testAllConnections()" :disabled="testing" x-show="activeTab === 'services'"
                 class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <svg x-show="!testing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -36,9 +36,27 @@
         </div>
     </div>
 
-    <!-- Service Settings Panels (All visible) -->
-    <template x-for="service in services" :key="service.id">
-        <div class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
+    <!-- Main Tabs -->
+    <div class="border-b border-dark-border">
+        <nav class="-mb-px flex space-x-8">
+            <button @click="activeTab = 'services'"
+                :class="activeTab === 'services' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Services
+            </button>
+            <button @click="activeTab = 'configuration'"
+                :class="activeTab === 'configuration' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Configuration
+            </button>
+        </nav>
+    </div>
+
+    <!-- Services Tab Content -->
+    <div x-show="activeTab === 'services'" class="space-y-6">
+        <!-- Service Settings Panels -->
+        <template x-for="service in services" :key="service.id">
+            <div class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
             <!-- Service Header with Enable Toggle -->
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-semibold text-dark-text" x-text="service.label + ' Configuration'"></h2>
@@ -124,9 +142,12 @@
             </div>
         </div>
     </template>
+    </div>
 
-    <!-- Cleanup Rules Panel -->
-    <div class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
+    <!-- Configuration Tab Content -->
+    <div x-show="activeTab === 'configuration'" class="space-y-6">
+        <!-- Cleanup Rules Panel -->
+        <div class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-6">Cleanup Rules Configuration</h2>
 
         <div class="space-y-6">
@@ -181,6 +202,7 @@
                     </div>
                 </label>
             </div>
+        </div>
         </div>
     </div>
 
@@ -257,6 +279,7 @@
 
     function settings() {
         return {
+            activeTab: 'services',
             config: {
                 services: {
                     radarr: { enabled: false, url: '', api_key: '' },
