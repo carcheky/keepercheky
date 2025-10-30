@@ -486,3 +486,316 @@ func (c *JellyfinClient) GetVirtualFolders(ctx context.Context) ([]VirtualFolder
 
 	return folders, nil
 }
+
+// SessionInfo represents an active Jellyfin session.
+type SessionInfo struct {
+	ID                string    `json:"Id"`
+	UserID            string    `json:"UserId"`
+	UserName          string    `json:"UserName"`
+	Client            string    `json:"Client"`
+	DeviceName        string    `json:"DeviceName"`
+	DeviceID          string    `json:"DeviceId"`
+	ApplicationVersion string   `json:"ApplicationVersion"`
+	RemoteEndPoint    string    `json:"RemoteEndPoint"`
+	LastActivityDate  time.Time `json:"LastActivityDate"`
+	SupportsRemoteControl bool `json:"SupportsRemoteControl"`
+	NowPlayingItem    *struct {
+		ID        string `json:"Id"`
+		Name      string `json:"Name"`
+		Type      string `json:"Type"`
+		MediaType string `json:"MediaType"`
+	} `json:"NowPlayingItem,omitempty"`
+	PlayState *struct {
+		PositionTicks      int64  `json:"PositionTicks"`
+		CanSeek            bool   `json:"CanSeek"`
+		IsPaused           bool   `json:"IsPaused"`
+		IsMuted            bool   `json:"IsMuted"`
+		VolumeLevel        int    `json:"VolumeLevel"`
+		AudioStreamIndex   int    `json:"AudioStreamIndex"`
+		SubtitleStreamIndex int   `json:"SubtitleStreamIndex"`
+		MediaSourceID      string `json:"MediaSourceId"`
+		PlayMethod         string `json:"PlayMethod"` // DirectPlay, DirectStream, Transcode
+	} `json:"PlayState,omitempty"`
+	TranscodingInfo *struct {
+		VideoCodec          string  `json:"VideoCodec"`
+		AudioCodec          string  `json:"AudioCodec"`
+		Container           string  `json:"Container"`
+		IsVideoDirect       bool    `json:"IsVideoDirect"`
+		IsAudioDirect       bool    `json:"IsAudioDirect"`
+		Bitrate             int     `json:"Bitrate"`
+		Framerate           float64 `json:"Framerate"`
+		CompletionPercentage float64 `json:"CompletionPercentage"`
+		Width               int     `json:"Width"`
+		Height              int     `json:"Height"`
+		AudioChannels       int     `json:"AudioChannels"`
+		TranscodeReasons    []string `json:"TranscodeReasons"`
+	} `json:"TranscodingInfo,omitempty"`
+}
+
+// GetActiveSessions retrieves all active sessions from Jellyfin.
+func (c *JellyfinClient) GetActiveSessions(ctx context.Context) ([]SessionInfo, error) {
+	var sessions []SessionInfo
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&sessions).
+			Get("/Sessions")
+
+		if err != nil {
+			return fmt.Errorf("failed to get active sessions: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellyfin active sessions",
+		zap.Int("session_count", len(sessions)),
+	)
+
+	return sessions, nil
+}
+
+// LibraryStats represents statistics for a Jellyfin library.
+type LibraryStats struct {
+	TotalItems      int   `json:"total_items"`
+	MovieCount      int   `json:"movie_count"`
+	SeriesCount     int   `json:"series_count"`
+	EpisodeCount    int   `json:"episode_count"`
+	AlbumCount      int   `json:"album_count"`
+	SongCount       int   `json:"song_count"`
+	TotalSize       int64 `json:"total_size"`
+	LibraryFolders  []VirtualFolder `json:"library_folders,omitempty"`
+}
+
+// GetLibraryStats retrieves detailed statistics about the Jellyfin library.
+func (c *JellyfinClient) GetLibraryStats(ctx context.Context) (*LibraryStats, error) {
+	stats := &LibraryStats{}
+
+	// Get all items to calculate stats
+	var response jellyfinItemsResponse
+	
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&response).
+			SetQueryParams(map[string]string{
+				"Recursive": "true",
+				"Fields":    "MediaSources",
+			}).
+			Get("/Items")
+
+		if err != nil {
+			return fmt.Errorf("failed to get library items: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	stats.TotalItems = response.TotalCount
+
+	// Calculate type-specific counts and total size
+	var totalSize int64
+	for _, item := range response.Items {
+		switch item.Type {
+		case "Movie":
+			stats.MovieCount++
+		case "Series":
+			stats.SeriesCount++
+		case "Episode":
+			stats.EpisodeCount++
+		case "MusicAlbum":
+			stats.AlbumCount++
+		case "Audio":
+			stats.SongCount++
+		}
+
+		// Sum file sizes
+		if len(item.MediaSources) > 0 {
+			totalSize += item.MediaSources[0].Size
+		}
+	}
+	stats.TotalSize = totalSize
+
+	// Get virtual folders
+	folders, err := c.GetVirtualFolders(ctx)
+	if err == nil {
+		stats.LibraryFolders = folders
+	}
+
+	c.logger.Info("Retrieved Jellyfin library statistics",
+		zap.Int("total_items", stats.TotalItems),
+		zap.Int("movies", stats.MovieCount),
+		zap.Int("series", stats.SeriesCount),
+		zap.Int64("total_size_bytes", stats.TotalSize),
+	)
+
+	return stats, nil
+}
+
+// RecentlyAddedItem represents a recently added media item.
+type RecentlyAddedItem struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Type        string    `json:"type"`
+	DateCreated time.Time `json:"date_created"`
+	PosterURL   string    `json:"poster_url,omitempty"`
+	Overview    string    `json:"overview,omitempty"`
+}
+
+// GetRecentlyAdded retrieves recently added items from Jellyfin.
+func (c *JellyfinClient) GetRecentlyAdded(ctx context.Context, limit int) ([]RecentlyAddedItem, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	var response jellyfinItemsResponse
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&response).
+			SetQueryParams(map[string]string{
+				"SortBy":    "DateCreated",
+				"SortOrder": "Descending",
+				"Recursive": "true",
+				"IncludeItemTypes": "Movie,Series",
+				"Limit":     fmt.Sprintf("%d", limit),
+				"Fields":    "Overview,DateCreated",
+			}).
+			Get("/Items")
+
+		if err != nil {
+			return fmt.Errorf("failed to get recently added items: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]RecentlyAddedItem, 0, len(response.Items))
+	for _, item := range response.Items {
+		recentItem := RecentlyAddedItem{
+			ID:          item.ID,
+			Name:        item.Name,
+			Type:        item.Type,
+			DateCreated: item.DateCreated,
+			Overview:    "", // Overview would need to be in the jellyfinItem struct
+		}
+
+		// Extract poster URL if available
+		if primaryTag, ok := item.ImageTags["Primary"]; ok {
+			recentItem.PosterURL = fmt.Sprintf("%s/Items/%s/Images/Primary?tag=%s",
+				c.baseURL, item.ID, primaryTag)
+		}
+
+		items = append(items, recentItem)
+	}
+
+	c.logger.Info("Retrieved recently added items",
+		zap.Int("count", len(items)),
+	)
+
+	return items, nil
+}
+
+// ActivityLogEntry represents an entry in the Jellyfin activity log.
+type ActivityLogEntry struct {
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	Type      string    `json:"type"`
+	UserID    string    `json:"user_id"`
+	Date      time.Time `json:"date"`
+	Severity  string    `json:"severity"`
+	ShortOverview string `json:"short_overview,omitempty"`
+}
+
+// jellyfinActivityResponse represents the response from the activity log endpoint.
+type jellyfinActivityResponse struct {
+	Items      []struct {
+		ID            int64     `json:"Id"`
+		Name          string    `json:"Name"`
+		Type          string    `json:"Type"`
+		UserID        string    `json:"UserId"`
+		Date          time.Time `json:"Date"`
+		Severity      string    `json:"Severity"`
+		ShortOverview string    `json:"ShortOverview"`
+	} `json:"Items"`
+	TotalRecordCount int `json:"TotalRecordCount"`
+}
+
+// GetActivityLog retrieves the activity log from Jellyfin.
+func (c *JellyfinClient) GetActivityLog(ctx context.Context, limit int) ([]ActivityLogEntry, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
+	var response jellyfinActivityResponse
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&response).
+			SetQueryParams(map[string]string{
+				"StartIndex": "0",
+				"Limit":      fmt.Sprintf("%d", limit),
+			}).
+			Get("/System/ActivityLog/Entries")
+
+		if err != nil {
+			return fmt.Errorf("failed to get activity log: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]ActivityLogEntry, 0, len(response.Items))
+	for _, item := range response.Items {
+		entries = append(entries, ActivityLogEntry{
+			ID:            item.ID,
+			Name:          item.Name,
+			Type:          item.Type,
+			UserID:        item.UserID,
+			Date:          item.Date,
+			Severity:      item.Severity,
+			ShortOverview: item.ShortOverview,
+		})
+	}
+
+	c.logger.Info("Retrieved activity log entries",
+		zap.Int("count", len(entries)),
+	)
+
+	return entries, nil
+}

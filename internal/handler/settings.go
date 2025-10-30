@@ -344,3 +344,90 @@ func (h *SettingsHandler) TestConnection(c *fiber.Ctx) error {
 		"message": "Connection test successful",
 	})
 }
+
+// GetJellyfinStats returns detailed Jellyfin statistics.
+func (h *SettingsHandler) GetJellyfinStats(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	stats, err := h.syncService.GetJellyfinLibraryStats(ctx)
+	if err != nil {
+		h.logger.Error("Failed to get Jellyfin stats",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(stats)
+}
+
+// GetJellyfinSessions returns active Jellyfin sessions.
+func (h *SettingsHandler) GetJellyfinSessions(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	sessions, err := h.syncService.GetJellyfinActiveSessions(ctx)
+	if err != nil {
+		h.logger.Error("Failed to get Jellyfin sessions",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"sessions": sessions,
+		"count":    len(sessions),
+	})
+}
+
+// GetJellyfinRecentlyAdded returns recently added items from Jellyfin.
+func (h *SettingsHandler) GetJellyfinRecentlyAdded(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	// Get limit from query params, default to 20
+	limit := c.QueryInt("limit", 20)
+
+	items, err := h.syncService.GetJellyfinRecentlyAdded(ctx, limit)
+	if err != nil {
+		h.logger.Error("Failed to get Jellyfin recently added",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"items": items,
+		"count": len(items),
+	})
+}
+
+// GetJellyfinActivity returns Jellyfin activity log.
+func (h *SettingsHandler) GetJellyfinActivity(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get limit from query params, default to 50
+	limit := c.QueryInt("limit", 50)
+
+	entries, err := h.syncService.GetJellyfinActivityLog(ctx, limit)
+	if err != nil {
+		h.logger.Error("Failed to get Jellyfin activity log",
+			"error", err,
+		)
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"entries": entries,
+		"count":   len(entries),
+	})
+}
