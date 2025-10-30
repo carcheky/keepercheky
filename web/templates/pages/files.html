@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <!-- Filtros Avanzados (usando componente healthFilters) -->
+    <!-- Filtros Avanzados - Solo búsqueda (otros filtros incompatibles con paginación del servidor) -->
     <div x-data="{ filtersOpen: false }" 
         class="mb-6">
         
@@ -113,10 +113,10 @@
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
-            <span class="text-dark-text font-medium">Filtros Avanzados</span>
-            <span x-show="hasActiveFilters" 
+            <span class="text-dark-text font-medium">Búsqueda</span>
+            <span x-show="filterSearch" 
                 class="px-2 py-0.5 bg-blue-900/40 border border-blue-600/50 text-blue-300 rounded text-xs">
-                <span x-text="activeFilterCount"></span> activo<span x-text="activeFilterCount > 1 ? 's' : ''"></span>
+                activa
             </span>
         </button>
         
@@ -124,67 +124,22 @@
             x-transition
             class="mt-2 bg-dark-surface border border-dark-border rounded-lg p-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Tipo de Problema</label>
-                    <select x-model="filterProblem" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="error">Errores de torrent</option>
-                        <option value="missing">Archivos faltantes</option>
-                        <option value="orphan">Descargas huérfanas</option>
-                        <option value="low_ratio">Ratio bajo</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Servicio</label>
-                    <select x-model="filterService" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="jellyfin">Jellyfin</option>
-                        <option value="radarr">Radarr</option>
-                        <option value="sonarr">Sonarr</option>
-                        <option value="qbittorrent">qBittorrent</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Tamaño</label>
-                    <select x-model="filterSize" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="small">Pequeño (&lt;1GB)</option>
-                        <option value="medium">Mediano (1-10GB)</option>
-                        <option value="large">Grande (10-50GB)</option>
-                        <option value="huge">Muy grande (&gt;50GB)</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Antigüedad</label>
-                    <select x-model="filterAge" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="recent">Reciente (&lt;7 días)</option>
-                        <option value="week">1-4 semanas</option>
-                        <option value="month">1-3 meses</option>
-                        <option value="old">Más de 3 meses</option>
-                    </select>
-                </div>
-            </div>
-            
             <div class="flex items-center gap-4">
                 <input type="text" x-model="filterSearch" @input="applyFilters()" 
-                    placeholder="Buscar por título o ruta..."
+                    placeholder="Buscar por título o ruta en la página actual..."
                     class="flex-1 px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
                 
                 <button @click="clearFilters()"
-                    :class="hasActiveFilters ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
-                    :disabled="!hasActiveFilters"
+                    :class="filterSearch ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
+                    :disabled="!filterSearch"
                     class="px-4 py-2 text-white rounded-lg transition-colors">
-                    Limpiar Filtros
+                    Limpiar
                 </button>
+            </div>
+            
+            <div class="mt-3 text-xs text-dark-muted">
+                <p>💡 La búsqueda filtra solo los resultados de la página actual.</p>
+                <p>Usa las pestañas (OK, Atención, Críticos, etc.) para filtrar por categoría.</p>
             </div>
         </div>
     </div>
@@ -888,11 +843,7 @@ function filesPage() {
             total: 0
         },
         
-        // Advanced filter properties
-        filterProblem: '',
-        filterService: '',
-        filterSize: '',
-        filterAge: '',
+        // Search filter property (only client-side filter that works with pagination)
         filterSearch: '',
         
         // Selection properties
@@ -942,16 +893,25 @@ function filesPage() {
         },
 
         get unwatchedFiles() {
+            // With server-side pagination, return server data or count
             if (this.selectedTab === 'unwatched' && this.files.length > 0) {
-                // Client-side filter for has_been_watched since it's computed
-                return this.files.filter(f => !f.has_been_watched);
+                return this.files;
             }
             return { length: this.counts.unwatched || 0 };
         },
 
         get filteredFiles() {
-            // Apply client-side advanced filters to server-filtered results
-            return this.applyAdvancedFilters(this.files);
+            // With server-side pagination, files are already filtered by the server
+            // Only apply client-side search filter if it's set
+            if (this.filterSearch) {
+                const search = this.filterSearch.toLowerCase();
+                return this.files.filter(f => {
+                    const title = (f.title || '').toLowerCase();
+                    const path = (f.file_path || '').toLowerCase();
+                    return title.includes(search) || path.includes(search);
+                });
+            }
+            return this.files;
         },
         
         get paginationStart() {
@@ -966,8 +926,9 @@ function filesPage() {
         
         get paginatedFiles() {
             // With server-side pagination, we display all files returned
-            // They're already paginated by the server
-            return this.applyAdvancedFilters(this.files);
+            // They're already paginated and filtered by the server
+            // Only apply client-side search if needed
+            return this.filteredFiles;
         },
         
         get visiblePages() {
@@ -1523,34 +1484,12 @@ function filesPage() {
             return filtered;
         },
         
-        get hasActiveFilters() {
-            return !!(this.filterProblem || this.filterService || 
-                     this.filterSize || this.filterAge || this.filterSearch);
-        },
-        
-        get activeFilterCount() {
-            let count = 0;
-            if (this.filterProblem) count++;
-            if (this.filterService) count++;
-            if (this.filterSize) count++;
-            if (this.filterAge) count++;
-            if (this.filterSearch) count++;
-            return count;
-        },
-        
         applyFilters() {
-            // This method is called by the filter controls
-            // Reset to first page when filters change
-            this.currentPage = 1;
+            // Called when search filter changes - no action needed as filteredFiles is computed
         },
         
         clearFilters() {
-            this.filterProblem = '';
-            this.filterService = '';
-            this.filterSize = '';
-            this.filterAge = '';
             this.filterSearch = '';
-            this.currentPage = 1;
         },
 
         async loadFiles() {
@@ -1580,14 +1519,6 @@ function filesPage() {
                 if (data.counts) {
                     this.counts = data.counts;
                 }
-                
-                console.log('Files loaded:', {
-                    tab: this.selectedTab,
-                    page: this.currentPage,
-                    perPage: this.itemsPerPage,
-                    total: this.totalCount,
-                    returned: this.files.length
-                });
             } catch (error) {
                 console.error('Error loading files:', error);
                 this.showSyncMessage('Error al cargar archivos: ' + error.message, 'error');

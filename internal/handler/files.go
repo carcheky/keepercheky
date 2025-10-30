@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"math"
 	"path/filepath"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // FilesHandler handles file listing and management
@@ -773,9 +775,11 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		// Default sort: downloads first, then library items, then alphabetical
 		query = query.Order("in_q_bittorrent DESC, in_jellyfin DESC, file_path ASC")
 	} else {
-		// Custom sort requested
-		orderClause := fmt.Sprintf("%s %s", sortBy, order)
-		query = query.Order(orderClause)
+		// Custom sort requested - use GORM clause for SQL injection safety
+		query = query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: sortBy},
+			Desc:   order == "desc",
+		})
 	}
 
 	// Apply pagination
@@ -791,7 +795,7 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	}
 
 	// Calculate total pages
-	totalPages := int((totalCount + int64(perPage) - 1) / int64(perPage))
+	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
 	// Get category counts (for summary cards) - only if not filtering by tab
 	var counts map[string]int64
@@ -876,7 +880,10 @@ func (h *FilesHandler) getCategoryCounts() map[string]int64 {
 		Count(&hardlinksCount)
 	counts["hardlinks"] = hardlinksCount
 
-	// Unwatched (approximation - in Jellyfin)
+	// Unwatched (approximation - counts all files in Jellyfin)
+	// NOTE: has_been_watched is computed at runtime, so this count represents
+	// all files in Jellyfin, not necessarily unwatched ones. The actual unwatched
+	// count may be lower than this approximation.
 	var unwatchedCount int64
 	db.Session(&gorm.Session{}).
 		Where("in_jellyfin = ?", true).
