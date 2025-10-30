@@ -296,6 +296,7 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 		SonarrID:     ef.SonarrID,
 		JellyfinID:   ef.JellyfinID,
 		JellyseerrID: ef.JellyseerrID,
+		// JellystatID not needed - Jellystat uses Jellyfin IDs for tracking
 
 		// Torrent info
 		TorrentHash:     ef.TorrentHash,
