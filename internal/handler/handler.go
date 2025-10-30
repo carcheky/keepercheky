@@ -20,6 +20,7 @@ type Handlers struct {
 	Files       *FilesHandler
 	FileActions *FileActionsHandler
 	Radarr      *RadarrHandler
+	Sonarr      *SonarrHandler
 }
 
 func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Logger, cfg *config.Config) *Handlers {
@@ -72,5 +73,6 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 			logger.Desugar(),
 		),
 		Radarr: NewRadarrHandler(cfg, logger),
+		Sonarr: NewSonarrHandler(cfg, logger),
 	}
 }
