@@ -57,7 +57,7 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 
 	return &Handlers{
 		Health:    NewHealthHandler(db, logger),
-		Dashboard: NewDashboardHandler(repos, logger),
+		Dashboard: NewDashboardHandler(repos, logger, oldSyncService),
 		Media:     NewMediaHandler(repos, cleanupService, logger),
 		Schedule:  NewScheduleHandler(repos, logger),
 		Settings:  NewSettingsHandler(repos, logger, cfg, oldSyncService),

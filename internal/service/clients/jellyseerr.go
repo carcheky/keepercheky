@@ -291,6 +291,49 @@ func (c *JellyseerrClient) convertToRequest(req *jellyseerrRequest) *models.Requ
 	return request
 }
 
+// JellyseerrRequestStats represents statistics about requests in Jellyseerr
+type JellyseerrRequestStats struct {
+	TotalRequests     int `json:"total_requests"`
+	PendingRequests   int `json:"pending_requests"`
+	ApprovedRequests  int `json:"approved_requests"`
+	AvailableRequests int `json:"available_requests"`
+	DeniedRequests    int `json:"denied_requests"`
+}
+
+// GetRequestStats retrieves statistics about all requests
+func (c *JellyseerrClient) GetRequestStats(ctx context.Context) (*JellyseerrRequestStats, error) {
+	// Get all requests
+	requests, err := c.GetRequests(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate statistics
+	stats := &JellyseerrRequestStats{}
+	for _, req := range requests {
+		stats.TotalRequests++
+		switch req.Status {
+		case "pending":
+			stats.PendingRequests++
+		case "approved":
+			stats.ApprovedRequests++
+		case "available":
+			stats.AvailableRequests++
+		case "denied":
+			stats.DeniedRequests++
+		}
+	}
+
+	c.logger.Info("Retrieved Jellyseerr request statistics",
+		zap.Int("total", stats.TotalRequests),
+		zap.Int("pending", stats.PendingRequests),
+		zap.Int("approved", stats.ApprovedRequests),
+		zap.Int("available", stats.AvailableRequests),
+	)
+
+	return stats, nil
+}
+
 // callWithRetry executes a function with retry logic.
 func (c *JellyseerrClient) callWithRetry(ctx context.Context, fn func() error) error {
 	var lastErr error

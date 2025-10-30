@@ -748,6 +748,30 @@ func (s *SyncService) GetJellyseerrSystemInfo(ctx context.Context) (*clients.Jel
 	return jellyseerrClient.GetSystemInfo(ctx)
 }
 
+// GetJellyseerrRequests retrieves all requests from Jellyseerr.
+func (s *SyncService) GetJellyseerrRequests(ctx context.Context) ([]*models.Request, error) {
+	if s.jellyseerrClient == nil {
+		return nil, fmt.Errorf("Jellyseerr not configured")
+	}
+
+	return s.jellyseerrClient.GetRequests(ctx)
+}
+
+// GetJellyseerrRequestStats retrieves request statistics from Jellyseerr.
+func (s *SyncService) GetJellyseerrRequestStats(ctx context.Context) (*clients.JellyseerrRequestStats, error) {
+	if s.jellyseerrClient == nil {
+		return nil, fmt.Errorf("Jellyseerr not configured")
+	}
+
+	// Type assertion to access JellyseerrClient specific methods
+	jellyseerrClient, ok := s.jellyseerrClient.(*clients.JellyseerrClient)
+	if !ok {
+		return nil, fmt.Errorf("invalid Jellyseerr client type")
+	}
+
+	return jellyseerrClient.GetRequestStats(ctx)
+}
+
 // GetJellystatSystemInfo returns complete system information from Jellystat.
 func (s *SyncService) GetJellystatSystemInfo(ctx context.Context) (*clients.JellystatSystemInfo, error) {
 	if s.jellystatClient == nil {

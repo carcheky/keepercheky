@@ -412,6 +412,73 @@
         </div>
     </div>
 
+    <!-- Jellyseerr Requests (if enabled) -->
+    <div x-data="jellyseerrRequests()" x-init="init()" x-show="enabled" 
+         class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-dark-text">📋 Jellyseerr - Solicitudes</h2>
+            <button @click="refresh()" :disabled="loading" 
+                    class="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50">
+                <span x-show="!loading">Actualizar</span>
+                <span x-show="loading">Cargando...</span>
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div x-show="stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div class="bg-dark-bg rounded-lg p-3 border border-dark-border">
+                <p class="text-xs text-dark-muted">Total</p>
+                <p class="text-2xl font-bold text-dark-text" x-text="stats?.total_requests || 0"></p>
+            </div>
+            <div class="bg-dark-bg rounded-lg p-3 border border-yellow-700/50">
+                <p class="text-xs text-yellow-400">Pendientes</p>
+                <p class="text-2xl font-bold text-yellow-400" x-text="stats?.pending_requests || 0"></p>
+            </div>
+            <div class="bg-dark-bg rounded-lg p-3 border border-green-700/50">
+                <p class="text-xs text-green-400">Aprobadas</p>
+                <p class="text-2xl font-bold text-green-400" x-text="stats?.approved_requests || 0"></p>
+            </div>
+            <div class="bg-dark-bg rounded-lg p-3 border border-blue-700/50">
+                <p class="text-xs text-blue-400">Disponibles</p>
+                <p class="text-2xl font-bold text-blue-400" x-text="stats?.available_requests || 0"></p>
+            </div>
+        </div>
+
+        <!-- Recent Requests -->
+        <div x-show="requests && requests.length > 0" class="space-y-2">
+            <h3 class="text-sm font-semibold text-dark-muted mb-2">Solicitudes Recientes</h3>
+            <template x-for="request in requests.slice(0, 5)" :key="request.id">
+                <div class="bg-dark-bg rounded-lg p-3 border border-dark-border flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-dark-text" x-text="request.media_title"></p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs px-2 py-0.5 rounded" 
+                                  :class="{
+                                      'bg-yellow-600 text-white': request.status === 'pending',
+                                      'bg-green-600 text-white': request.status === 'approved',
+                                      'bg-blue-600 text-white': request.status === 'available',
+                                      'bg-red-600 text-white': request.status === 'denied'
+                                  }"
+                                  x-text="request.status"></span>
+                            <span class="text-xs text-dark-muted" x-text="request.media_type === 'movie' ? '🎬 Película' : '📺 Serie'"></span>
+                            <span class="text-xs text-dark-muted" x-text="'Por: ' + request.requested_by"></span>
+                        </div>
+                    </div>
+                    <span class="text-xs text-dark-muted" x-text="formatDate(request.requested_at)"></span>
+                </div>
+            </template>
+            <div x-show="requests.length > 5" class="text-center mt-2">
+                <p class="text-xs text-dark-muted">
+                    Mostrando 5 de <span x-text="requests.length"></span> solicitudes
+                </p>
+            </div>
+        </div>
+
+        <div x-show="!stats && !loading" class="text-center py-4">
+            <p class="text-dark-muted">No hay estadísticas disponibles</p>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="bg-dark-surface dark:bg-dark-surface rounded-lg shadow-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-4">Quick Actions</h2>
@@ -441,13 +508,27 @@
 </div>
 
 <script>
-    // Shared utility function
+    // Shared utility functions
     function formatBytes(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Hoy';
+        if (diffDays === 1) return 'Ayer';
+        if (diffDays < 7) return `Hace ${diffDays} días`;
+        if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
+        return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
     }
 
     function dashboard() {
@@ -707,20 +788,48 @@
                 } finally {
                     this.loading = false;
                 }
+            }
+        }
+    }
+
+    function jellyseerrRequests() {
+        return {
+            enabled: false,
+            stats: null,
+            requests: [],
+            loading: false,
+
+            async init() {
+                await this.refresh();
             },
 
-            formatDate(dateStr) {
-                if (!dateStr) return '';
-                const date = new Date(dateStr);
-                const now = new Date();
-                const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Hoy';
-                if (diffDays === 1) return 'Ayer';
-                if (diffDays < 7) return `Hace ${diffDays} días`;
-                if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
-                return date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+            async refresh() {
+                this.loading = true;
+                try {
+                    // Load stats
+                    const statsResponse = await fetch('/api/jellyseerr/stats');
+                    if (statsResponse.ok) {
+                        this.stats = await statsResponse.json();
+                        this.enabled = true;
+                    } else {
+                        // If Jellyseerr is not configured, disable the section
+                        this.enabled = false;
+                        this.loading = false;
+                        return;
+                    }
+
+                    // Load requests
+                    const requestsResponse = await fetch('/api/jellyseerr/requests');
+                    if (requestsResponse.ok) {
+                        const data = await requestsResponse.json();
+                        this.requests = data.requests || [];
+                    }
+                } catch (error) {
+                    console.error('Error loading Jellyseerr data:', error);
+                    this.enabled = false;
+                } finally {
+                    this.loading = false;
+                }
             }
         }
     }
