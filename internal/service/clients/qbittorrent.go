@@ -52,6 +52,11 @@ type qbTorrent struct {
 	SavePath    string  `json:"save_path"`
 	ContentPath string  `json:"content_path"`
 	AmountLeft  int64   `json:"amount_left"`
+	AddedOn     int64   `json:"added_on"`      // Unix timestamp
+	CompletedOn int64   `json:"completed_on"`  // Unix timestamp
+	ETA         int64   `json:"eta"`           // Seconds
+	NumSeeds    int     `json:"num_seeds"`     // Seeds connected
+	NumLeechs   int     `json:"num_leechs"`    // Leechers connected
 }
 
 // qbBuildInfo represents build info from qBittorrent API.
@@ -328,6 +333,11 @@ func (c *QBittorrentClient) GetAllTorrentsMap(ctx context.Context) (map[string]*
 			SavePath:    t.SavePath,
 			IsSeeding:   c.isStateSeeding(t.State),
 			IsComplete:  t.Progress >= 1.0,
+			AddedOn:     t.AddedOn,
+			CompletedOn: t.CompletedOn,
+			ETA:         t.ETA,
+			NumSeeds:    t.NumSeeds,
+			NumPeers:    t.NumLeechs,
 		}
 
 		// Log first 5 torrents for debugging path structure
@@ -563,4 +573,219 @@ func (c *QBittorrentClient) DeleteTorrent(ctx context.Context, hash string, dele
 	)
 
 	return nil
+}
+
+// GetTransferInfo retrieves global transfer statistics from qBittorrent.
+func (c *QBittorrentClient) GetTransferInfo(ctx context.Context) (*models.QBittorrentTransferInfo, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	var transferInfo models.QBittorrentTransferInfo
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&transferInfo).
+		Get("/api/v2/transfer/info")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get transfer info: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Debug("Retrieved qBittorrent transfer info",
+		zap.Int64("dl_speed", transferInfo.DLInfoSpeed),
+		zap.Int64("up_speed", transferInfo.UPInfoSpeed),
+		zap.Int("dht_nodes", transferInfo.DHTNodes),
+		zap.String("connection_status", transferInfo.ConnectionStatus),
+	)
+
+	return &transferInfo, nil
+}
+
+// GetServerState retrieves server state from qBittorrent sync/maindata endpoint.
+func (c *QBittorrentClient) GetServerState(ctx context.Context) (*models.QBittorrentServerState, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	// The maindata endpoint returns a complex structure, we only need server_state
+	var response struct {
+		ServerState models.QBittorrentServerState `json:"server_state"`
+	}
+
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&response).
+		Get("/api/v2/sync/maindata")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get server state: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Debug("Retrieved qBittorrent server state",
+		zap.Int64("dl_speed", response.ServerState.DLInfoSpeed),
+		zap.Int64("up_speed", response.ServerState.UPInfoSpeed),
+		zap.Int64("free_space", response.ServerState.FreeSpaceOnDisk),
+	)
+
+	return &response.ServerState, nil
+}
+
+// GetTorrentProperties retrieves detailed properties for a specific torrent.
+func (c *QBittorrentClient) GetTorrentProperties(ctx context.Context, hash string) (*models.QBittorrentTorrentProperties, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	var props models.QBittorrentTorrentProperties
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&props).
+		SetQueryParam("hash", hash).
+		Get("/api/v2/torrents/properties")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get torrent properties: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Debug("Retrieved torrent properties",
+		zap.String("hash", hash),
+		zap.Int64("eta", props.ETA),
+		zap.Int("seeds", props.Seeds),
+		zap.Int("peers", props.Peers),
+	)
+
+	return &props, nil
+}
+
+// GetTorrentTrackers retrieves tracker information for a specific torrent.
+func (c *QBittorrentClient) GetTorrentTrackers(ctx context.Context, hash string) ([]models.QBittorrentTracker, error) {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return nil, fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	var trackers []models.QBittorrentTracker
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&trackers).
+		SetQueryParam("hash", hash).
+		Get("/api/v2/torrents/trackers")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get torrent trackers: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Debug("Retrieved torrent trackers",
+		zap.String("hash", hash),
+		zap.Int("tracker_count", len(trackers)),
+	)
+
+	return trackers, nil
+}
+
+// GetEnhancedTorrentInfo retrieves basic torrent info with enhanced details from properties endpoint.
+// This provides a richer dataset for displaying in the UI.
+func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash string) (*models.TorrentInfo, error) {
+	// Get basic torrent info
+	var torrents []qbTorrent
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&torrents).
+		SetQueryParam("hashes", hash).
+		Get("/api/v2/torrents/info")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get torrent info: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	if len(torrents) == 0 {
+		return nil, fmt.Errorf("torrent not found: %s", hash)
+	}
+
+	torrent := torrents[0]
+	
+	// Get enhanced properties
+	props, err := c.GetTorrentProperties(ctx, hash)
+	if err != nil {
+		// Log but don't fail - return basic info
+		c.logger.Warn("Failed to get torrent properties, using basic info only",
+			zap.String("hash", hash),
+			zap.Error(err),
+		)
+		
+		return &models.TorrentInfo{
+			Hash:        torrent.Hash,
+			Name:        torrent.Name,
+			State:       torrent.State,
+			Progress:    torrent.Progress,
+			Ratio:       torrent.Ratio,
+			Size:        torrent.Size,
+			UpSpeed:     torrent.UpSpeed,
+			DlSpeed:     torrent.DlSpeed,
+			SeedingTime: torrent.SeedingTime,
+			Category:    torrent.Category,
+			Tags:        torrent.Tags,
+			SavePath:    torrent.SavePath,
+			IsSeeding:   c.isStateSeeding(torrent.State),
+			IsComplete:  torrent.Progress >= 1.0,
+		}, nil
+	}
+
+	// Combine basic and enhanced info
+	info := &models.TorrentInfo{
+		Hash:            torrent.Hash,
+		Name:            torrent.Name,
+		State:           torrent.State,
+		Progress:        torrent.Progress,
+		Ratio:           torrent.Ratio,
+		Size:            torrent.Size,
+		UpSpeed:         torrent.UpSpeed,
+		DlSpeed:         torrent.DlSpeed,
+		SeedingTime:     torrent.SeedingTime,
+		Category:        torrent.Category,
+		Tags:            torrent.Tags,
+		SavePath:        torrent.SavePath,
+		IsSeeding:       c.isStateSeeding(torrent.State),
+		IsComplete:      torrent.Progress >= 1.0,
+		AddedOn:         props.AdditionDate,
+		CompletedOn:     props.CompletionDate,
+		ETA:             props.ETA,
+		TotalUploaded:   props.TotalUploaded,
+		TotalDownloaded: props.TotalDownloaded,
+		NumSeeds:        props.Seeds,
+		NumPeers:        props.Peers,
+	}
+
+	return info, nil
 }
