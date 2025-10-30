@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -161,10 +162,65 @@ type GlobalStats struct {
 
 // RunMigrations runs all database migrations
 func RunMigrations(db *gorm.DB) error {
-	return db.AutoMigrate(
+	// Run standard AutoMigrate first
+	if err := db.AutoMigrate(
 		&Media{},
 		&Schedule{},
 		&History{},
 		&Settings{},
-	)
+	); err != nil {
+		return err
+	}
+	
+	// Add composite indices for common query patterns to improve performance
+	// These indices significantly speed up the Files tab filtering
+	return addPerformanceIndices(db)
+}
+
+// addPerformanceIndices creates composite indices for frequently used queries
+// in the Files tab to dramatically improve query performance on large libraries
+func addPerformanceIndices(db *gorm.DB) error {
+	// SQLite doesn't support concurrent index creation, so we check if they exist first
+	
+	// Index for healthy files query
+	// WHERE in_jellyfin = true AND (in_radarr = true OR in_sonarr = true) 
+	// AND (torrent_state IS NULL OR torrent_state NOT IN ('error', 'missingFiles'))
+	if err := db.Exec(`
+		CREATE INDEX IF NOT EXISTS idx_media_healthy_files 
+		ON media(in_jellyfin, in_radarr, in_sonarr, torrent_state) 
+		WHERE deleted_at IS NULL
+	`).Error; err != nil {
+		return fmt.Errorf("failed to create healthy files index: %w", err)
+	}
+	
+	// Index for orphan downloads query
+	// WHERE in_q_bittorrent = true AND in_jellyfin = false AND in_radarr = false AND in_sonarr = false
+	if err := db.Exec(`
+		CREATE INDEX IF NOT EXISTS idx_media_orphan_downloads 
+		ON media(in_q_bittorrent, in_jellyfin, in_radarr, in_sonarr) 
+		WHERE deleted_at IS NULL
+	`).Error; err != nil {
+		return fmt.Errorf("failed to create orphan downloads index: %w", err)
+	}
+	
+	// Index for dead torrents query
+	// WHERE in_q_bittorrent = true AND (torrent_state = 'error' OR torrent_state = 'missingFiles')
+	if err := db.Exec(`
+		CREATE INDEX IF NOT EXISTS idx_media_dead_torrents 
+		ON media(in_q_bittorrent, torrent_state) 
+		WHERE deleted_at IS NULL
+	`).Error; err != nil {
+		return fmt.Errorf("failed to create dead torrents index: %w", err)
+	}
+	
+	// Index for default sorting (qBittorrent first, then Jellyfin, then file_path)
+	if err := db.Exec(`
+		CREATE INDEX IF NOT EXISTS idx_media_default_sort 
+		ON media(in_q_bittorrent DESC, in_jellyfin DESC, file_path ASC) 
+		WHERE deleted_at IS NULL
+	`).Error; err != nil {
+		return fmt.Errorf("failed to create default sort index: %w", err)
+	}
+	
+	return nil
 }

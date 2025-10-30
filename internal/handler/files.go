@@ -6,6 +6,8 @@ import (
 	"math"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
@@ -17,6 +19,29 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+// categoryCountsCache holds cached category counts with expiration
+type categoryCountsCache struct {
+	counts    map[string]int64
+	expiresAt time.Time
+	mu        sync.RWMutex
+}
+
+var (
+	countsCache = &categoryCountsCache{
+		counts:    make(map[string]int64),
+		expiresAt: time.Now(),
+	}
+	cacheTTL = 30 * time.Second // Cache counts for 30 seconds
+)
+
+// InvalidateCategoryCountsCache clears the cached category counts
+// Call this after sync operations to ensure fresh data
+func InvalidateCategoryCountsCache() {
+	countsCache.mu.Lock()
+	defer countsCache.mu.Unlock()
+	countsCache.expiresAt = time.Now().Add(-1 * time.Second) // Expire immediately
+}
 
 // FilesHandler handles file listing and management
 type FilesHandler struct {
@@ -843,59 +868,91 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// getCategoryCounts returns counts for each file category
+// getCategoryCounts returns counts for each file category with caching
 func (h *FilesHandler) getCategoryCounts() map[string]int64 {
+	// Check cache first
+	countsCache.mu.RLock()
+	if time.Now().Before(countsCache.expiresAt) && len(countsCache.counts) > 0 {
+		cached := make(map[string]int64, len(countsCache.counts))
+		for k, v := range countsCache.counts {
+			cached[k] = v
+		}
+		countsCache.mu.RUnlock()
+		h.logger.Debug("Category counts served from cache")
+		return cached
+	}
+	countsCache.mu.RUnlock()
+
+	// Cache miss - recalculate
+	startTime := time.Now()
+	counts := h.calculateCategoryCounts()
+	
+	// Update cache
+	countsCache.mu.Lock()
+	countsCache.counts = counts
+	countsCache.expiresAt = time.Now().Add(cacheTTL)
+	countsCache.mu.Unlock()
+	
+	elapsed := time.Since(startTime)
+	h.logger.Info("Category counts calculated and cached",
+		zap.Duration("elapsed", elapsed),
+		zap.Int("total", int(counts["total"])),
+	)
+	
+	return counts
+}
+
+// calculateCategoryCounts performs the actual category count queries
+// This is separated from getCategoryCounts to allow for caching
+func (h *FilesHandler) calculateCategoryCounts() map[string]int64 {
 	counts := make(map[string]int64)
 	db := h.mediaRepo.GetDB().Table("media")
 
-	// Healthy files
-	var healthyCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_jellyfin = ? AND (in_radarr = ? OR in_sonarr = ?)",
-			true, true, true).
-		Where("(torrent_state IS NULL OR torrent_state NOT IN (?, ?))", "error", "missingFiles").
-		Count(&healthyCount)
-	counts["healthy"] = healthyCount
-
-	// Orphan downloads
-	var attentionCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_q_bittorrent = ? AND in_jellyfin = ? AND in_radarr = ? AND in_sonarr = ?",
-			true, false, false, false).
-		Count(&attentionCount)
-	counts["attention"] = attentionCount
-
-	// Dead torrents
-	var criticalCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_q_bittorrent = ? AND (torrent_state = ? OR torrent_state = ?)",
-			true, "error", "missingFiles").
-		Count(&criticalCount)
-	counts["critical"] = criticalCount
-
-	// Hardlinks
-	var hardlinksCount int64
-	db.Session(&gorm.Session{}).
-		Where("is_hardlink = ?", true).
-		Count(&hardlinksCount)
-	counts["hardlinks"] = hardlinksCount
-
-	// Unwatched (approximation - counts all files in Jellyfin)
-	// NOTE: has_been_watched is computed at runtime, so this count represents
-	// all files in Jellyfin, not necessarily unwatched ones. The actual unwatched
-	// count may be lower than this approximation.
-	var unwatchedCount int64
-	db.Session(&gorm.Session{}).
-		Where("in_jellyfin = ?", true).
-		Count(&unwatchedCount)
-	counts["unwatched"] = unwatchedCount
-
-	// Total
-	var totalCount int64
-	db.Session(&gorm.Session{}).
-		Count(&totalCount)
-	counts["total"] = totalCount
-
+	// Use a single query with CASE statements for better performance
+	type CountResult struct {
+		Healthy    int64 `gorm:"column:healthy"`
+		Attention  int64 `gorm:"column:attention"`
+		Critical   int64 `gorm:"column:critical"`
+		Hardlinks  int64 `gorm:"column:hardlinks"`
+		Unwatched  int64 `gorm:"column:unwatched"`
+		Total      int64 `gorm:"column:total"`
+	}
+	
+	var result CountResult
+	err := db.Select(`
+		COUNT(CASE 
+			WHEN in_jellyfin = true 
+			AND (in_radarr = true OR in_sonarr = true)
+			AND (torrent_state IS NULL OR torrent_state NOT IN ('error', 'missingFiles'))
+			THEN 1 END) as healthy,
+		COUNT(CASE 
+			WHEN in_q_bittorrent = true 
+			AND in_jellyfin = false 
+			AND in_radarr = false 
+			AND in_sonarr = false
+			THEN 1 END) as attention,
+		COUNT(CASE 
+			WHEN in_q_bittorrent = true 
+			AND (torrent_state = 'error' OR torrent_state = 'missingFiles')
+			THEN 1 END) as critical,
+		COUNT(CASE WHEN is_hardlink = true THEN 1 END) as hardlinks,
+		COUNT(CASE WHEN in_jellyfin = true THEN 1 END) as unwatched,
+		COUNT(*) as total
+	`).Scan(&result).Error
+	
+	if err != nil {
+		h.logger.Error("Failed to calculate category counts", zap.Error(err))
+		// Return empty counts on error
+		return counts
+	}
+	
+	counts["healthy"] = result.Healthy
+	counts["attention"] = result.Attention
+	counts["critical"] = result.Critical
+	counts["hardlinks"] = result.Hardlinks
+	counts["unwatched"] = result.Unwatched
+	counts["total"] = result.Total
+	
 	return counts
 }
 
