@@ -1,3 +1,10 @@
+# [1.0.0-dev.6](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2025-10-30)
+
+
+### Bug Fixes
+
+* organize settings into two-tab layout with interactive services overview and data-driven Alpine.js components ([#31](https://github.com/carcheky/keepercheky/issues/31)) ([177b72b](https://github.com/carcheky/keepercheky/commit/177b72b9a39eab6dd159b56bff25183066eec2af))
+
 # [1.0.0-dev.5](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2025-10-29)
 
 
