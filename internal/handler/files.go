@@ -6,42 +6,19 @@ import (
 	"math"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
 	"github.com/carcheky/keepercheky/internal/service/clients"
+	"github.com/carcheky/keepercheky/pkg/cache"
 	"github.com/carcheky/keepercheky/pkg/filesystem"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-// categoryCountsCache holds cached category counts with expiration
-type categoryCountsCache struct {
-	counts    map[string]int64
-	expiresAt time.Time
-	mu        sync.RWMutex
-}
-
-var (
-	countsCache = &categoryCountsCache{
-		counts:    make(map[string]int64),
-		expiresAt: time.Now(),
-	}
-	cacheTTL = 30 * time.Second // Cache counts for 30 seconds
-)
-
-// InvalidateCategoryCountsCache clears the cached category counts
-// Call this after sync operations to ensure fresh data
-func InvalidateCategoryCountsCache() {
-	countsCache.mu.Lock()
-	defer countsCache.mu.Unlock()
-	countsCache.expiresAt = time.Now().Add(-1 * time.Second) // Expire immediately
-}
 
 // FilesHandler handles file listing and management
 type FilesHandler struct {
@@ -703,6 +680,8 @@ func (h *FilesHandler) inferTitleFromPath(path string) string {
 
 // GetFilesAPI returns files as JSON for API access with pagination support
 func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
+	requestStart := time.Now()
+	
 	// Get pagination parameters
 	page := c.QueryInt("page", 1)
 	perPage := c.QueryInt("perPage", 25)
@@ -784,9 +763,11 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	}
 
 	// Get total count for this filter
+	countStart := time.Now()
 	var totalCount int64
 	countQuery := query.Session(&gorm.Session{})
 	err := countQuery.Count(&totalCount).Error
+	countElapsed := time.Since(countStart)
 	if err != nil {
 		h.logger.Error("Failed to count media", zap.Error(err))
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to count media"})
@@ -807,12 +788,14 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		})
 	}
 
-	// Apply pagination
+	// Apply pagination and fetch data
+	queryStart := time.Now()
 	var media []MediaFileInfo
 	err = query.
 		Limit(perPage).
 		Offset(offset).
 		Find(&media).Error
+	queryElapsed := time.Since(queryStart)
 
 	if err != nil {
 		h.logger.Error("Failed to query media from database", zap.Error(err))
@@ -823,10 +806,12 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
 	// Get category counts (for summary cards) - only if not filtering by tab
+	countsStart := time.Now()
 	var counts map[string]int64
 	if tab == "" {
 		counts = h.getCategoryCounts()
 	}
+	countsElapsed := time.Since(countsStart)
 
 	// Get last sync time from settings
 	var lastSyncSetting struct {
@@ -843,12 +828,17 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		lastSyncTime = lastSyncSetting.Value
 	}
 
-	h.logger.Info("Files API query complete",
+	totalElapsed := time.Since(requestStart)
+	h.logger.Info("Files API request completed",
 		zap.Int("page", page),
 		zap.Int("perPage", perPage),
 		zap.String("tab", tab),
 		zap.Int64("total", totalCount),
 		zap.Int("returned", len(media)),
+		zap.Duration("total_time", totalElapsed),
+		zap.Duration("count_time", countElapsed),
+		zap.Duration("query_time", queryElapsed),
+		zap.Duration("counts_time", countsElapsed),
 	)
 
 	response := fiber.Map{
@@ -871,27 +861,17 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 // getCategoryCounts returns counts for each file category with caching
 func (h *FilesHandler) getCategoryCounts() map[string]int64 {
 	// Check cache first
-	countsCache.mu.RLock()
-	if time.Now().Before(countsCache.expiresAt) && len(countsCache.counts) > 0 {
-		cached := make(map[string]int64, len(countsCache.counts))
-		for k, v := range countsCache.counts {
-			cached[k] = v
-		}
-		countsCache.mu.RUnlock()
+	if cached, ok := cache.GlobalCountsCache.Get(); ok {
 		h.logger.Debug("Category counts served from cache")
 		return cached
 	}
-	countsCache.mu.RUnlock()
 
 	// Cache miss - recalculate
 	startTime := time.Now()
 	counts := h.calculateCategoryCounts()
 	
 	// Update cache
-	countsCache.mu.Lock()
-	countsCache.counts = counts
-	countsCache.expiresAt = time.Now().Add(cacheTTL)
-	countsCache.mu.Unlock()
+	cache.GlobalCountsCache.Set(counts)
 	
 	elapsed := time.Since(startTime)
 	h.logger.Info("Category counts calculated and cached",

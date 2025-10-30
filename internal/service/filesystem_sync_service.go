@@ -9,6 +9,7 @@ import (
 	"github.com/carcheky/keepercheky/internal/models"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service/clients"
+	"github.com/carcheky/keepercheky/pkg/cache"
 	"github.com/carcheky/keepercheky/pkg/filesystem"
 	"go.uber.org/zap"
 )
@@ -249,6 +250,10 @@ func (s *FilesystemSyncService) SyncAllWithProgress(ctx context.Context, progres
 	if err := s.settingsRepo.Set("last_files_sync", time.Now().Format(time.RFC3339)); err != nil {
 		s.logger.Error("Failed to save last sync timestamp", zap.Error(err))
 	}
+
+	// Invalidate category counts cache to force refresh with new data
+	cache.GlobalCountsCache.Invalidate()
+	s.logger.Debug("Category counts cache invalidated after sync")
 
 	progressChan <- SyncProgress{
 		Step:    "complete",
