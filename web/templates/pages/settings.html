@@ -2,44 +2,43 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-dark-text dark:text-dark-text">Settings</h1>
-        <button @click="saveAll()" :disabled="saving"
-            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-            <svg x-show="!saving" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
-                </path>
-            </svg>
-            <svg x-show="saving" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-            </svg>
-            <span x-text="saving ? 'Saving...' : 'Save All'"></span>
-        </button>
-    </div>
-
-    <!-- Tabs -->
-    <div class="border-b border-dark-border">
-        <nav class="-mb-px flex space-x-8">
-            <template x-for="service in services" :key="service.id">
-                <button @click="activeTab = service.id"
-                    :class="activeTab === service.id ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors"
-                    x-text="service.label">
-                </button>
-            </template>
-            <button @click="activeTab = 'cleanup'"
-                :class="activeTab === 'cleanup' ? 'border-blue-500 text-blue-400' : 'border-transparent text-dark-muted hover:text-dark-text hover:border-slate-600'"
-                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                Cleanup Rules
+        <div class="flex gap-3">
+            <button @click="testAllConnections()" :disabled="testing"
+                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <svg x-show="!testing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                </svg>
+                <svg x-show="testing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span x-text="testing ? 'Testing...' : 'Test All Connections'"></span>
             </button>
-        </nav>
+            <button @click="saveAll()" :disabled="saving"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <svg x-show="!saving" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                    </path>
+                </svg>
+                <svg x-show="saving" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span x-text="saving ? 'Saving...' : 'Save All'"></span>
+            </button>
+        </div>
     </div>
 
-    <!-- Service Settings Panels (Dynamic) -->
+    <!-- Service Settings Panels (All visible) -->
     <template x-for="service in services" :key="service.id">
-        <div x-show="activeTab === service.id" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
+        <div class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
             <!-- Service Header with Enable Toggle -->
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-semibold text-dark-text" x-text="service.label + ' Configuration'"></h2>
@@ -127,7 +126,7 @@
     </template>
 
     <!-- Cleanup Rules Panel -->
-    <div x-show="activeTab === 'cleanup'" class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
+    <div class="bg-dark-surface dark:bg-dark-surface shadow-lg rounded-lg border border-dark-border p-6">
         <h2 class="text-xl font-semibold text-dark-text mb-6">Cleanup Rules Configuration</h2>
 
         <div class="space-y-6">
@@ -258,7 +257,6 @@
 
     function settings() {
         return {
-            activeTab: 'radarr',
             config: {
                 services: {
                     radarr: { enabled: false, url: '', api_key: '' },
@@ -404,6 +402,22 @@
                 } catch (error) {
                     console.error('Error loading config:', error);
                 }
+            },
+
+            async testAllConnections() {
+                this.testing = true;
+                
+                // Clear all previous results
+                this.connectionResults = {};
+                
+                // Test all enabled services sequentially
+                for (const service of this.services) {
+                    if (this.config.services[service.id]?.enabled) {
+                        await this.testConnection(service.id);
+                    }
+                }
+                
+                this.testing = false;
             },
 
             async testConnection(service) {
