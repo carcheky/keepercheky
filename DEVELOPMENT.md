@@ -1,6 +1,53 @@
 # KeeperCheky Development Guide
 
+> **Estado Actual**: v1.0.0-dev.17 - Desarrollo activo con la mayoría de features implementadas
+
 ## 🚀 Quick Start
+
+## ✅ What's Implemented
+
+### Backend Services (Go)
+- ✅ **Core Application** - Fiber v2 web server con hot-reload
+- ✅ **Database** - GORM v2 con SQLite/PostgreSQL
+- ✅ **Configuration** - Sistema de config con Viper (YAML + env vars)
+- ✅ **Logging** - Structured logging con niveles configurables
+
+### Service Integrations
+- ✅ **Radarr** - System info, queue, history, calendar, quality profiles
+- ✅ **Sonarr** - System info, queue, history, calendar, quality profiles
+- ✅ **Jellyfin** - Stats, sessions, recently added, activity
+- ✅ **Jellyseerr** - Request statistics and management
+- ✅ **Jellystst** - User activity, library stats, dashboard widgets
+- ✅ **Bazarr** - Subtitle management, history, wanted lists
+- ✅ **qBittorrent** - Transfer info, server state, active torrents, torrent properties
+
+### Frontend (Alpine.js + Tailwind)
+- ✅ **Dashboard** - Real-time stats, service health, activity timeline
+- ✅ **Files/Health** - Storage health analysis, orphan detection, bulk actions
+- ✅ **Media** - Library browser, filters, bulk delete, detailed views
+- ✅ **Settings** - Service configuration, connection testing, two-tab layout
+- 🚧 **Schedules** - Template ready, logic pending
+- 🚧 **Logs** - Template ready, real-time streaming pending
+
+### API Endpoints
+- ✅ `/api/media` - Media CRUD operations
+- ✅ `/api/files` - File operations and health analysis
+- ✅ `/api/stats` - Dashboard statistics
+- ✅ `/api/config` - Settings management
+- ✅ `/api/sync` - Media library synchronization
+- ✅ `/api/{service}/system` - Service system info for all integrations
+- ✅ `/health` - Application health check
+
+### Features
+- ✅ Dry-run mode (safe testing)
+- ✅ Exclusion tags
+- ✅ File health analysis
+- ✅ Bulk operations
+- ✅ Service health monitoring
+- ✅ Real-time statistics
+- 🚧 Scheduled cleanups (in progress)
+- 🚧 Leaving Soon collections (in progress)
+
 
 ### Prerequisites
 
