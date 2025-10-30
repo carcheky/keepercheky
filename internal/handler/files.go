@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"math"
 	"path/filepath"
 	"strings"
 
@@ -13,6 +14,8 @@ import (
 	"github.com/carcheky/keepercheky/pkg/filesystem"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // FilesHandler handles file listing and management
@@ -673,11 +676,53 @@ func (h *FilesHandler) inferTitleFromPath(path string) string {
 	return title
 }
 
-// GetFilesAPI returns files as JSON for API access
+// GetFilesAPI returns files as JSON for API access with pagination support
 func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
-	var media []MediaFileInfo
+	// Get pagination parameters
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("perPage", 25)
+	sortBy := c.Query("sortBy", "file_path")
+	order := c.Query("order", "asc")
+	tab := c.Query("tab", "") // Filter by tab: healthy, attention, critical, hardlinks, unwatched
 
-	err := h.mediaRepo.GetDB().
+	// Validate pagination parameters
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 25
+	}
+	if perPage > 100 {
+		perPage = 100 // Max 100 items per page
+	}
+
+	// Validate sort field to prevent SQL injection
+	allowedSortFields := map[string]bool{
+		"file_path":       true,
+		"title":           true,
+		"size":            true,
+		"type":            true,
+		"in_q_bittorrent": true,
+		"in_jellyfin":     true,
+		"in_radarr":       true,
+		"in_sonarr":       true,
+		"torrent_state":   true,
+		"is_seeding":      true,
+		"seed_ratio":      true,
+		"created_at":      true,
+		"updated_at":      true,
+	}
+	if !allowedSortFields[sortBy] {
+		sortBy = "file_path"
+	}
+
+	// Validate order
+	if order != "asc" && order != "desc" {
+		order = "asc"
+	}
+
+	// Build query
+	query := h.mediaRepo.GetDB().
 		Table("media").
 		Select(`
 			id, title, type, file_path, size, poster_url, quality,
@@ -686,8 +731,62 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 			radarr_id, sonarr_id, jellyfin_id, jellyseerr_id,
 			torrent_hash, torrent_category, torrent_state, torrent_tags,
 			is_seeding, seed_ratio, excluded
-		`).
-		Order("in_q_bittorrent DESC, in_jellyfin DESC, file_path ASC").
+		`)
+
+	// Apply tab filtering
+	switch tab {
+	case "attention":
+		// Orphan downloads: in qBittorrent but not in Jellyfin, Radarr, or Sonarr
+		query = query.Where("in_q_bittorrent = ? AND in_jellyfin = ? AND in_radarr = ? AND in_sonarr = ?",
+			true, false, false, false)
+	case "critical":
+		// Dead torrents: error state or missing files
+		query = query.Where("in_q_bittorrent = ? AND (torrent_state = ? OR torrent_state = ?)",
+			true, "error", "missingFiles")
+	case "hardlinks":
+		// Files with hardlinks
+		query = query.Where("is_hardlink = ?", true)
+	case "unwatched":
+		// In Jellyfin but never watched
+		// Note: has_been_watched is computed at runtime, so we need a workaround
+		// For now, just filter by in_jellyfin - the frontend will do final filtering
+		query = query.Where("in_jellyfin = ?", true)
+	case "healthy":
+		// Healthy files: in Jellyfin and (in Radarr or Sonarr) and no problems
+		query = query.Where("in_jellyfin = ? AND (in_radarr = ? OR in_sonarr = ?)",
+			true, true, true).
+			Where("(torrent_state IS NULL OR torrent_state NOT IN (?, ?))", "error", "missingFiles")
+	}
+
+	// Get total count for this filter
+	var totalCount int64
+	countQuery := query.Session(&gorm.Session{})
+	err := countQuery.Count(&totalCount).Error
+	if err != nil {
+		h.logger.Error("Failed to count media", zap.Error(err))
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to count media"})
+	}
+
+	// Calculate offset
+	offset := (page - 1) * perPage
+
+	// Apply sorting - prioritize qBittorrent and Jellyfin, then custom sort
+	if sortBy == "file_path" && order == "asc" {
+		// Default sort: downloads first, then library items, then alphabetical
+		query = query.Order("in_q_bittorrent DESC, in_jellyfin DESC, file_path ASC")
+	} else {
+		// Custom sort requested - use GORM clause for SQL injection safety
+		query = query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: sortBy},
+			Desc:   order == "desc",
+		})
+	}
+
+	// Apply pagination
+	var media []MediaFileInfo
+	err = query.
+		Limit(perPage).
+		Offset(offset).
 		Find(&media).Error
 
 	if err != nil {
@@ -695,8 +794,14 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// Enrich with viewing information if needed
-	// TODO: Add user viewing info from Jellyfin/Jellystat when available
+	// Calculate total pages
+	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
+
+	// Get category counts (for summary cards) - only if not filtering by tab
+	var counts map[string]int64
+	if tab == "" {
+		counts = h.getCategoryCounts()
+	}
 
 	// Get last sync time from settings
 	var lastSyncSetting struct {
@@ -713,11 +818,85 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		lastSyncTime = lastSyncSetting.Value
 	}
 
-	return c.JSON(fiber.Map{
-		"files":     media,
-		"total":     len(media),
-		"last_sync": lastSyncTime,
-	})
+	h.logger.Info("Files API query complete",
+		zap.Int("page", page),
+		zap.Int("perPage", perPage),
+		zap.String("tab", tab),
+		zap.Int64("total", totalCount),
+		zap.Int("returned", len(media)),
+	)
+
+	response := fiber.Map{
+		"files":      media,
+		"total":      totalCount,
+		"page":       page,
+		"perPage":    perPage,
+		"totalPages": totalPages,
+		"last_sync":  lastSyncTime,
+	}
+
+	// Add counts if available
+	if counts != nil {
+		response["counts"] = counts
+	}
+
+	return c.JSON(response)
+}
+
+// getCategoryCounts returns counts for each file category
+func (h *FilesHandler) getCategoryCounts() map[string]int64 {
+	counts := make(map[string]int64)
+	db := h.mediaRepo.GetDB().Table("media")
+
+	// Healthy files
+	var healthyCount int64
+	db.Session(&gorm.Session{}).
+		Where("in_jellyfin = ? AND (in_radarr = ? OR in_sonarr = ?)",
+			true, true, true).
+		Where("(torrent_state IS NULL OR torrent_state NOT IN (?, ?))", "error", "missingFiles").
+		Count(&healthyCount)
+	counts["healthy"] = healthyCount
+
+	// Orphan downloads
+	var attentionCount int64
+	db.Session(&gorm.Session{}).
+		Where("in_q_bittorrent = ? AND in_jellyfin = ? AND in_radarr = ? AND in_sonarr = ?",
+			true, false, false, false).
+		Count(&attentionCount)
+	counts["attention"] = attentionCount
+
+	// Dead torrents
+	var criticalCount int64
+	db.Session(&gorm.Session{}).
+		Where("in_q_bittorrent = ? AND (torrent_state = ? OR torrent_state = ?)",
+			true, "error", "missingFiles").
+		Count(&criticalCount)
+	counts["critical"] = criticalCount
+
+	// Hardlinks
+	var hardlinksCount int64
+	db.Session(&gorm.Session{}).
+		Where("is_hardlink = ?", true).
+		Count(&hardlinksCount)
+	counts["hardlinks"] = hardlinksCount
+
+	// Unwatched (approximation - counts all files in Jellyfin)
+	// NOTE: has_been_watched is computed at runtime, so this count represents
+	// all files in Jellyfin, not necessarily unwatched ones. The actual unwatched
+	// count may be lower than this approximation.
+	var unwatchedCount int64
+	db.Session(&gorm.Session{}).
+		Where("in_jellyfin = ?", true).
+		Count(&unwatchedCount)
+	counts["unwatched"] = unwatchedCount
+
+	// Total
+	var totalCount int64
+	db.Session(&gorm.Session{}).
+		Count(&totalCount)
+	counts["total"] = totalCount
+
+	return counts
 }
 
 // GetFilesHealthAPI returns files with health analysis as JSON

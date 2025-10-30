@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <!-- Filtros Avanzados (usando componente healthFilters) -->
+    <!-- Filtros Avanzados - Solo búsqueda (otros filtros incompatibles con paginación del servidor) -->
     <div x-data="{ filtersOpen: false }" 
         class="mb-6">
         
@@ -113,10 +113,10 @@
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
-            <span class="text-dark-text font-medium">Filtros Avanzados</span>
-            <span x-show="hasActiveFilters" 
+            <span class="text-dark-text font-medium">Búsqueda</span>
+            <span x-show="filterSearch" 
                 class="px-2 py-0.5 bg-blue-900/40 border border-blue-600/50 text-blue-300 rounded text-xs">
-                <span x-text="activeFilterCount"></span> activo<span x-text="activeFilterCount > 1 ? 's' : ''"></span>
+                activa
             </span>
         </button>
         
@@ -124,67 +124,22 @@
             x-transition
             class="mt-2 bg-dark-surface border border-dark-border rounded-lg p-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Tipo de Problema</label>
-                    <select x-model="filterProblem" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="error">Errores de torrent</option>
-                        <option value="missing">Archivos faltantes</option>
-                        <option value="orphan">Descargas huérfanas</option>
-                        <option value="low_ratio">Ratio bajo</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Servicio</label>
-                    <select x-model="filterService" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="jellyfin">Jellyfin</option>
-                        <option value="radarr">Radarr</option>
-                        <option value="sonarr">Sonarr</option>
-                        <option value="qbittorrent">qBittorrent</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Tamaño</label>
-                    <select x-model="filterSize" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="small">Pequeño (&lt;1GB)</option>
-                        <option value="medium">Mediano (1-10GB)</option>
-                        <option value="large">Grande (10-50GB)</option>
-                        <option value="huge">Muy grande (&gt;50GB)</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-dark-text mb-2">Antigüedad</label>
-                    <select x-model="filterAge" @change="applyFilters()"
-                        class="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
-                        <option value="">Todos</option>
-                        <option value="recent">Reciente (&lt;7 días)</option>
-                        <option value="week">1-4 semanas</option>
-                        <option value="month">1-3 meses</option>
-                        <option value="old">Más de 3 meses</option>
-                    </select>
-                </div>
-            </div>
-            
             <div class="flex items-center gap-4">
                 <input type="text" x-model="filterSearch" @input="applyFilters()" 
-                    placeholder="Buscar por título o ruta..."
+                    placeholder="Buscar por título o ruta en la página actual..."
                     class="flex-1 px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
                 
                 <button @click="clearFilters()"
-                    :class="hasActiveFilters ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
-                    :disabled="!hasActiveFilters"
+                    :class="filterSearch ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
+                    :disabled="!filterSearch"
                     class="px-4 py-2 text-white rounded-lg transition-colors">
-                    Limpiar Filtros
+                    Limpiar
                 </button>
+            </div>
+            
+            <div class="mt-3 text-xs text-dark-muted">
+                <p>💡 La búsqueda filtra solo los resultados de la página actual.</p>
+                <p>Usa las pestañas (OK, Atención, Críticos, etc.) para filtrar por categoría.</p>
             </div>
         </div>
     </div>
@@ -290,13 +245,13 @@
     </div>
 
     <!-- Paginación Info -->
-    <div x-show="filteredFiles.length > 0" class="flex items-center justify-between mb-4 px-2">
+    <div x-show="totalCount > 0" class="flex items-center justify-between mb-4 px-2">
         <div class="text-sm text-dark-muted">
-            Mostrando <span x-text="paginationStart"></span> - <span x-text="paginationEnd"></span> de <span x-text="filteredFiles.length"></span> archivo(s)
+            Mostrando <span x-text="paginationStart"></span> - <span x-text="paginationEnd"></span> de <span x-text="totalCount"></span> archivo(s)
         </div>
         <div class="flex items-center gap-2">
             <label class="text-sm text-dark-muted">Por página:</label>
-            <select x-model.number="itemsPerPage" @change="currentPage = 1"
+            <select x-model.number="itemsPerPage"
                 class="px-3 py-1 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm">
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -308,7 +263,17 @@
 
     <!-- Lista de Archivos -->
     <div class="space-y-3">
-        <template x-for="file in paginatedFiles" :key="file.id || file.file_path">
+        <!-- Loading indicator -->
+        <div x-show="loading" class="flex items-center justify-center py-12">
+            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="ml-3 text-dark-text">Cargando archivos...</span>
+        </div>
+        
+        <!-- Files list -->
+        <template x-show="!loading" x-for="file in paginatedFiles" :key="file.id || file.file_path">
             <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg p-6 hover:border-slate-600 transition-colors"
                 :class="{ 'ring-2 ring-blue-500': isFileSelected(file) }">
                 
@@ -548,9 +513,9 @@
     </div>
 
     <!-- Paginación -->
-    <div x-show="filteredFiles.length > 0" class="mt-6 flex items-center justify-between border-t border-dark-border pt-4">
+    <div x-show="totalCount > 0" class="mt-6 flex items-center justify-between border-t border-dark-border pt-4">
         <div class="text-sm text-dark-muted">
-            Mostrando <span x-text="paginationStart"></span> - <span x-text="paginationEnd"></span> de <span x-text="filteredFiles.length"></span>
+            Mostrando <span x-text="paginationStart"></span> - <span x-text="paginationEnd"></span> de <span x-text="totalCount"></span>
         </div>
         
         <div class="flex items-center gap-2">
@@ -589,7 +554,7 @@
     </div>
 
     <!-- Empty State -->
-    <div x-show="filteredFiles.length === 0" class="text-center py-16 px-4">
+    <div x-show="!loading && totalCount === 0" class="text-center py-16 px-4">
         <svg class="mx-auto h-16 w-16 text-dark-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -860,44 +825,110 @@ function filesPage() {
         syncMessage: '',
         syncMessageType: 'info',
         syncMessageTimeout: null,
+        loading: false,
         
-        // Advanced filter properties
-        filterProblem: '',
-        filterService: '',
-        filterSize: '',
-        filterAge: '',
+        // Server-side pagination properties
+        currentPage: 1,
+        itemsPerPage: 25,
+        totalCount: 0,
+        totalPages: 0,
+        
+        // Category counts from server
+        counts: {
+            healthy: 0,
+            attention: 0,
+            critical: 0,
+            hardlinks: 0,
+            unwatched: 0,
+            total: 0
+        },
+        
+        // Search filter property (only client-side filter that works with pagination)
         filterSearch: '',
         
         // Selection properties
         selectedFiles: [],
-        
-        // Pagination properties
-        currentPage: 1,
-        itemsPerPage: 25,
 
         async init() {
             await this.loadFiles();
+            
+            // Watch for page changes and reload files
+            this.$watch('currentPage', () => {
+                this.loadFiles();
+            });
+            
+            // Watch for items per page changes and reload files
+            this.$watch('itemsPerPage', () => {
+                this.currentPage = 1; // Reset to first page
+                this.loadFiles();
+            });
         },
-        
-        // Pagination computed properties
-        get totalPages() {
-            return Math.ceil(this.filteredFiles.length / this.itemsPerPage) || 1;
+        get healthyFiles() {
+            // For display in summary cards and tabs
+            if (this.selectedTab === 'healthy' && this.files.length > 0) {
+                return this.files;
+            }
+            return { length: this.counts.healthy || 0 };
+        },
+
+        get orphanDownloads() {
+            if (this.selectedTab === 'attention' && this.files.length > 0) {
+                return this.files;
+            }
+            return { length: this.counts.attention || 0 };
+        },
+
+        get hardlinkFiles() {
+            if (this.selectedTab === 'hardlinks' && this.files.length > 0) {
+                return this.files;
+            }
+            return { length: this.counts.hardlinks || 0 };
+        },
+
+        get deadTorrents() {
+            if (this.selectedTab === 'critical' && this.files.length > 0) {
+                return this.files;
+            }
+            return { length: this.counts.critical || 0 };
+        },
+
+        get unwatchedFiles() {
+            // With server-side pagination, return server data or count
+            if (this.selectedTab === 'unwatched' && this.files.length > 0) {
+                return this.files;
+            }
+            return { length: this.counts.unwatched || 0 };
+        },
+
+        get filteredFiles() {
+            // With server-side pagination, files are already filtered by the server
+            // Only apply client-side search filter if it's set
+            if (this.filterSearch) {
+                const search = this.filterSearch.toLowerCase();
+                return this.files.filter(f => {
+                    const title = (f.title || '').toLowerCase();
+                    const path = (f.file_path || '').toLowerCase();
+                    return title.includes(search) || path.includes(search);
+                });
+            }
+            return this.files;
         },
         
         get paginationStart() {
-            if (this.filteredFiles.length === 0) return 0;
+            if (this.totalCount === 0) return 0;
             return ((this.currentPage - 1) * this.itemsPerPage) + 1;
         },
         
         get paginationEnd() {
             const end = this.currentPage * this.itemsPerPage;
-            return Math.min(end, this.filteredFiles.length);
+            return Math.min(end, this.totalCount);
         },
         
         get paginatedFiles() {
-            const start = (this.currentPage - 1) * this.itemsPerPage;
-            const end = start + this.itemsPerPage;
-            return this.filteredFiles.slice(start, end);
+            // With server-side pagination, we display all files returned
+            // They're already paginated and filtered by the server
+            // Only apply client-side search if needed
+            return this.filteredFiles;
         },
         
         get visiblePages() {
@@ -938,7 +969,8 @@ function filesPage() {
         // Helper methods
         switchTab(tabName) {
             this.selectedTab = tabName;
-            this.currentPage = 1;
+            this.currentPage = 1; // Reset to first page when switching tabs
+            this.loadFiles(); // Reload with new tab filter
         },
         
         getFileIdentifier(file) {
@@ -1452,46 +1484,46 @@ function filesPage() {
             return filtered;
         },
         
-        get hasActiveFilters() {
-            return !!(this.filterProblem || this.filterService || 
-                     this.filterSize || this.filterAge || this.filterSearch);
-        },
-        
-        get activeFilterCount() {
-            let count = 0;
-            if (this.filterProblem) count++;
-            if (this.filterService) count++;
-            if (this.filterSize) count++;
-            if (this.filterAge) count++;
-            if (this.filterSearch) count++;
-            return count;
-        },
-        
         applyFilters() {
-            // This method is called by the filter controls
-            // Reset to first page when filters change
-            this.currentPage = 1;
+            // Called when search filter changes - no action needed as filteredFiles is computed
         },
         
         clearFilters() {
-            this.filterProblem = '';
-            this.filterService = '';
-            this.filterSize = '';
-            this.filterAge = '';
             this.filterSearch = '';
-            this.currentPage = 1;
         },
 
         async loadFiles() {
+            this.loading = true;
             try {
-                const response = await fetch('/api/files');
+                // Build query parameters
+                const params = new URLSearchParams({
+                    page: this.currentPage.toString(),
+                    perPage: this.itemsPerPage.toString(),
+                });
+                
+                // Add tab filter if not on default
+                if (this.selectedTab && this.selectedTab !== '') {
+                    params.append('tab', this.selectedTab);
+                }
+                
+                const response = await fetch(`/api/files?${params.toString()}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
                 const data = await response.json();
                 this.files = data.files || [];
                 this.lastSync = data.last_sync || '';
+                this.totalCount = data.total || 0;
+                this.totalPages = data.totalPages || 1;
+                
+                // Update counts if provided (on first load without tab filter)
+                if (data.counts) {
+                    this.counts = data.counts;
+                }
             } catch (error) {
                 console.error('Error loading files:', error);
                 this.showSyncMessage('Error al cargar archivos: ' + error.message, 'error');
+            } finally {
+                this.loading = false;
             }
         },
 

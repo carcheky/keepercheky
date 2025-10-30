@@ -52,7 +52,7 @@ type Media struct {
 	// Filesystem metadata (source of truth)
 	FileInode     uint64      `json:"file_inode" gorm:"index"`          // Inode number for hardlink detection
 	FileModTime   int64       `json:"file_mod_time"`                    // Last modification time (Unix timestamp)
-	IsHardlink    bool        `json:"is_hardlink" gorm:"default:false"` // Has hardlinks
+	IsHardlink    bool        `json:"is_hardlink" gorm:"default:false;index"` // Has hardlinks
 	HardlinkPaths StringSlice `json:"hardlink_paths" gorm:"type:text"`  // All hardlink paths
 	PrimaryPath   string      `json:"primary_path"`                     // Canonical path (same as FilePath but explicit)
 
@@ -62,12 +62,12 @@ type Media struct {
 	EpisodeFileCount int `json:"episode_file_count"` // Downloaded episodes
 
 	// Torrent status
-	IsSeeding       bool    `json:"is_seeding" gorm:"default:false"`
+	IsSeeding       bool    `json:"is_seeding" gorm:"default:false;index"`
 	TorrentHash     string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
 	SeedRatio       float64 `json:"seed_ratio"`
 	TorrentCategory string  `json:"torrent_category"` // Category in qBittorrent
 	TorrentTags     string  `json:"torrent_tags"`     // Tags in qBittorrent
-	TorrentState    string  `json:"torrent_state"`    // State (uploading, stalledUP, etc.)
+	TorrentState    string  `json:"torrent_state" gorm:"index"`    // State (uploading, stalledUP, etc.)
 
 	// Service IDs
 	RadarrID     *int    `json:"radarr_id" gorm:"index"`
