@@ -97,16 +97,47 @@ systemInfoDisplay()                     // System info display component
 
 4. **System Info Display**
    ```html
-   <div x-data="systemInfoDisplay(connectionResults[service.id].system_info, service.systemInfoFields)">
-       <template x-for="field in displayFields" :key="field.key">
-           <!-- Field display -->
-       </template>
-   </div>
+   <template x-for="field in getSystemInfoDisplay(service.id)" :key="field.key">
+       <p x-show="field.html" x-html="field.value"></p>
+       <p x-show="!field.html" x-text="field.value"></p>
+   </template>
    ```
 
 ## Key Improvements
 
-### 1. Maintainability
+### 1. Security
+
+**XSS Prevention**: All user-controlled content is properly escaped
+- HTML escaping for string values using `escapeHtml()`
+- Separate rendering paths for HTML vs text content
+- `x-text` used by default (safe), `x-html` only for controlled boolean badges
+- `needsHtml()` flag explicitly controls HTML rendering
+
+**Before** (vulnerable):
+```javascript
+formatValue(key, value) {
+    return String(value);  // No escaping - XSS risk!
+}
+```
+
+**After** (secure):
+```javascript
+formatValue(key, value) {
+    if (typeof value === 'boolean') {
+        return '<span>...</span>';  // Controlled HTML for badges
+    }
+    return this.escapeHtml(String(value));  // All other values escaped
+}
+```
+
+### 2. Performance
+
+**Avoided Re-initialization**: System info display computed once in parent component
+- Before: Nested `x-data` re-initialized on every visibility change
+- After: `getSystemInfoDisplay()` method called from parent scope
+- Improves performance when switching between tabs
+
+### 3. Maintainability
 
 **Before**: Adding a new service
 ```html
@@ -180,19 +211,54 @@ The refactored version maintains compatibility with environment variable overrid
 
 ### Dynamic System Info
 
-The `systemInfoDisplay()` component automatically formats different value types:
+The `systemInfoDisplay()` helper provides secure formatting for different value types with XSS prevention:
 
 ```javascript
 formatValue(key, value) {
     if (value === null || value === undefined) return 'N/A';
     if (typeof value === 'boolean') {
+        // Return HTML for boolean values (styled badges)
         return value ? 
             '<span class="px-2 py-1 bg-green-900/30 border border-green-600/50 text-green-300 rounded text-xs">Yes</span>' :
             '<span class="px-2 py-1 bg-gray-900/30 border border-gray-600/50 text-gray-300 rounded text-xs">No</span>';
     }
-    return String(value);
+    // Return escaped plain text for all other values
+    return this.escapeHtml(String(value));
+}
+
+escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 ```
+
+The component uses a dual rendering approach for security:
+- `x-text` for plain text values (most cases) - safe from XSS
+- `x-html` only for boolean badges - controlled HTML output
+- `needsHtml()` method determines which renderer to use
+
+### Performance Optimization
+
+System info display is computed in the parent component rather than using nested `x-data`:
+
+```javascript
+// In settings component
+getSystemInfoDisplay(serviceId) {
+    const service = this.services.find(s => s.id === serviceId);
+    const systemInfo = this.connectionResults[serviceId]?.system_info;
+    
+    if (!systemInfo || !service) {
+        return [];
+    }
+    
+    // Use the systemInfoDisplay helper to generate fields
+    const helper = systemInfoDisplay(systemInfo, service.systemInfoFields || []);
+    return helper.displayFields;
+}
+```
+
+This avoids re-initialization of the Alpine component on every visibility change.
 
 ### Connection Testing
 
