@@ -304,34 +304,25 @@ Ver [.env.example](.env.example) para configuración con variables de entorno.
 - [ ] Publicación en Docker Hub
 - [ ] Release 1.0.0
 
-## 🤖 AI Agent Development
+## � AI Agent Development
 
-Este proyecto incluye instrucciones completas para agentes de código AI como GitHub Copilot:
+This project includes comprehensive instructions for AI coding agents like GitHub Copilot:
 
-- **[AGENTS.md](AGENTS.md)** - Guía práctica para Copilot Coding Agent con comandos y workflows
-- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Lineamientos detallados del proyecto y patrones de arquitectura
+- **[AGENTS.md](AGENTS.md)** - Practical guide for Copilot Coding Agent with commands and workflows
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Detailed project guidelines and architecture patterns
 
-Estos archivos ayudan a los agentes AI a entender la estructura del proyecto, workflows de desarrollo y reglas críticas de seguridad.
+These files help AI agents understand the project structure, development workflows, and critical safety rules.
 
-## 🤝 Contributing
+## �🤝 Contributing
 
-El proyecto está en desarrollo activo y las contribuciones son bienvenidas.
+This project is currently in the planning phase. Contributions will be welcome once we start implementation.
 
-### ¿Interesado en ayudar?
+### Interested in helping?
 
-1. Revisa las [propuestas técnicas](docs/propuestas/)
-2. Lee la [guía de desarrollo](DEVELOPMENT.md)
-3. Consulta [AGENTS.md](AGENTS.md) para lineamientos de desarrollo
-4. Abre un issue o pull request
-5. Dale una estrella al repo para mantenerte actualizado
-
-### Áreas que necesitan ayuda
-
-- 🧪 Tests unitarios y de integración
-- 📝 Documentación y ejemplos
-- 🐛 Reportar y corregir bugs
-- 💡 Sugerencias de features
-- 🌍 Traducciones (inglés, otros idiomas)
+1. Review the [technical proposals](docs/propuestas/)
+2. Share your thoughts on the [recommended stack](docs/COMPARACION_Y_RECOMENDACIONES.md)
+3. Check out [AGENTS.md](AGENTS.md) for development guidelines
+4. Star this repo to stay updated
 
 ## 📝 License
 
@@ -354,7 +345,7 @@ MIT License - See [LICENSE](LICENSE) file for details
 
 ---
 
-**Nota**: Este es un proyecto de reescritura/reimplementación que combina las mejores características de Janitorr (lógica de limpieza) y Maintainerr (UI hermosa), optimizado para uso mínimo de recursos con Go + Alpine.js.
+**Note**: This is a rewrite/reimplementation project combining the best features of Janitorr (cleanup logic) and Maintainerr (beautiful UI), optimized for minimal resource usage with Go + Alpine.js.
 
-**Estado Actual**: 🚀 v1.0.0-dev.17 - Desarrollo activo - [Guía de Desarrollo](DEVELOPMENT.md) - [Quickstart](quickstart/README.md)
+**Status**: 🚀 MVP Implementation in progress - [Development Guide](DEVELOPMENT.md)
 
