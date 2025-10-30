@@ -1,3 +1,10 @@
+# [1.0.0-dev.15](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2025-10-30)
+
+
+### Features
+
+* integración completa de Bazarr para gestión de subtítulos ([#54](https://github.com/carcheky/keepercheky/issues/54)) ([4063f3c](https://github.com/carcheky/keepercheky/commit/4063f3c22b64c64afe1ec82e2d05a52468382dc2))
+
 # [1.0.0-dev.14](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2025-10-30)
 
 
