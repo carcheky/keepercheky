@@ -211,6 +211,14 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/jellyseerr/stats", h.Dashboard.GetJellyseerrStats)
 		api.Get("/jellyseerr/requests", h.Dashboard.GetJellyseerrRequests)
 
+		// Jellystat endpoints
+		api.Get("/jellystat/stats", h.Settings.GetJellystatStats)
+		api.Get("/jellystat/views-by-type", h.Settings.GetJellystatViewsByType)
+		api.Get("/jellystat/user-activity", h.Settings.GetJellystatUserActivity)
+		api.Get("/jellystat/library-stats", h.Settings.GetJellystatLibraryStats)
+		api.Get("/jellystat/dashboard/stats", h.Dashboard.GetJellystatStats)
+		api.Get("/jellystat/dashboard/views-by-type", h.Dashboard.GetJellystatViewsByType)
+
 		// qBittorrent endpoints
 		api.Get("/qbittorrent/transfer", h.QBittorrent.GetTransferInfo)
 		api.Get("/qbittorrent/state", h.QBittorrent.GetServerState)

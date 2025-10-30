@@ -49,6 +49,40 @@ type JellystatSystemInfo struct {
 	Status  string `json:"status"`
 }
 
+// JellystatStatistics represents general statistics from Jellystat.
+type JellystatStatistics struct {
+	Days     int `json:"days"`
+	Movies   int `json:"movies"`
+	Episodes int `json:"episodes"`
+	Songs    int `json:"songs"`
+	Total    int `json:"total"`
+}
+
+// ViewsByLibraryType represents views aggregated by library type.
+type ViewsByLibraryType struct {
+	Music   int `json:"music"`
+	Movie   int `json:"movie"`
+	Episode int `json:"episode"`
+	Book    int `json:"book"`
+}
+
+// UserActivity represents user activity statistics.
+type UserActivity struct {
+	UserID       string `json:"user_id"`
+	UserName     string `json:"user_name"`
+	TotalPlays   int    `json:"total_plays"`
+	TotalMinutes int    `json:"total_minutes"`
+}
+
+// JellystatLibraryStats represents statistics for a specific library in Jellystat.
+type JellystatLibraryStats struct {
+	LibraryID    string `json:"library_id"`
+	LibraryName  string `json:"library_name"`
+	TotalItems   int    `json:"total_items"`
+	TotalPlays   int    `json:"total_plays"`
+	TotalMinutes int    `json:"total_minutes"`
+}
+
 // TestConnection verifies the connection to Jellystat.
 func (c *JellystatClient) TestConnection(ctx context.Context) error {
 	return c.callWithRetry(ctx, func() error {
@@ -115,6 +149,171 @@ func (c *JellystatClient) GetSystemInfo(ctx context.Context) (*JellystatSystemIn
 	)
 
 	return systemInfo, nil
+}
+
+// GetStatistics retrieves general statistics from Jellystat.
+func (c *JellystatClient) GetStatistics(ctx context.Context, days int) (*JellystatStatistics, error) {
+	var stats struct {
+		Days     int `json:"days"`
+		Movies   int `json:"movies"`
+		Episodes int `json:"episodes"`
+		Songs    int `json:"songs"`
+	}
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&stats).
+			SetQueryParam("days", fmt.Sprintf("%d", days)).
+			Get("/api/statistics")
+
+		if err != nil {
+			return fmt.Errorf("failed to get statistics: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := &JellystatStatistics{
+		Days:     stats.Days,
+		Movies:   stats.Movies,
+		Episodes: stats.Episodes,
+		Songs:    stats.Songs,
+		Total:    stats.Movies + stats.Episodes + stats.Songs,
+	}
+
+	c.logger.Info("Retrieved Jellystat statistics",
+		zap.Int("days", days),
+		zap.Int("movies", result.Movies),
+		zap.Int("episodes", result.Episodes),
+		zap.Int("songs", result.Songs),
+		zap.Int("total", result.Total),
+	)
+
+	return result, nil
+}
+
+// GetViewsByLibraryType retrieves views aggregated by library type.
+func (c *JellystatClient) GetViewsByLibraryType(ctx context.Context, days int) (*ViewsByLibraryType, error) {
+	var views ViewsByLibraryType
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&views).
+			SetQueryParam("days", fmt.Sprintf("%d", days)).
+			Get("/api/stats/getViewsByLibraryType")
+
+		if err != nil {
+			return fmt.Errorf("failed to get views by library type: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat views by library type",
+		zap.Int("days", days),
+		zap.Int("movies", views.Movie),
+		zap.Int("episodes", views.Episode),
+		zap.Int("music", views.Music),
+		zap.Int("books", views.Book),
+	)
+
+	return &views, nil
+}
+
+// GetUserActivity retrieves user activity statistics.
+func (c *JellystatClient) GetUserActivity(ctx context.Context, days int) ([]UserActivity, error) {
+	var activities []UserActivity
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&activities).
+			SetQueryParam("days", fmt.Sprintf("%d", days)).
+			Get("/api/stats/getUserActivity")
+
+		if err != nil {
+			return fmt.Errorf("failed to get user activity: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			// If endpoint doesn't exist, return empty array
+			if resp.StatusCode() == 404 {
+				c.logger.Warn("User activity endpoint not available")
+				return nil
+			}
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat user activity",
+		zap.Int("days", days),
+		zap.Int("user_count", len(activities)),
+	)
+
+	return activities, nil
+}
+
+// GetLibraryStats retrieves statistics for all libraries.
+func (c *JellystatClient) GetLibraryStats(ctx context.Context, days int) ([]JellystatLibraryStats, error) {
+	var stats []JellystatLibraryStats
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&stats).
+			SetQueryParam("days", fmt.Sprintf("%d", days)).
+			Get("/api/stats/getLibraryStats")
+
+		if err != nil {
+			return fmt.Errorf("failed to get library stats: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			// If endpoint doesn't exist, return empty array
+			if resp.StatusCode() == 404 {
+				c.logger.Warn("Library stats endpoint not available")
+				return nil
+			}
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat library stats",
+		zap.Int("days", days),
+		zap.Int("library_count", len(stats)),
+	)
+
+	return stats, nil
 }
 
 // callWithRetry executes a function with retry logic.
