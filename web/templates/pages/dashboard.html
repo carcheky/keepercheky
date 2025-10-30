@@ -304,16 +304,24 @@
 
             async init() {
                 await this.loadQueue();
-                // Refresh queue every 30 seconds
+                // Setup interval with proper cleanup using Alpine's effect
+                this.$watch('queueItems', () => {
+                    // Clear existing interval if any
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                    }
+                });
+                
+                // Start interval
                 this.intervalId = setInterval(() => this.loadQueue(), 30000);
-            },
-
-            destroy() {
-                // Clear interval on component destroy
-                if (this.intervalId) {
-                    clearInterval(this.intervalId);
-                    this.intervalId = null;
-                }
+                
+                // Cleanup interval when component is destroyed
+                this.$cleanup(() => {
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                        this.intervalId = null;
+                    }
+                });
             },
 
             async loadQueue() {
@@ -350,16 +358,24 @@
 
             async init() {
                 await this.loadQueue();
-                // Refresh queue every 30 seconds
+                // Setup interval with proper cleanup using Alpine's effect
+                this.$watch('queueItems', () => {
+                    // Clear existing interval if any
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                    }
+                });
+                
+                // Start interval
                 this.intervalId = setInterval(() => this.loadQueue(), 30000);
-            },
-
-            destroy() {
-                // Clear interval on component destroy
-                if (this.intervalId) {
-                    clearInterval(this.intervalId);
-                    this.intervalId = null;
-                }
+                
+                // Cleanup interval when component is destroyed
+                this.$cleanup(() => {
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                        this.intervalId = null;
+                    }
+                });
             },
 
             async loadQueue() {
