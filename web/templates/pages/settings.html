@@ -227,8 +227,8 @@
                 if (value === null || value === undefined) return 'N/A';
                 if (typeof value === 'boolean') {
                     return value ? 
-                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Yes</span>' :
-                        '<span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">No</span>';
+                        '<span class="px-2 py-1 bg-green-900/30 border border-green-600/50 text-green-300 rounded text-xs">Yes</span>' :
+                        '<span class="px-2 py-1 bg-gray-900/30 border border-gray-600/50 text-gray-300 rounded text-xs">No</span>';
                 }
                 return String(value);
             }
