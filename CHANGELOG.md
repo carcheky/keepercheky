@@ -1,3 +1,10 @@
+# [1.0.0-dev.8](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2025-10-30)
+
+
+### Features
+
+* **files:** crear componentes Alpine.js reutilizables para health cards y filtros ([#33](https://github.com/carcheky/keepercheky/issues/33)) ([eb8f099](https://github.com/carcheky/keepercheky/commit/eb8f099bc25d194e5988c54df32c4a8a4ad6de03))
+
 # [1.0.0-dev.7](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2025-10-30)
 
 
