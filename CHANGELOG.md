@@ -1,3 +1,10 @@
+# [1.0.0-dev.11](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2025-10-30)
+
+
+### Features
+
+* add Jellyfin active sessions, library stats, and recently added API integration ([#50](https://github.com/carcheky/keepercheky/issues/50)) ([9f2fe72](https://github.com/carcheky/keepercheky/commit/9f2fe724e45f67a02eadc7985d36b9b33f4fe164))
+
 # [1.0.0-dev.10](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2025-10-30)
 
 
