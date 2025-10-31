@@ -54,6 +54,37 @@ Análisis detallado comparando las 4 propuestas.
 
 ### 🎨 Propuestas Técnicas Detalladas
 
+---
+
+### 📝 Documentación de Implementación
+
+Documentos técnicos generados durante el desarrollo:
+
+#### Integraciones de Servicios
+- **[Radarr API](RADARR_API.md)** - Documentación de endpoints Radarr implementados
+- **[Radarr Implementation Summary](RADARR_IMPLEMENTATION_SUMMARY.md)** - Resumen de la integración Radarr
+- **[Jellyfin Integration](JELLYFIN_INTEGRATION.md)** - Guía de integración con Jellyfin
+
+#### Features y Funcionalidades
+- **[Bulk Delete and Filters](BULK_DELETE_AND_FILTERS.md)** - Sistema de eliminación masiva y filtros
+- **[File Actions API](FILE_ACTIONS_API.md)** - API de acciones sobre archivos
+- **[Propuesta Mejora Files UX](PROPUESTA_MEJORA_FILES_UX.md)** - Mejoras de UX para vista de archivos
+- **[Performance Optimization Files Tab](PERFORMANCE_OPTIMIZATION_FILES_TAB.md)** - Optimizaciones de rendimiento
+
+#### Configuración y Refactoring
+- **[Settings Refactoring](SETTINGS_REFACTORING.md)** - Reestructuración de la página de configuración
+
+#### DevOps y Testing
+- **[CI/CD](CI_CD.md)** - Configuración de integración continua
+- **[Release Workflow](RELEASE_WORKFLOW.md)** - Proceso de releases y versionado
+- **[Testing Setup](TESTING_SETUP.md)** - Configuración de tests
+
+#### Progreso y Agentes
+- **[Progress](PROGRESS.md)** - Seguimiento de progreso del proyecto
+- **[Agents MD Analysis](AGENTS_MD_ANALYSIS.md)** - Análisis de instrucciones para agentes
+- **[Agents MD Integration Summary](AGENTS_MD_INTEGRATION_SUMMARY.md)** - Resumen de integración de agentes
+
+
 #### Propuesta 1: [TypeScript Full-Stack](propuestas/PROPUESTA_1_STACK_MODERNO.md)
 **Stack:** Next.js 15 + NestJS + PostgreSQL + Redis
 
@@ -170,6 +201,12 @@ Análisis detallado comparando las 4 propuestas.
 - 3️⃣ [Go/Alpine.js](propuestas/PROPUESTA_3_GO_ALPINE.md) ⭐
 - 4️⃣ [Rust/Leptos](propuestas/PROPUESTA_4_RUST_LEPTOS.md)
 
+### Implementación
+- 🚀 [CI/CD](CI_CD.md) - Pipeline de integración continua
+- 📦 [Release Workflow](RELEASE_WORKFLOW.md) - Versionado semántico
+- ⚙️ [Settings Refactoring](SETTINGS_REFACTORING.md) - Configuración
+- 📊 [Progress](PROGRESS.md) - Estado actual del proyecto
+
 ### Código de Referencia
 - 📁 [Janitorr v1.9.0 Original](../reference-repos/janitorr/) - Funcionalidad core
 - 🆕 [Maintainerr v2.0.0 Stable](../reference-repos/maintainerr/) - UI y features avanzadas
@@ -241,14 +278,14 @@ Semanas o meses. Mejor decidir bien desde el inicio.
 
 ## 🚀 Siguientes Pasos
 
-1. ✅ **Lee el Resumen Ejecutivo** (has esto primero)
-2. ⬜ **Decide qué propuesta usar** (usa el checklist en Comparación)
-3. ⬜ **Estudia la propuesta elegida** en detalle
-4. ⬜ **Revisa código de Janitorr** para entender lógica
-5. ⬜ **Crea repositorio** y estructura inicial
-6. ⬜ **Implementa MVP** siguiendo roadmap
-7. ⬜ **Testing en dry-run mode**
-8. ⬜ **Release 1.0**
+1. ✅ **Lee el Resumen Ejecutivo** (hecho)
+2. ✅ **Decide qué propuesta usar** (Propuesta 3 - Go + Alpine.js)
+3. ✅ **Estudia la propuesta elegida** en detalle
+4. ✅ **Revisa código de Janitorr** para entender lógica
+5. ✅ **Crea repositorio** y estructura inicial
+6. 🚧 **Implementa MVP** siguiendo roadmap (90% completado)
+7. ⏳ **Testing en dry-run mode**
+8. ⏳ **Release 1.0**
 
 ---
 
@@ -265,10 +302,12 @@ Si tienes dudas sobre cualquier propuesta o necesitas ayuda para decidir, revisa
 ## 📅 Información del Proyecto
 
 - **Fecha de análisis**: 25 de Octubre de 2025
+- **Versión actual**: v1.0.0-dev.17
+- **Estado**: ✅ Stack implementado (Go + Alpine.js), 🚧 Desarrollo activo
 - **Versión de Janitorr analizada**: v1.9.0
-- **Versión de Maintainerr analizada**: v2.0.0 (stable) 🆕
+- **Versión de Maintainerr analizada**: v2.0.0 (stable)
 - **Propuestas desarrolladas**: 4
-- **Estado**: ✅ Análisis completado, ✅ Stack seleccionado (Go + Alpine.js)
+- **Propuesta seleccionada**: Propuesta 3 (Go + Alpine.js)
 
 ---
 
