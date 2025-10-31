@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -146,8 +145,6 @@ func extractSeriesName(path string) string {
 
 // GetOrganizedFilesAPI returns files organized by series/seasons and movies
 func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
-	ctx := context.Background()
-
 	// Get pagination parameters
 	page := c.QueryInt("page", 1)
 	perPage := c.QueryInt("perPage", 25)
@@ -211,7 +208,7 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 	}
 
 	// Organize files
-	organized := h.organizeFiles(ctx, allFiles)
+	organized := h.organizeFiles(allFiles)
 
 	// Apply pagination to organized results
 	totalSeries := len(organized.Series)
@@ -267,7 +264,7 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 }
 
 // organizeFiles groups files into series and movies with hierarchical structure
-func (h *FilesHandler) organizeFiles(ctx context.Context, files []MediaFileInfo) OrganizedFilesResponse {
+func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesResponse {
 	seriesMap := make(map[string]*SeriesInfo)
 	movieMap := make(map[string]*MovieInfo)
 
@@ -279,7 +276,9 @@ func (h *FilesHandler) organizeFiles(ctx context.Context, files []MediaFileInfo)
 		} else if file.Type == "movie" {
 			h.addToMovies(movieMap, file)
 		} else if strings.Contains(strings.ToLower(file.FilePath), "/tv/") {
-			// Fallback: path-based detection for files without explicit type
+			// Fallback: path-based heuristic for files without explicit type.
+			// This assumes a common directory structure where TV shows are under "/tv/".
+			// Note: This is a best-effort fallback and may not work for all setups.
 			h.addToSeries(seriesMap, file)
 		} else {
 			h.addToMovies(movieMap, file)

@@ -376,7 +376,7 @@
                                                         <div class="flex items-center justify-between text-sm">
                                                             <div class="flex-1">
                                                                 <span class="text-dark-text font-medium">
-                                                                    <span x-show="episode.episode_number > 0">E<span x-text="episode.episode_number.toString().padStart(2, '0')"></span></span>
+                                                                    <span x-show="episode.episode_number > 0">E<span x-text="episode.episode_number?.toString().padStart(2, '0')"></span></span>
                                                                     <span x-show="episode.episode_number === 0">Especial</span>
                                                                 </span>
                                                                 <span class="text-dark-muted mx-2">-</span>
@@ -1199,6 +1199,8 @@ function healthFilters() {
 function filesPage() {
     // Constants
     const DEAD_TORRENT_RATIO_THRESHOLD = 0.5;
+    // Maximum items per page in organized view to prevent frontend/backend overload
+    const ORGANIZED_VIEW_MAX_ITEMS_PER_PAGE = 100;
     
     return {
         files: [],
@@ -1863,8 +1865,8 @@ function filesPage() {
         async loadOrganizedFiles() {
             this.loadingOrganized = true;
             try {
-                // Use a reasonable limit per page for organized view
-                const itemsPerPage = Math.min(this.itemsPerPage, 100);
+                // Limit items per page for organized view to prevent overload
+                const itemsPerPage = Math.min(this.itemsPerPage, ORGANIZED_VIEW_MAX_ITEMS_PER_PAGE);
                 const params = new URLSearchParams({
                     page: this.currentPage.toString(),
                     perPage: itemsPerPage.toString(),
@@ -1879,8 +1881,6 @@ function filesPage() {
                 
                 const result = await response.json();
                 this.organizedData = result.data || { series: [], movies: [] };
-                
-                console.log('Organized data loaded:', this.organizedData);
             } catch (error) {
                 console.error('Error loading organized files:', error);
                 this.showSyncMessage('Error al cargar archivos organizados: ' + error.message, 'error');
