@@ -84,27 +84,11 @@ func (e *Enricher) EnrichWithRadarr(
 			continue
 		}
 
-		// Try matching with primary path (for hardlinks)
-		if file.IsHardlink && file.PrimaryPath != path {
-			if radarrItem, found := radarrByPath[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if radarrItem, matched := e.matchByHardlinks(radarrByPath, file.HardlinkPaths); matched {
 				e.applyRadarrData(file, radarrItem)
 				enriched++
-				continue
-			}
-		}
-
-		// Try matching with all hardlink paths
-		if file.IsHardlink {
-			matched := false
-			for _, hlPath := range file.HardlinkPaths {
-				if radarrItem, found := radarrByPath[hlPath]; found {
-					e.applyRadarrData(file, radarrItem)
-					enriched++
-					matched = true
-					break
-				}
-			}
-			if matched {
 				continue
 			}
 		}
@@ -153,27 +137,11 @@ func (e *Enricher) EnrichWithSonarr(
 			continue
 		}
 
-		// Try matching with primary path
-		if file.IsHardlink && file.PrimaryPath != path {
-			if sonarrItem, found := sonarrByPath[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if sonarrItem, matched := e.matchByHardlinks(sonarrByPath, file.HardlinkPaths); matched {
 				e.applySonarrData(file, sonarrItem)
 				enriched++
-				continue
-			}
-		}
-
-		// Try matching with all hardlink paths
-		if file.IsHardlink {
-			matched := false
-			for _, hlPath := range file.HardlinkPaths {
-				if sonarrItem, found := sonarrByPath[hlPath]; found {
-					e.applySonarrData(file, sonarrItem)
-					enriched++
-					matched = true
-					break
-				}
-			}
-			if matched {
 				continue
 			}
 		}
@@ -221,26 +189,11 @@ func (e *Enricher) EnrichWithJellyfin(
 			continue
 		}
 
-		if file.IsHardlink && file.PrimaryPath != path {
-			if jfItem, found := jellyfinByPath[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if jfItem, matched := e.matchByHardlinks(jellyfinByPath, file.HardlinkPaths); matched {
 				e.applyJellyfinData(file, jfItem)
 				enriched++
-				continue
-			}
-		}
-
-		// Try matching with all hardlink paths
-		if file.IsHardlink {
-			matched := false
-			for _, hlPath := range file.HardlinkPaths {
-				if jfItem, found := jellyfinByPath[hlPath]; found {
-					e.applyJellyfinData(file, jfItem)
-					enriched++
-					matched = true
-					break
-				}
-			}
-			if matched {
 				continue
 			}
 		}
@@ -411,4 +364,15 @@ func (e *Enricher) pathsMatch(path1, path2 string) bool {
 	base2 := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(filepath.Base(norm2), ".", " "), "_", " "))
 
 	return strings.Contains(base1, base2) || strings.Contains(base2, base1)
+}
+
+// matchByHardlinks attempts to match a file against a service's path map using the file's hardlink paths.
+// Returns the matched media item and true if found, nil and false otherwise.
+func (e *Enricher) matchByHardlinks(pathMap map[string]*models.Media, hardlinkPaths []string) (*models.Media, bool) {
+	for _, hlPath := range hardlinkPaths {
+		if media, found := pathMap[hlPath]; found {
+			return media, true
+		}
+	}
+	return nil, false
 }
