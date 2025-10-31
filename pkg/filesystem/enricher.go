@@ -93,6 +93,22 @@ func (e *Enricher) EnrichWithRadarr(
 			}
 		}
 
+		// Try matching with all hardlink paths
+		if file.IsHardlink {
+			matched := false
+			for _, hlPath := range file.HardlinkPaths {
+				if radarrItem, found := radarrByPath[hlPath]; found {
+					e.applyRadarrData(file, radarrItem)
+					enriched++
+					matched = true
+					break
+				}
+			}
+			if matched {
+				continue
+			}
+		}
+
 		// Try fuzzy matching by directory name
 		for radarrPath, radarrItem := range radarrByPath {
 			if e.pathsMatch(path, radarrPath) {
@@ -146,6 +162,22 @@ func (e *Enricher) EnrichWithSonarr(
 			}
 		}
 
+		// Try matching with all hardlink paths
+		if file.IsHardlink {
+			matched := false
+			for _, hlPath := range file.HardlinkPaths {
+				if sonarrItem, found := sonarrByPath[hlPath]; found {
+					e.applySonarrData(file, sonarrItem)
+					enriched++
+					matched = true
+					break
+				}
+			}
+			if matched {
+				continue
+			}
+		}
+
 		// Try fuzzy matching
 		for sonarrPath, sonarrItem := range sonarrByPath {
 			if e.pathsMatch(path, sonarrPath) {
@@ -193,6 +225,22 @@ func (e *Enricher) EnrichWithJellyfin(
 			if jfItem, found := jellyfinByPath[file.PrimaryPath]; found {
 				e.applyJellyfinData(file, jfItem)
 				enriched++
+				continue
+			}
+		}
+
+		// Try matching with all hardlink paths
+		if file.IsHardlink {
+			matched := false
+			for _, hlPath := range file.HardlinkPaths {
+				if jfItem, found := jellyfinByPath[hlPath]; found {
+					e.applyJellyfinData(file, jfItem)
+					enriched++
+					matched = true
+					break
+				}
+			}
+			if matched {
 				continue
 			}
 		}
