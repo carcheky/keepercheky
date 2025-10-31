@@ -335,7 +335,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-base cursor-help w-full"
+                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_qbittorrent ? 'Presente' : 'No presente')"
                             :title="label"
@@ -354,7 +354,7 @@
                                 <div x-show="details.ratio !== undefined"><span class="text-indigo-400 font-medium">Ratio:</span> <span x-text="details.ratio.toFixed(2)" class="font-mono"></span></div>
                                 <div x-show="details.category"><span class="text-indigo-400 font-medium">Categoría:</span> <span x-text="details.category"></span></div>
                                 <div x-show="details.seeding" class="text-green-400 font-medium">⬆️ Seedeando activamente</div>
-                                <div x-show="!details.seeding && details.state" class="text-yellow-400 font-medium">⏸️ No seedeando</div>
+                                <div x-show="!details.seeding && details.state && ['downloading', 'uploading', 'stalledUP', 'stalledDL'].includes(details.state)" class="text-yellow-400 font-medium">⏸️ No seedeando</div>
                             </div>
                         </div>
                     </div>
@@ -367,7 +367,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-base cursor-help w-full"
+                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
                             :title="label"
@@ -384,7 +384,7 @@
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
                                 <div x-show="details.id !== undefined && details.id !== null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
-                                <div x-show="details.type"><span class="text-blue-400 font-medium">Tipo:</span> <span x-text="details.type" class="capitalize"></span></div>
+                                <div x-show="details.type"><span class="text-blue-400 font-medium">Tipo:</span> <span x-text="details.type === 'movie' ? 'Película' : (details.type === 'series' ? 'Serie' : details.type)"></span></div>
                             </div>
                         </div>
                     </div>
@@ -397,7 +397,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-base cursor-help w-full"
+                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
                             :title="label"
@@ -414,7 +414,7 @@
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
                                 <div x-show="details.id !== undefined && details.id !== null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
-                                <div x-show="details.type"><span class="text-purple-400 font-medium">Tipo:</span> <span x-text="details.type" class="capitalize"></span></div>
+                                <div x-show="details.type"><span class="text-purple-400 font-medium">Tipo:</span> <span x-text="details.type === 'series' ? 'Serie' : (details.type === 'episode' ? 'Episodio' : details.type)"></span></div>
                             </div>
                         </div>
                     </div>
@@ -428,7 +428,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-base cursor-help w-full"
+                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
                             :title="label"
@@ -462,7 +462,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-base cursor-help w-full"
+                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
                             :title="label"
@@ -479,7 +479,7 @@
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Solicitado en Jellyseerr</div>
                                 <div x-show="details.id !== undefined && details.id !== null"><span class="text-teal-400 font-medium">ID Jellyseerr:</span> <span x-text="details.id" class="font-mono"></span></div>
-                                <div x-show="details.type"><span class="text-teal-400 font-medium">Tipo:</span> <span x-text="details.type" class="capitalize"></span></div>
+                                <div x-show="details.type"><span class="text-teal-400 font-medium">Tipo:</span> <span x-text="details.type === 'movie' ? 'Película' : (details.type === 'series' ? 'Serie' : details.type)"></span></div>
                             </div>
                         </div>
                     </div>
@@ -492,7 +492,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-base cursor-help w-full"
+                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
                             :title="label"
