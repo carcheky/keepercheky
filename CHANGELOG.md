@@ -1,3 +1,10 @@
+# [1.0.0-dev.18](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2025-10-31)
+
+
+### Bug Fixes
+
+* mejorar tarjetas de archivos - compactar diseño y agregar tooltips informativos ([#63](https://github.com/carcheky/keepercheky/issues/63)) ([63b2a6c](https://github.com/carcheky/keepercheky/commit/63b2a6c3259a9c15a9ec1b48dc3aad373038b93d))
+
 # [1.0.0-dev.17](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2025-10-30)
 
 
