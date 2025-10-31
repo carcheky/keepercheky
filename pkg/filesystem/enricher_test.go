@@ -112,9 +112,9 @@ func TestEnricher_EnrichWithJellyfin_HardlinkMatching(t *testing.T) {
 	files := map[string]*EnrichedFile{
 		"/qBittorrent/downloads/Movie.mkv": {
 			FileEntry: &FileEntry{
-				Path:  "/qBittorrent/downloads/Movie.mkv",
-				Size:  2 * 1024 * 1024 * 1024,
-				Inode: 99999,
+				Path:       "/qBittorrent/downloads/Movie.mkv",
+				Size:       2 * 1024 * 1024 * 1024,
+				Inode:      99999,
 				IsHardlink: true,
 				HardlinkPaths: []string{
 					"/qBittorrent/downloads/Movie.mkv",
@@ -164,9 +164,9 @@ func TestEnricher_EnrichWithQBittorrent_HardlinkMatching(t *testing.T) {
 	files := map[string]*EnrichedFile{
 		"/BibliotecaMultimedia/Peliculas/Movie.mkv": {
 			FileEntry: &FileEntry{
-				Path:  "/BibliotecaMultimedia/Peliculas/Movie.mkv",
-				Size:  1500 * 1024 * 1024,
-				Inode: 77777,
+				Path:       "/BibliotecaMultimedia/Peliculas/Movie.mkv",
+				Size:       1500 * 1024 * 1024,
+				Inode:      77777,
 				IsHardlink: true,
 				HardlinkPaths: []string{
 					"/BibliotecaMultimedia/Descargas/Movie.mkv",
@@ -219,9 +219,9 @@ func TestEnricher_MultiServiceHardlinkMatching(t *testing.T) {
 	files := map[string]*EnrichedFile{
 		"/storage/downloads/Movie.2024.mkv": {
 			FileEntry: &FileEntry{
-				Path:  "/storage/downloads/Movie.2024.mkv",
-				Size:  3 * 1024 * 1024 * 1024,
-				Inode: 11111,
+				Path:       "/storage/downloads/Movie.2024.mkv",
+				Size:       3 * 1024 * 1024 * 1024,
+				Inode:      11111,
 				IsHardlink: true,
 				HardlinkPaths: []string{
 					"/storage/downloads/Movie.2024.mkv",
@@ -254,9 +254,9 @@ func TestEnricher_MultiServiceHardlinkMatching(t *testing.T) {
 
 	torrentMap := map[string]*models.TorrentInfo{
 		"/storage/downloads/Movie.2024.mkv": {
-			Hash:     "torrent-hash-123",
+			Hash:      "torrent-hash-123",
 			IsSeeding: true,
-			Ratio:    3.0,
+			Ratio:     3.0,
 		},
 	}
 
