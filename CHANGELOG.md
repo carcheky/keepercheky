@@ -1,3 +1,10 @@
+# [1.0.0-dev.21](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2025-10-31)
+
+
+### Bug Fixes
+
+* eliminar duplicados y compactar tarjetas en pestaña Files ([#70](https://github.com/carcheky/keepercheky/issues/70)) ([dc2408c](https://github.com/carcheky/keepercheky/commit/dc2408cba50bcbf33b97be6955f7d43cecc5f6a7))
+
 # [1.0.0-dev.20](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2025-10-31)
 
 
