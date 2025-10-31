@@ -274,11 +274,11 @@
         
         <!-- Files list -->
         <template x-show="!loading" x-for="file in paginatedFiles" :key="file.id || file.file_path">
-            <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg p-6 hover:border-slate-600 transition-colors"
+            <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg p-4 hover:border-slate-600 transition-colors"
                 :class="{ 'ring-2 ring-blue-500': isFileSelected(file) }">
                 
                 <!-- Header con Checkbox y Status Badge -->
-                <div class="flex items-start justify-between mb-3">
+                <div class="flex items-start justify-between mb-2">
                     <div class="flex items-start gap-3">
                         <!-- Checkbox para selección -->
                         <label class="flex items-center mt-1">
@@ -304,7 +304,7 @@
                 <h3 class="text-lg font-semibold text-dark-text mb-2" x-text="file.title || file.file_path.split('/').pop()"></h3>
                 
                 <!-- Ruta (Colapsable) -->
-                <div x-data="{ showPath: false }" class="mb-3">
+                <div x-data="{ showPath: false }" class="mb-2">
                     <button @click="showPath = !showPath" class="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300">
                         <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-90': showPath }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -317,12 +317,12 @@
                 </div>
                 
                 <!-- Tamaño -->
-                <div class="flex items-center gap-2 text-sm text-dark-muted mb-4">
+                <div class="flex items-center gap-2 text-sm text-dark-muted mb-3">
                     <span>💾 <span x-text="formatBytes(file.size)"></span></span>
                 </div>
                 
                 <!-- Servicios (usando serviceStatusIndicator) -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
                     <div x-data="serviceStatusIndicator('qbittorrent', file.in_qbittorrent, { 
                         state: file.torrent_state, 
                         ratio: file.seed_ratio,
@@ -356,64 +356,159 @@
                         </div>
                     </div>
                     
-                    <div x-data="serviceStatusIndicator('radarr', file.in_radarr, {})">
+                    <div x-data="serviceStatusIndicator('radarr', file.in_radarr, { 
+                        id: file.radarr_id,
+                        type: file.type
+                    })"
+                    @mouseenter="showTooltip = true"
+                    @mouseleave="showTooltip = false"
+                    class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
+                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs cursor-help w-full justify-center"
                             role="button"
                             :aria-label="'Radarr: ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
                             tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
+                        
+                        <div x-show="showTooltip && hasDetails" 
+                            role="tooltip"
+                            aria-live="polite"
+                            class="absolute z-50 bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                            style="display: none;">
+                            <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
+                            <div class="space-y-1">
+                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-blue-400">ID:</span> <span x-text="details.id"></span></div>
+                                <div x-show="details.type"><span class="text-blue-400">Tipo:</span> <span x-text="details.type"></span></div>
+                                <div class="text-green-400">✅ Gestionado en Radarr</div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div x-data="serviceStatusIndicator('sonarr', file.in_sonarr, {})">
+                    <div x-data="serviceStatusIndicator('sonarr', file.in_sonarr, { 
+                        id: file.sonarr_id,
+                        type: file.type
+                    })"
+                    @mouseenter="showTooltip = true"
+                    @mouseleave="showTooltip = false"
+                    class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
+                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs cursor-help w-full justify-center"
                             role="button"
                             :aria-label="'Sonarr: ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
                             tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
+                        
+                        <div x-show="showTooltip && hasDetails" 
+                            role="tooltip"
+                            aria-live="polite"
+                            class="absolute z-50 bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                            style="display: none;">
+                            <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
+                            <div class="space-y-1">
+                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-purple-400">ID:</span> <span x-text="details.id"></span></div>
+                                <div x-show="details.type"><span class="text-purple-400">Tipo:</span> <span x-text="details.type"></span></div>
+                                <div class="text-green-400">✅ Gestionado en Sonarr</div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div x-data="serviceStatusIndicator('jellyfin', file.in_jellyfin, {})">
+                    <div x-data="serviceStatusIndicator('jellyfin', file.in_jellyfin, { 
+                        id: file.jellyfin_id,
+                        watched: file.has_been_watched,
+                        playCount: file.total_play_count
+                    })"
+                    @mouseenter="showTooltip = true"
+                    @mouseleave="showTooltip = false"
+                    class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
+                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs cursor-help w-full justify-center"
                             role="button"
                             :aria-label="'Jellyfin: ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
                             tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
+                        
+                        <div x-show="showTooltip && hasDetails" 
+                            role="tooltip"
+                            aria-live="polite"
+                            class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                            style="display: none;">
+                            <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
+                            <div class="space-y-1">
+                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400">ID:</span> <span x-text="details.id" class="font-mono text-xs"></span></div>
+                                <div x-show="details.watched !== undefined">
+                                    <span x-show="details.watched" class="text-green-400">✅ Reproducido</span>
+                                    <span x-show="!details.watched" class="text-yellow-400">👁️ Sin reproducir</span>
+                                </div>
+                                <div x-show="details.playCount !== undefined && details.playCount > 0"><span class="text-emerald-400">Reproducciones:</span> <span x-text="details.playCount"></span></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div x-data="serviceStatusIndicator('jellyseerr', file.in_jellyseerr, {})">
+                    <div x-data="serviceStatusIndicator('jellyseerr', file.in_jellyseerr, { 
+                        id: file.jellyseerr_id
+                    })"
+                    @mouseenter="showTooltip = true"
+                    @mouseleave="showTooltip = false"
+                    class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
+                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs cursor-help w-full justify-center"
                             role="button"
                             :aria-label="'Jellyseerr: ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
                             tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
+                        
+                        <div x-show="showTooltip && hasDetails" 
+                            role="tooltip"
+                            aria-live="polite"
+                            class="absolute z-50 bg-slate-900 border border-teal-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                            style="display: none;">
+                            <div class="font-semibold text-teal-400 mb-2">🎫 Jellyseerr</div>
+                            <div class="space-y-1">
+                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-teal-400">ID:</span> <span x-text="details.id"></span></div>
+                                <div class="text-green-400">✅ Solicitado en Jellyseerr</div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div x-data="serviceStatusIndicator('jellystat', file.in_jellystat, {})">
+                    <div x-data="serviceStatusIndicator('jellystat', file.in_jellystat, { 
+                        playCount: file.total_play_count
+                    })"
+                    @mouseenter="showTooltip = true"
+                    @mouseleave="showTooltip = false"
+                    class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs w-full justify-center"
+                            class="px-2 py-1 rounded border inline-flex items-center gap-1 text-xs cursor-help w-full justify-center"
                             role="button"
                             :aria-label="'Jellystat: ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
                             tabindex="0">
                             <span x-text="icon"></span>
                             <span x-text="label"></span>
                         </span>
+                        
+                        <div x-show="showTooltip && hasDetails" 
+                            role="tooltip"
+                            aria-live="polite"
+                            class="absolute z-50 bg-slate-900 border border-cyan-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                            style="display: none;">
+                            <div class="font-semibold text-cyan-400 mb-2">📊 Jellystat</div>
+                            <div class="space-y-1">
+                                <div x-show="details.playCount !== undefined && details.playCount > 0"><span class="text-cyan-400">Reproducciones:</span> <span x-text="details.playCount"></span></div>
+                                <div x-show="!details.playCount || details.playCount === 0" class="text-yellow-400">⚠️ Sin datos de reproducción</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Hardlinks Info -->
-                <div x-show="file.is_hardlink" class="mb-4">
+                <div x-show="file.is_hardlink" class="mb-3">
                     <div x-data="{ showLinks: false }" @mouseenter="showLinks = true" @mouseleave="showLinks = false" class="relative inline-block">
                         <span class="px-3 py-1.5 rounded-lg bg-green-900/30 border border-green-600/50 text-green-300 text-sm font-medium cursor-help inline-flex items-center gap-2"
                             role="button"
@@ -444,14 +539,14 @@
                 </div>
                 
                 <!-- Badges adicionales -->
-                <div class="flex flex-wrap gap-2 mb-4">
+                <div class="flex flex-wrap gap-2 mb-3">
                     <span x-show="file.quality" class="px-2 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-300 text-xs" x-text="file.quality"></span>
                     <span x-show="file.has_been_watched" class="px-2 py-1 rounded bg-green-900/40 border border-green-600/50 text-green-300 text-xs">✅ Visto</span>
                     <span x-show="!file.has_been_watched && file.in_jellyfin" class="px-2 py-1 rounded bg-purple-900/40 border border-purple-600/50 text-purple-300 text-xs">👁️ Sin reproducir</span>
                 </div>
                 
                 <!-- Sugerencia -->
-                <div x-show="getFileSuggestion(file)" class="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg mb-4">
+                <div x-show="getFileSuggestion(file)" class="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg mb-3">
                     <div class="flex items-start gap-2">
                         <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
@@ -625,55 +720,109 @@ function healthCard(status, count, severity, clickHandler) {
 }
 
 // Alpine.js Component: Service Status Indicator
-function serviceStatusIndicator(service, isPresent, details = {}) {
+function serviceStatusIndicator(serviceName, isPresent, details = {}) {
+    // Service configuration
     const serviceConfig = {
-        qbittorrent: {
-            icon: '🧲',
-            label: 'qBittorrent',
+        qbittorrent: { 
+            icon: '🧲', 
+            name: 'qBittorrent',
             presentColor: 'bg-indigo-900/40 border-indigo-600/50 text-indigo-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         },
-        radarr: {
-            icon: '🎬',
-            label: 'Radarr',
+        radarr: { 
+            icon: '🎬', 
+            name: 'Radarr',
             presentColor: 'bg-blue-900/40 border-blue-600/50 text-blue-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         },
-        sonarr: {
-            icon: '📺',
-            label: 'Sonarr',
+        sonarr: { 
+            icon: '📺', 
+            name: 'Sonarr',
             presentColor: 'bg-purple-900/40 border-purple-600/50 text-purple-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         },
-        jellyfin: {
-            icon: '🎞️',
-            label: 'Jellyfin',
+        jellyfin: { 
+            icon: '🍿', 
+            name: 'Jellyfin',
             presentColor: 'bg-emerald-900/40 border-emerald-600/50 text-emerald-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         },
-        jellyseerr: {
-            icon: '🎫',
-            label: 'Jellyseerr',
+        jellyseerr: { 
+            icon: '🎫', 
+            name: 'Jellyseerr',
             presentColor: 'bg-teal-900/40 border-teal-600/50 text-teal-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         },
-        jellystat: {
-            icon: '📊',
-            label: 'Jellystat',
+        jellystat: { 
+            icon: '📊', 
+            name: 'JellyStat',
             presentColor: 'bg-cyan-900/40 border-cyan-600/50 text-cyan-300',
             absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
         }
     };
 
-    const config = serviceConfig[service] || serviceConfig.radarr;
+    const config = serviceConfig[serviceName] || { 
+        icon: '❓', 
+        name: serviceName.charAt(0).toUpperCase() + serviceName.slice(1),
+        presentColor: 'bg-indigo-900/40 border-indigo-600/50 text-indigo-300',
+        absentColor: 'bg-slate-800/40 border-slate-600/50 text-slate-500'
+    };
     
     return {
-        icon: config.icon,
-        label: config.label,
-        colorClasses: isPresent ? config.presentColor : config.absentColor,
+        serviceName,
+        isPresent,
+        details,
+        config,
         showTooltip: false,
-        details: details,
-        hasDetails: details && Object.keys(details).length > 0 && isPresent
+
+        get icon() {
+            return config.icon;
+        },
+
+        get label() {
+            return config.name;
+        },
+
+        get colorClasses() {
+            if (!this.isPresent) {
+                return config.absentColor;
+            }
+
+            // Special handling for qBittorrent based on torrent state
+            if (serviceName === 'qbittorrent' && this.details.state) {
+                const state = this.details.state.toLowerCase();
+                
+                // Error states
+                if (state === 'error' || state === 'missingfiles') {
+                    return 'bg-red-900/30 border-red-600/50 text-red-300';
+                }
+                
+                // Seeding/uploading states
+                if (state === 'uploading' || state === 'seeding' || (state === 'stalledUP' && this.details.seeding)) {
+                    return 'bg-green-900/30 border-green-600/50 text-green-300';
+                }
+                
+                // Downloading states
+                if (state === 'downloading' || state === 'stalledDL') {
+                    return 'bg-blue-900/30 border-blue-600/50 text-blue-300';
+                }
+                
+                // Paused states
+                if (state === 'pausedUP' || state === 'pausedDL') {
+                    return 'bg-yellow-900/30 border-yellow-600/50 text-yellow-300';
+                }
+                
+                // Completed/stalled
+                return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
+            }
+
+            // Default present state - use config colors
+            return config.presentColor;
+        },
+
+        get hasDetails() {
+            return this.isPresent && Object.values(this.details).some(v => v !== null && v !== undefined && v !== '');
+        }
     };
 }
 
@@ -1504,80 +1653,6 @@ function filesPage() {
             } catch (e) {
                 return timestamp;
             }
-        }
-    };
-}
-
-function serviceStatusIndicator(serviceName, isPresent, details = {}) {
-    // Service configuration
-    const serviceConfig = {
-        qbittorrent: { icon: '🧲', name: 'qBittorrent' },
-        radarr: { icon: '🎬', name: 'Radarr' },
-        sonarr: { icon: '📺', name: 'Sonarr' },
-        jellyfin: { icon: '🍿', name: 'Jellyfin' },
-        jellyseerr: { icon: '🎫', name: 'Jellyseerr' },
-        jellystat: { icon: '📊', name: 'JellyStat' }
-    };
-
-    const config = serviceConfig[serviceName] || { 
-        icon: '❓', 
-        name: serviceName.charAt(0).toUpperCase() + serviceName.slice(1) 
-    };
-
-    return {
-        serviceName,
-        isPresent,
-        details,
-        config,
-        showTooltip: false,
-
-        get icon() {
-            return config.icon;
-        },
-
-        get label() {
-            return config.name;
-        },
-
-        get colorClasses() {
-            if (!this.isPresent) {
-                return 'bg-slate-800/50 border-slate-600 text-slate-500';
-            }
-
-            // Special handling for qBittorrent based on torrent state
-            if (serviceName === 'qbittorrent' && this.details.state) {
-                const state = this.details.state.toLowerCase();
-                
-                // Error states
-                if (state === 'error' || state === 'missingfiles') {
-                    return 'bg-red-900/30 border-red-600/50 text-red-300';
-                }
-                
-                // Seeding/uploading states
-                if (state === 'uploading' || state === 'seeding' || (state === 'stalledUP' && this.details.seeding)) {
-                    return 'bg-green-900/30 border-green-600/50 text-green-300';
-                }
-                
-                // Downloading states
-                if (state === 'downloading' || state === 'stalledDL') {
-                    return 'bg-blue-900/30 border-blue-600/50 text-blue-300';
-                }
-                
-                // Paused states
-                if (state === 'pausedUP' || state === 'pausedDL') {
-                    return 'bg-yellow-900/30 border-yellow-600/50 text-yellow-300';
-                }
-                
-                // Completed/stalled
-                return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
-            }
-
-            // Default present state
-            return 'bg-indigo-900/30 border-indigo-600/50 text-indigo-300';
-        },
-
-        get hasDetails() {
-            return this.isPresent && Object.keys(this.details).length > 0;
         }
     };
 }
