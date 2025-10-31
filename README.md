@@ -1,6 +1,6 @@
 # KeeperCheky
 
-> Modern web-based media library cleanup manager - A complete rewrite of Janitorr with a beautiful UI
+> Gestor moderno de limpieza para bibliotecas multimedia - Reescritura completa de Janitorr con interfaz web
 
 [![stable](https://img.shields.io/github/actions/workflow/status/carcheky/keepercheky/release.yml?branch=stable&label=stable&logo=github)](https://github.com/carcheky/keepercheky/actions/workflows/release.yml)
 [![stable version](https://img.shields.io/github/v/release/carcheky/keepercheky?label=stable)](https://github.com/carcheky/keepercheky/releases)
@@ -10,199 +10,80 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/carcheky/keepercheky)](go.mod)
 
-## 📖 What is KeeperCheky?
+**KeeperCheky** automatiza la limpieza de tu biblioteca multimedia eliminando contenido antiguo o no visto según reglas configurables. Es una reescritura completa de [Janitorr](https://github.com/Schaka/janitorr) con interfaz web moderna, optimizado para mínimo uso de recursos.
 
-KeeperCheky is a complete rewrite of [Janitorr](https://github.com/Schaka/janitorr) with a modern web interface. It automatically manages and cleans up your media library by removing old or unwatched content based on configurable rules.
+## ✨ Características Principales
 
-### Key Features
+- 🎨 **Interfaz Web Moderna** - Dashboard intuitivo accesible desde cualquier navegador
+- 🧹 **Limpieza Automatizada** - Eliminación inteligente basada en edad y espacio en disco
+- 🏷️ **Reglas por Tags** - Programación personalizada usando tags de Radarr/Sonarr
+- 📺 **Gestión de Series** - Manejo especial para shows semanales/diarios
+- ⏰ **Próximos a Eliminar** - Vista previa en Jellyfin/Emby antes de borrar
+- 🔗 **Integración Completa** - Compatible con Radarr, Sonarr, Jellyfin, Jellyseerr, qBittorrent, Bazarr
+- 🐳 **Docker Ready** - Despliegue sencillo con Docker Compose
+- 🔒 **Modo Seguro** - Dry-run por defecto para prevenir accidentes
 
-- 🎨 **Modern Web UI** - Beautiful dashboard accessible from any browser
-- 🧹 **Automated Cleanup** - Smart deletion based on age and disk space
-- 🏷️ **Tag-based Rules** - Custom cleanup schedules using Radarr/Sonarr tags
-- 📺 **Series Management** - Special handling for weekly/daily shows
-- ⏰ **Leaving Soon** - Preview content before deletion in Jellyfin/Emby
-- 🔗 **Full Integration** - Works with Radarr, Sonarr, Jellyfin, Emby, Jellyseerr
-- 🐳 **Docker Ready** - Easy deployment with Docker Compose
-- 🔒 **Safe Mode** - Dry-run by default to prevent accidents
+## 🚀 Estado del Proyecto
 
-## 🎯 Project Status
+**Fase Actual**: Desarrollo Activo - v1.0.0-dev.17
 
-**Current Phase**: 🚀 Active Development - v1.0.0-dev.17
+✅ **90% completado** - La mayoría de características implementadas  
+🏗️ **Stack**: Go + Alpine.js para máximo rendimiento y mínimos recursos  
+📦 **Docker**: ~25MB imagen, ~30-60MB RAM  
+⚡ **Startup**: <2 segundos
 
-El proyecto está en desarrollo activo con la mayoría de las características principales implementadas. Basado en **Go + Alpine.js** (Propuesta 3) para rendimiento óptimo y uso mínimo de recursos.
+## 📚 Documentación
 
-### Documentation
+**[👉 Comenzar aquí: Índice de Documentación](docs/README.md)**
 
-📚 **[Start Here: Documentation Index](docs/README.md)**
+### Enlaces Rápidos
 
-Quick links:
-- [Executive Summary](docs/RESUMEN_EJECUTIVO.md) - Project overview and analysis
-- [Maintainerr Analysis](docs/ANALISIS_MAINTAINERR.md) - Evaluation of similar projects 🆕
-- [Quick Comparison](docs/RESUMEN_COMPARATIVO.md) - Janitorr vs Maintainerr vs KeeperCheky 🆕
-- [Detailed Comparison](docs/COMPARACION_Y_RECOMENDACIONES.md) - Stack analysis and recommendations
-- [Proposals](docs/propuestas/) - 4 complete technical proposals
+- **[Instalación y Uso](quickstart/README.md)** - Guía de inicio rápido
+- **[Desarrollo](DEVELOPMENT.md)** - Configuración del entorno de desarrollo
+- **[Guía para Agentes IA](AGENTS.md)** - Instrucciones para GitHub Copilot y otros asistentes
+- **[Resumen Ejecutivo](docs/RESUMEN_EJECUTIVO.md)** - Visión general del proyecto
+- **[Comparación](docs/RESUMEN_COMPARATIVO.md)** - Janitorr vs Maintainerr vs KeeperCheky
+- **[Propuestas Técnicas](docs/propuestas/)** - Análisis de 4 stacks diferentes
 
-## 🏗️ Proposed Architecture
+### Por Qué Go + Alpine.js?
 
-Hemos desarrollado **4 propuestas completas** con diferentes stacks tecnológicos. La propuesta seleccionada e implementada es la **Propuesta 3: Go + Alpine.js**.
+**Propuesta 3** seleccionada por balance óptimo:
+- ✅ Rendimiento extremo (~30-60MB RAM)
+- ✅ Imagen Docker tiny (~25MB)
+- ✅ Binario único, sin dependencias
+- ✅ Startup instantáneo (<2s)
 
-### 1. TypeScript Full-Stack (Next.js + NestJS)
-- **Best for**: Modern UX, scalability
-- **Resources**: 512MB-1GB RAM
-- **Development**: 4-6 weeks
+Ver [análisis completo](docs/COMPARACION_Y_RECOMENDACIONES.md) de las 4 propuestas evaluadas.
 
-### 2. Python/HTMX (FastAPI + HTMX)
-- **Best for**: Simplicity, rapid development
-- **Resources**: 50-150MB RAM
-- **Development**: 3-4 weeks
+## 📦 Instalación Rápida
 
-### 3. Go/Alpine.js (Fiber + Alpine) ⭐ **RECOMMENDED**
-- **Best for**: Performance, minimal resources
-- **Resources**: 20-50MB RAM
-- **Development**: 3-4 weeks
-- **Docker image**: 15-25MB
-
-### 4. Rust/Leptos (Axum + WASM)
-- **Best for**: Maximum security, long-term projects
-- **Resources**: 30-80MB RAM
-- **Development**: 5-7 weeks
-
-## 🚀 Recommended Implementation
-
-### Why Go + Alpine.js? ✅ IMPLEMENTADO
-
-1. ✅ **Balance óptimo** - Rendimiento meets recursos
-2. ✅ **Huella mínima** - 30-60MB RAM, imagen Docker tiny
-3. ✅ **Despliegue fácil** - Binario único, sin dependencias
-4. ✅ **Desarrollo rápido** - MVP en 4 semanas
-5. ✅ **Escalable** - Goroutines para concurrencia
-
-Ver [Documento de Comparación](docs/COMPARACION_Y_RECOMENDACIONES.md) para análisis detallado.
-
-## 📊 Comparison with Similar Projects
-
-| Feature              | Janitorr        | Maintainerr                   | KeeperCheky (Actual) |
-| -------------------- | --------------- | ----------------------------- | -------------------- |
-| **Web Interface**    | ❌               | ✅                             | ✅                    |
-| **Stack**            | Kotlin + Spring | TypeScript + NestJS + Next.js | **Go + Alpine.js** ✅ |
-| **Docker Image**     | ~300MB          | ~500MB                        | **~25MB** ✅          |
-| **RAM Usage**        | ~256MB          | ~400-600MB                    | **~30-60MB** ✅       |
-| **Startup Time**     | ~10-15s         | ~15-25s                       | **<2s** ✅            |
-| **Jellyfin Support** | ✅               | ❌                             | ✅                    |
-| **Plex Support**     | ❌               | ✅                             | ⏳ (planned)          |
-| **Radarr/Sonarr**    | ✅               | ✅                             | ✅                    |
-| **Jellyseerr**       | ✅               | ✅ (Overseerr)                 | ✅                    |
-| **qBittorrent**      | ❌               | ❌                             | ✅                    |
-| **Bazarr**           | ❌               | ❌                             | ✅                    |
-| **Rule Builder**     | Config file     | ✅ Visual                      | 🚧 In progress        |
-| **Leaving Soon**     | ❌               | ✅ Collections                 | ✅ Symlinks           |
-| **File Health**      | ❌               | ❌                             | ✅ Advanced           |
-
-**Ver [comparación detallada](docs/RESUMEN_COMPARATIVO.md) para más información.**
-
-## 🎨 Planned Features
-
-### ✅ Dashboard (Implementado)
-- ✅ Estadísticas de uso de disco en tiempo real
-- ✅ Monitoreo de salud de servicios
-- ✅ Vista previa de próximas eliminaciones
-- ✅ Timeline de actividad reciente
-- ✅ Widgets de Jellyseerr y Jellystat
-
-### ✅ Gestión de Medios (Implementado)
-- ✅ Navegador visual de biblioteca con posters
-- ✅ Filtrado y búsqueda avanzada
-- ✅ Exclusión/eliminación con un clic
-- ✅ Información detallada de medios
-- ✅ Eliminación masiva
-
-### ✅ Salud de Archivos (Implementado)
-- ✅ Análisis de salud del almacenamiento
-- ✅ Detección de huérfanos y problemas
-- ✅ Acciones de limpieza sugeridas
-- ✅ Importación a Radarr/Sonarr
-- ✅ Acciones masivas
-
-### 🚧 Programación de Limpiezas (En Desarrollo)
-- ⏳ Crear/editar/eliminar schedules desde UI
-- ⏳ Vista previa de qué se eliminará
-- ⏳ Ejecución manual con confirmación
-- ⏳ Habilitar/deshabilitar schedules
-
-### ✅ Configuración (Implementado)
-- ✅ Formularios de configuración de servicios
-- ✅ Prueba de conexión en tiempo real
-- ✅ Validación de rutas
-- ✅ Vista de estado de servicios
-
-### 🚧 Logs e Historial (En Desarrollo)
-- ⏳ Streaming de logs en vivo
-- ⏳ Filtrado por nivel (INFO, ERROR, etc.)
-- ⏳ Búsqueda y exportación
-- ✅ Historial completo de acciones
-
-## 🛠️ Technology Stack (Implemented)
-
-**Backend:**
-- Go 1.22+ ✅
-- Fiber v2 (web framework) ✅
-- GORM v2 (ORM) ✅
-- SQLite/PostgreSQL ✅
-- robfig/cron v3 (scheduler) ✅
-- go-resty/resty v2 (HTTP client) ✅
-
-**Frontend:**
-- Alpine.js 3.x (15kb reactive framework) ✅
-- Tailwind CSS ✅
-- Chart.js (dashboards y gráficos) ✅
-
-**Integraciones:**
-- Radarr API v3 ✅
-- Sonarr API v3 ✅
-- Jellyfin API ✅
-- Jellyseerr/Overseerr API ✅
-- qBittorrent Web API ✅
-- Bazarr API ✅
-- Jellystat API ✅
-
-**DevOps:**
-- Docker (multi-stage builds) ✅
-- Single static binary ✅
-- Imagen final: ~20-30MB ✅
-- GitHub Actions CI/CD ✅
-- Semantic Release ✅
-
-## 📦 Installation
-
-### Quick Start (Producción)
+### Opción 1: Docker Compose (Recomendado)
 
 ```bash
-# Usando Docker Compose (recomendado)
 cd quickstart
 cp .env.example .env
 # Editar .env con tus configuraciones
 docker-compose up -d
 
-# Acceder a la aplicación
-# http://localhost:8780
+# Acceder a http://localhost:8780
 ```
 
-### Desarrollo
+Ver [guía completa de instalación](quickstart/README.md).
+
+### Opción 2: Desarrollo
 
 ```bash
-# Clonar repositorio
 git clone https://github.com/carcheky/keepercheky.git
 cd keepercheky
-
-# Iniciar entorno de desarrollo
 make init
 make dev
 
-# Acceder a la aplicación
-# http://localhost:8000
+# Acceder a http://localhost:8000
 ```
 
-### Docker Manual
+Ver [guía de desarrollo](DEVELOPMENT.md) para más detalles.
+
+### Opción 3: Docker Manual
 
 ```bash
 docker run -d \
@@ -210,151 +91,63 @@ docker run -d \
   -p 8000:8000 \
   -v ./config:/config \
   -v ./data:/data \
-  -v /path/to/media:/media \
+  -v /path/to/media:/media:ro \
   ghcr.io/carcheky/keepercheky:latest
 ```
 
-Ver [quickstart/README.md](quickstart/README.md) para instrucciones detalladas.
-
-## 🔧 Configuration Example
+## ⚙️ Configuración Básica
 
 ```yaml
 # config/config.yaml
 app:
-  environment: production
-  log_level: info
-  dry_run: true              # ⚠️ IMPORTANTE: Mantener en true hasta estar seguro
+  dry_run: true              # ⚠️ Mantener en true hasta estar seguro
   leaving_soon_days: 14
-  scheduler_enabled: false   # Deshabilitar hasta configurar bien
-
-server:
-  port: "8000"
-  host: "0.0.0.0"
-
-database:
-  type: sqlite               # o postgres para producción
-  path: ./data/keepercheky.db
+  scheduler_enabled: false
 
 clients:
   radarr:
     enabled: true
     url: "http://radarr:7878"
-    api_key: "tu-api-key-aqui"
-    
-  sonarr:
-    enabled: true
-    url: "http://sonarr:8989"
-    api_key: "tu-api-key-aqui"
-    
+    api_key: "tu-api-key"
+  
   jellyfin:
     enabled: true
     url: "http://jellyfin:8096"
-    api_key: "tu-api-key-aqui"
-    username: "admin"
-    password: "tu-password"
-  
-  jellyseerr:
-    enabled: false
-    url: "http://jellyseerr:5055"
-    api_key: "tu-api-key-aqui"
-  
-  qbittorrent:
-    enabled: false
-    url: "http://qbittorrent:8080"
-    username: "admin"
-    password: "adminadmin"
-  
-  bazarr:
-    enabled: false
-    url: "http://bazarr:6767"
-    api_key: "tu-api-key-aqui"
-  
-  jellystat:
-    enabled: false
-    url: "http://jellystat:3000"
-    api_key: "tu-api-key-aqui"
+    api_key: "tu-api-key"
 ```
 
-Ver [.env.example](.env.example) para configuración con variables de entorno.
+Ver [ejemplo completo de configuración](.env.example).
 
-## 🗺️ Roadmap
+## 🤝 Contribuir
 
-### Phase 1: MVP (Semanas 1-4) - ✅ 90% COMPLETADO
-- [x] Estructura del proyecto
-- [x] Backend core + modelos de base de datos
-- [x] Clientes de servicios (Radarr, Sonarr, Jellyfin, Jellyseerr, Bazarr, qBittorrent, Jellystat)
-- [x] UI básica con Alpine.js
-- [x] Dashboard con estadísticas en tiempo real
-- [x] Página de gestión de archivos con análisis de salud
-- [x] Página de gestión de medios
-- [x] Página de configuración con prueba de conexiones
-- [ ] Lógica de limpieza completa
-- [ ] Sistema de programación de tareas
+¿Interesado en ayudar? Revisa:
 
-### Phase 2: Features (Semanas 5-6) - 🚧 EN PROGRESO
-- [x] Integración completa de todos los servicios
-- [ ] Gestión de schedules desde UI
-- [x] Página de configuración completa
-- [ ] Visor de logs en tiempo real
-- [ ] Optimización de Docker
+- **[Guía de desarrollo](DEVELOPMENT.md)** - Configuración y workflows
+- **[Guía para agentes IA](AGENTS.md)** - Instrucciones para Copilot
+- **[Documentación técnica](docs/)** - Propuestas y arquitectura
 
-### Phase 3: Pulido (Semana 7) - ⏳ PENDIENTE
-- [ ] Testing completo
-- [ ] Documentación final
-- [ ] Publicación en Docker Hub
-- [ ] Release 1.0.0
-
-## 🤖 AI Agent Development
-
-Este proyecto incluye instrucciones completas para agentes de código AI como GitHub Copilot:
-
-- **[AGENTS.md](AGENTS.md)** - Guía práctica para Copilot Coding Agent con comandos y workflows
-- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Lineamientos detallados del proyecto y patrones de arquitectura
-
-Estos archivos ayudan a los agentes AI a entender la estructura del proyecto, workflows de desarrollo y reglas críticas de seguridad.
-
-## 🤝 Contributing
-
-El proyecto está en desarrollo activo y las contribuciones son bienvenidas.
-
-### ¿Interesado en ayudar?
-
-1. Revisa las [propuestas técnicas](docs/propuestas/)
-2. Lee la [guía de desarrollo](DEVELOPMENT.md)
-3. Consulta [AGENTS.md](AGENTS.md) para lineamientos de desarrollo
-4. Abre un issue o pull request
-5. Dale una estrella al repo para mantenerte actualizado
-
-### Áreas que necesitan ayuda
+### Áreas que Necesitan Ayuda
 
 - 🧪 Tests unitarios y de integración
 - 📝 Documentación y ejemplos
 - 🐛 Reportar y corregir bugs
 - 💡 Sugerencias de features
-- 🌍 Traducciones (inglés, otros idiomas)
+- 🌍 Traducciones
 
-## 📝 License
+## 📝 Licencia
 
-MIT License - See [LICENSE](LICENSE) file for details
+MIT License - Ver [LICENSE](LICENSE) para detalles
 
-## 🙏 Acknowledgments
+## 🙏 Agradecimientos
 
-- **[Janitorr](https://github.com/Schaka/janitorr)** - Original project that inspired this rewrite
-- **[Maintainerr](https://github.com/jorenn92/Maintainerr)** - Reference for UI/UX and advanced features
-- All the *arr projects (Radarr, Sonarr, etc.)
-- Jellyfin and Emby communities
-
-## 📞 Links
-
-- **Documentation**: [docs/README.md](docs/README.md)
-- **Proposals**: [docs/propuestas/](docs/propuestas/)
-- **Comparisons**: [docs/RESUMEN_COMPARATIVO.md](docs/RESUMEN_COMPARATIVO.md)
-- **Janitorr Original**: [github.com/Schaka/janitorr](https://github.com/Schaka/janitorr)
-- **Maintainerr**: [github.com/jorenn92/Maintainerr](https://github.com/jorenn92/Maintainerr)
+- **[Janitorr](https://github.com/Schaka/janitorr)** - Proyecto original que inspiró esta reescritura
+- **[Maintainerr](https://github.com/jorenn92/Maintainerr)** - Referencia para UI/UX y features avanzadas
+- Proyectos *arr (Radarr, Sonarr, etc.)
+- Comunidades de Jellyfin y Emby
 
 ---
 
-**Nota**: Este es un proyecto de reescritura/reimplementación que combina las mejores características de Janitorr (lógica de limpieza) y Maintainerr (UI hermosa), optimizado para uso mínimo de recursos con Go + Alpine.js.
+**Estado**: v1.0.0-dev.17 - Desarrollo activo  
+**Documentación**: [docs/README.md](docs/README.md) | **Instalación**: [quickstart/README.md](quickstart/README.md) | **Desarrollo**: [DEVELOPMENT.md](DEVELOPMENT.md)
 
-**Estado Actual**: 🚀 v1.0.0-dev.17 - Desarrollo activo - [Guía de Desarrollo](DEVELOPMENT.md) - [Quickstart](quickstart/README.md)
 
