@@ -86,7 +86,7 @@ func (e *Enricher) EnrichWithRadarr(
 
 		// Try matching with all hardlink paths (includes primary path)
 		if file.IsHardlink {
-			if radarrItem, matched := e.matchByHardlinks(radarrByPath, file.HardlinkPaths); matched {
+			if radarrItem, matched := matchByHardlinks(radarrByPath, file.HardlinkPaths); matched {
 				e.applyRadarrData(file, radarrItem)
 				enriched++
 				continue
@@ -139,7 +139,7 @@ func (e *Enricher) EnrichWithSonarr(
 
 		// Try matching with all hardlink paths (includes primary path)
 		if file.IsHardlink {
-			if sonarrItem, matched := e.matchByHardlinks(sonarrByPath, file.HardlinkPaths); matched {
+			if sonarrItem, matched := matchByHardlinks(sonarrByPath, file.HardlinkPaths); matched {
 				e.applySonarrData(file, sonarrItem)
 				enriched++
 				continue
@@ -191,7 +191,7 @@ func (e *Enricher) EnrichWithJellyfin(
 
 		// Try matching with all hardlink paths (includes primary path)
 		if file.IsHardlink {
-			if jfItem, matched := e.matchByHardlinks(jellyfinByPath, file.HardlinkPaths); matched {
+			if jfItem, matched := matchByHardlinks(jellyfinByPath, file.HardlinkPaths); matched {
 				e.applyJellyfinData(file, jfItem)
 				enriched++
 				continue
@@ -236,7 +236,7 @@ func (e *Enricher) EnrichWithQBittorrent(
 
 		// Try matching with all hardlink paths (includes primary path)
 		if file.IsHardlink {
-			if torrent, matched := e.matchByHardlinksTorrent(torrentMap, file.HardlinkPaths); matched {
+			if torrent, matched := matchByHardlinks(torrentMap, file.HardlinkPaths); matched {
 				e.applyTorrentData(file, torrent)
 				enriched++
 				continue
@@ -356,23 +356,14 @@ func (e *Enricher) pathsMatch(path1, path2 string) bool {
 }
 
 // matchByHardlinks attempts to match a file against a service's path map using the file's hardlink paths.
-// Returns the matched media item and true if found, nil and false otherwise.
-func (e *Enricher) matchByHardlinks(pathMap map[string]*models.Media, hardlinkPaths []string) (*models.Media, bool) {
+// Returns the matched item and true if found, zero value and false otherwise.
+// If hardlinkPaths is empty, returns (zero value, false).
+func matchByHardlinks[T any](pathMap map[string]T, hardlinkPaths []string) (T, bool) {
 	for _, hlPath := range hardlinkPaths {
-		if media, found := pathMap[hlPath]; found {
-			return media, true
+		if item, found := pathMap[hlPath]; found {
+			return item, true
 		}
 	}
-	return nil, false
-}
-
-// matchByHardlinksTorrent attempts to match a file against qBittorrent's torrent map using the file's hardlink paths.
-// Returns the matched torrent info and true if found, nil and false otherwise.
-func (e *Enricher) matchByHardlinksTorrent(torrentMap map[string]*models.TorrentInfo, hardlinkPaths []string) (*models.TorrentInfo, bool) {
-	for _, hlPath := range hardlinkPaths {
-		if torrent, found := torrentMap[hlPath]; found {
-			return torrent, true
-		}
-	}
-	return nil, false
+	var zero T
+	return zero, false
 }
