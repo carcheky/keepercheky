@@ -407,7 +407,8 @@
                                         style="display: none;">
                                         <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
                                         <div class="space-y-1">
-                                            <div class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
+                                            <div x-show="series.metadata?.in_sonarr" class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
+                                            <div x-show="!series.metadata?.in_sonarr" class="text-slate-400 font-medium">❌ No gestionado en Sonarr</div>
                                             <div x-show="details.id !== undefined && details.id !== null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                         </div>
                                     </div>
@@ -435,7 +436,8 @@
                                         style="display: none;">
                                         <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                                         <div class="space-y-1">
-                                            <div class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
+                                            <div x-show="series.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
+                                            <div x-show="!series.metadata?.in_jellyfin" class="text-slate-400 font-medium">❌ No en biblioteca de Jellyfin</div>
                                             <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                         </div>
                                     </div>
@@ -651,7 +653,8 @@
                                             style="display: none;">
                                             <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
                                             <div class="space-y-1">
-                                                <div class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
+                                                <div x-show="movie.metadata?.in_radarr" class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
+                                                <div x-show="!movie.metadata?.in_radarr" class="text-slate-400 font-medium">❌ No gestionado en Radarr</div>
                                                 <div x-show="details.id !== undefined && details.id !== null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                             </div>
                                         </div>
@@ -704,7 +707,8 @@
                                             style="display: none;">
                                             <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                                             <div class="space-y-1">
-                                                <div class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
+                                                <div x-show="movie.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
+                                                <div x-show="!movie.metadata?.in_jellyfin" class="text-slate-400 font-medium">❌ No en biblioteca de Jellyfin</div>
                                                 <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                             </div>
                                         </div>
