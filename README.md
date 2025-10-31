@@ -15,6 +15,7 @@
 ## ✨ Características Principales
 
 - 🎨 **Interfaz Web Moderna** - Dashboard intuitivo accesible desde cualquier navegador
+- 📁 **Vista Organizada** - Visualización jerárquica de series/temporadas y películas con múltiples versiones
 - 🧹 **Limpieza Automatizada** - Eliminación inteligente basada en edad y espacio en disco
 - 🏷️ **Reglas por Tags** - Programación personalizada usando tags de Radarr/Sonarr
 - 📺 **Gestión de Series** - Manejo especial para shows semanales/diarios
