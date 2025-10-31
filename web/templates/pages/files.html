@@ -376,7 +376,7 @@
                                                         <div class="flex items-center justify-between text-sm">
                                                             <div class="flex-1">
                                                                 <span class="text-dark-text font-medium">
-                                                                    <span x-show="episode.episode_number > 0">E<span x-text="String(episode.episode_number).padStart(2, '0')"></span></span>
+                                                                    <span x-show="episode.episode_number > 0">E<span x-text="episode.episode_number.toString().padStart(2, '0')"></span></span>
                                                                     <span x-show="episode.episode_number === 0">Especial</span>
                                                                 </span>
                                                                 <span class="text-dark-muted mx-2">-</span>
@@ -1863,9 +1863,11 @@ function filesPage() {
         async loadOrganizedFiles() {
             this.loadingOrganized = true;
             try {
+                // Use a reasonable limit per page for organized view
+                const itemsPerPage = Math.min(this.itemsPerPage, 100);
                 const params = new URLSearchParams({
                     page: this.currentPage.toString(),
-                    perPage: '1000', // Load more for organized view
+                    perPage: itemsPerPage.toString(),
                 });
                 
                 if (this.selectedTab && this.selectedTab !== '') {

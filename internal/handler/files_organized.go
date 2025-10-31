@@ -77,12 +77,16 @@ type OrganizedFilesResponse struct {
 	TotalCount int          `json:"total_count"`
 }
 
-// Regular expressions for parsing file names
+// Regular expressions for parsing file names (compiled once for performance)
 var (
-	// Matches patterns like "S01E01", "s01e01", "1x01"
+	// Matches patterns like "S01E01", "s01e01"
 	episodeRegex = regexp.MustCompile(`(?i)[Ss](\d+)[Ee](\d+)`)
-	// Alternative pattern: 1x01
+	// Alternative pattern: 1x01, 1X01
 	altEpisodeRegex = regexp.MustCompile(`(?i)(\d+)[xX](\d+)`)
+	// Quality and release tags to remove
+	qualityRegex = regexp.MustCompile(`(?i)(1080p|720p|2160p|4k|BluRay|WEB-DL|HDTV|x264|x265|HEVC).*`)
+	// Multiple spaces cleanup
+	spaceRegex = regexp.MustCompile(`\s+`)
 )
 
 // parseSeasonEpisode extracts season and episode numbers from filename
@@ -132,10 +136,10 @@ func extractSeriesName(path string) string {
 	name = strings.ReplaceAll(name, "_", " ")
 	
 	// Remove common quality/release tags (case insensitive)
-	name = regexp.MustCompile(`(?i)(1080p|720p|2160p|4k|BluRay|WEB-DL|HDTV|x264|x265|HEVC).*`).ReplaceAllString(name, "")
+	name = qualityRegex.ReplaceAllString(name, "")
 	
 	// Clean up multiple spaces
-	name = regexp.MustCompile(`\s+`).ReplaceAllString(name, " ")
+	name = spaceRegex.ReplaceAllString(name, " ")
 	
 	return strings.TrimSpace(name)
 }
@@ -216,6 +220,9 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 
 	// For simplicity, paginate across both series and movies
 	startIdx := (page - 1) * perPage
+	if startIdx < 0 {
+		startIdx = 0
+	}
 	endIdx := startIdx + perPage
 
 	response := OrganizedFilesResponse{
@@ -266,7 +273,13 @@ func (h *FilesHandler) organizeFiles(ctx context.Context, files []MediaFileInfo)
 
 	// Group files
 	for _, file := range files {
-		if file.Type == "series" || strings.Contains(strings.ToLower(file.FilePath), "/tv/") {
+		// Check file type first, then fall back to path-based detection
+		if file.Type == "series" || file.Type == "episode" {
+			h.addToSeries(seriesMap, file)
+		} else if file.Type == "movie" {
+			h.addToMovies(movieMap, file)
+		} else if strings.Contains(strings.ToLower(file.FilePath), "/tv/") {
+			// Fallback: path-based detection for files without explicit type
 			h.addToSeries(seriesMap, file)
 		} else {
 			h.addToMovies(movieMap, file)
