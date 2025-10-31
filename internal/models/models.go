@@ -51,7 +51,7 @@ type Media struct {
 	LastWatched *time.Time `json:"last_watched"`
 
 	// Filesystem metadata (source of truth)
-	FileInode     uint64      `json:"file_inode" gorm:"index"`          // Inode number for hardlink detection
+	FileInode     int64       `json:"file_inode" gorm:"index"`          // Inode number for hardlink detection
 	FileModTime   int64       `json:"file_mod_time"`                    // Last modification time (Unix timestamp)
 	IsHardlink    bool        `json:"is_hardlink" gorm:"default:false;index"` // Has hardlinks
 	HardlinkPaths StringSlice `json:"hardlink_paths" gorm:"type:text"`  // All hardlink paths

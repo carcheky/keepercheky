@@ -509,7 +509,7 @@ func (h *FilesHandler) scanFilesystemFromPaths(servicePaths []PathInfo) ([]Media
 
 	// Convert to MediaFileInfo, grouping hardlinks
 	mediaFiles := make([]MediaFileInfo, 0, len(enrichedFiles))
-	processedInodes := make(map[uint64]bool)
+	processedInodes := make(map[int64]bool)
 
 	for _, enrichedFile := range enrichedFiles {
 		// Skip if we already processed this inode (hardlink group)
