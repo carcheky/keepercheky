@@ -1,3 +1,10 @@
+# [1.0.0-dev.20](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2025-10-31)
+
+
+### Bug Fixes
+
+* cambiar FileInode de uint64 a int64 para compatibilidad con SQLite ([#69](https://github.com/carcheky/keepercheky/issues/69)) ([424f3c0](https://github.com/carcheky/keepercheky/commit/424f3c0036bdf343d206f5887c786e79e3199b4a))
+
 # [1.0.0-dev.19](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2025-10-31)
 
 
