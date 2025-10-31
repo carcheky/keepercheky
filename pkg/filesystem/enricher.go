@@ -84,9 +84,9 @@ func (e *Enricher) EnrichWithRadarr(
 			continue
 		}
 
-		// Try matching with primary path (for hardlinks)
-		if file.IsHardlink && file.PrimaryPath != path {
-			if radarrItem, found := radarrByPath[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if radarrItem, matched := matchByHardlinks(radarrByPath, file.HardlinkPaths); matched {
 				e.applyRadarrData(file, radarrItem)
 				enriched++
 				continue
@@ -137,9 +137,9 @@ func (e *Enricher) EnrichWithSonarr(
 			continue
 		}
 
-		// Try matching with primary path
-		if file.IsHardlink && file.PrimaryPath != path {
-			if sonarrItem, found := sonarrByPath[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if sonarrItem, matched := matchByHardlinks(sonarrByPath, file.HardlinkPaths); matched {
 				e.applySonarrData(file, sonarrItem)
 				enriched++
 				continue
@@ -189,8 +189,9 @@ func (e *Enricher) EnrichWithJellyfin(
 			continue
 		}
 
-		if file.IsHardlink && file.PrimaryPath != path {
-			if jfItem, found := jellyfinByPath[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if jfItem, matched := matchByHardlinks(jellyfinByPath, file.HardlinkPaths); matched {
 				e.applyJellyfinData(file, jfItem)
 				enriched++
 				continue
@@ -233,23 +234,12 @@ func (e *Enricher) EnrichWithQBittorrent(
 			continue
 		}
 
-		// Try matching with primary path
-		if file.IsHardlink && file.PrimaryPath != path {
-			if torrent, found := torrentMap[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if torrent, matched := matchByHardlinks(torrentMap, file.HardlinkPaths); matched {
 				e.applyTorrentData(file, torrent)
 				enriched++
 				continue
-			}
-		}
-
-		// Try matching hardlink paths
-		if file.IsHardlink {
-			for _, hlPath := range file.HardlinkPaths {
-				if torrent, found := torrentMap[hlPath]; found {
-					e.applyTorrentData(file, torrent)
-					enriched++
-					break
-				}
 			}
 		}
 	}
@@ -363,4 +353,17 @@ func (e *Enricher) pathsMatch(path1, path2 string) bool {
 	base2 := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(filepath.Base(norm2), ".", " "), "_", " "))
 
 	return strings.Contains(base1, base2) || strings.Contains(base2, base1)
+}
+
+// matchByHardlinks attempts to match a file against a service's path map using the file's hardlink paths.
+// Returns the matched item and true if found, zero value and false otherwise.
+// If hardlinkPaths is empty, returns (zero value, false).
+func matchByHardlinks[T any](pathMap map[string]T, hardlinkPaths []string) (T, bool) {
+	for _, hlPath := range hardlinkPaths {
+		if item, found := pathMap[hlPath]; found {
+			return item, true
+		}
+	}
+	var zero T
+	return zero, false
 }
