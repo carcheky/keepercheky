@@ -1,3 +1,10 @@
+# [1.0.0-dev.19](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2025-10-31)
+
+
+### Bug Fixes
+
+* remove duplicate Alpine.js getters causing incorrect file count display ([#64](https://github.com/carcheky/keepercheky/issues/64)) ([972f2c3](https://github.com/carcheky/keepercheky/commit/972f2c3a85b56c7dbf6227552ee20fa10337dabd))
+
 # [1.0.0-dev.18](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2025-10-31)
 
 
