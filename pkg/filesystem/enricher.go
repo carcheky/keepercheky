@@ -234,23 +234,12 @@ func (e *Enricher) EnrichWithQBittorrent(
 			continue
 		}
 
-		// Try matching with primary path
-		if file.IsHardlink && file.PrimaryPath != path {
-			if torrent, found := torrentMap[file.PrimaryPath]; found {
+		// Try matching with all hardlink paths (includes primary path)
+		if file.IsHardlink {
+			if torrent, matched := e.matchByHardlinksTorrent(torrentMap, file.HardlinkPaths); matched {
 				e.applyTorrentData(file, torrent)
 				enriched++
 				continue
-			}
-		}
-
-		// Try matching hardlink paths
-		if file.IsHardlink {
-			for _, hlPath := range file.HardlinkPaths {
-				if torrent, found := torrentMap[hlPath]; found {
-					e.applyTorrentData(file, torrent)
-					enriched++
-					break
-				}
 			}
 		}
 	}
@@ -372,6 +361,17 @@ func (e *Enricher) matchByHardlinks(pathMap map[string]*models.Media, hardlinkPa
 	for _, hlPath := range hardlinkPaths {
 		if media, found := pathMap[hlPath]; found {
 			return media, true
+		}
+	}
+	return nil, false
+}
+
+// matchByHardlinksTorrent attempts to match a file against qBittorrent's torrent map using the file's hardlink paths.
+// Returns the matched torrent info and true if found, nil and false otherwise.
+func (e *Enricher) matchByHardlinksTorrent(torrentMap map[string]*models.TorrentInfo, hardlinkPaths []string) (*models.TorrentInfo, bool) {
+	for _, hlPath := range hardlinkPaths {
+		if torrent, found := torrentMap[hlPath]; found {
+			return torrent, true
 		}
 	}
 	return nil, false
