@@ -45,7 +45,7 @@
 - **[Comparación](docs/RESUMEN_COMPARATIVO.md)** - Janitorr vs Maintainerr vs KeeperCheky
 - **[Propuestas Técnicas](docs/propuestas/)** - Análisis de 4 stacks diferentes
 
-### Por Qué Go + Alpine.js?
+### Por qué Go + Alpine.js?
 
 **Propuesta 3** seleccionada por balance óptimo:
 - ✅ Rendimiento extremo (~30-60MB RAM)
@@ -126,7 +126,7 @@ Ver [ejemplo completo de configuración](.env.example).
 - **[Guía para agentes IA](AGENTS.md)** - Instrucciones para Copilot
 - **[Documentación técnica](docs/)** - Propuestas y arquitectura
 
-### Áreas que Necesitan Ayuda
+### Áreas que necesitan ayuda
 
 - 🧪 Tests unitarios y de integración
 - 📝 Documentación y ejemplos
