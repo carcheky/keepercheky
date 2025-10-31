@@ -27,9 +27,9 @@ KeeperCheky is a complete rewrite of [Janitorr](https://github.com/Schaka/janito
 
 ## 🎯 Project Status
 
-**Current Phase**: 🚀 Active Development - MVP Implementation
+**Current Phase**: 🚀 Active Development - v1.0.0-dev.17
 
-We have completed the planning phase and chosen **Go + Alpine.js** (Proposal 3) for optimal performance and minimal resource usage. The project structure is now complete and ready for development.
+El proyecto está en desarrollo activo con la mayoría de las características principales implementadas. Basado en **Go + Alpine.js** (Propuesta 3) para rendimiento óptimo y uso mínimo de recursos.
 
 ### Documentation
 
@@ -44,7 +44,7 @@ Quick links:
 
 ## 🏗️ Proposed Architecture
 
-We've developed **4 complete proposals** with different technology stacks:
+Hemos desarrollado **4 propuestas completas** con diferentes stacks tecnológicos. La propuesta seleccionada e implementada es la **Propuesta 3: Go + Alpine.js**.
 
 ### 1. TypeScript Full-Stack (Next.js + NestJS)
 - **Best for**: Modern UX, scalability
@@ -69,180 +69,269 @@ We've developed **4 complete proposals** with different technology stacks:
 
 ## 🚀 Recommended Implementation
 
-### Why Go + Alpine.js?
+### Why Go + Alpine.js? ✅ IMPLEMENTADO
 
-1. ✅ **Optimal balance** - Performance meets resources
-2. ✅ **Minimal footprint** - 20-50MB RAM, tiny Docker image
-3. ✅ **Easy deployment** - Single binary, no dependencies
-4. ✅ **Fast development** - 3-4 weeks to MVP
-5. ✅ **Scalable** - Goroutines for concurrency
+1. ✅ **Balance óptimo** - Rendimiento meets recursos
+2. ✅ **Huella mínima** - 30-60MB RAM, imagen Docker tiny
+3. ✅ **Despliegue fácil** - Binario único, sin dependencias
+4. ✅ **Desarrollo rápido** - MVP en 4 semanas
+5. ✅ **Escalable** - Goroutines para concurrencia
 
-See [Comparison Document](docs/COMPARACION_Y_RECOMENDACIONES.md) for detailed analysis.
+Ver [Documento de Comparación](docs/COMPARACION_Y_RECOMENDACIONES.md) para análisis detallado.
 
 ## 📊 Comparison with Similar Projects
 
-| Feature              | Janitorr        | Maintainerr                   | KeeperCheky (Goal) |
-| -------------------- | --------------- | ----------------------------- | ------------------ |
-| **Web Interface**    | ❌               | ✅                             | ✅                  |
-| **Stack**            | Kotlin + Spring | TypeScript + NestJS + Next.js | **Go + Alpine.js** |
-| **Docker Image**     | ~300MB          | ~500MB                        | **15-25MB** ✅      |
-| **RAM Usage**        | ~256MB          | ~400-600MB                    | **20-50MB** ✅      |
-| **Startup Time**     | ~10-15s         | ~15-25s                       | **<1s** ✅          |
-| **Jellyfin Support** | ✅               | ❌                             | ✅                  |
-| **Plex Support**     | ❌               | ✅                             | ✅ (future)         |
-| **Rule Builder**     | Config file     | ✅ Visual                      | ✅ Visual           |
-| **Leaving Soon**     | ❌               | ✅ Collections                 | ✅ Symlinks         |
+| Feature              | Janitorr        | Maintainerr                   | KeeperCheky (Actual) |
+| -------------------- | --------------- | ----------------------------- | -------------------- |
+| **Web Interface**    | ❌               | ✅                             | ✅                    |
+| **Stack**            | Kotlin + Spring | TypeScript + NestJS + Next.js | **Go + Alpine.js** ✅ |
+| **Docker Image**     | ~300MB          | ~500MB                        | **~25MB** ✅          |
+| **RAM Usage**        | ~256MB          | ~400-600MB                    | **~30-60MB** ✅       |
+| **Startup Time**     | ~10-15s         | ~15-25s                       | **<2s** ✅            |
+| **Jellyfin Support** | ✅               | ❌                             | ✅                    |
+| **Plex Support**     | ❌               | ✅                             | ⏳ (planned)          |
+| **Radarr/Sonarr**    | ✅               | ✅                             | ✅                    |
+| **Jellyseerr**       | ✅               | ✅ (Overseerr)                 | ✅                    |
+| **qBittorrent**      | ❌               | ❌                             | ✅                    |
+| **Bazarr**           | ❌               | ❌                             | ✅                    |
+| **Rule Builder**     | Config file     | ✅ Visual                      | 🚧 In progress        |
+| **Leaving Soon**     | ❌               | ✅ Collections                 | ✅ Symlinks           |
+| **File Health**      | ❌               | ❌                             | ✅ Advanced           |
 
-**See [detailed comparison](docs/RESUMEN_COMPARATIVO.md) for more information.**
+**Ver [comparación detallada](docs/RESUMEN_COMPARATIVO.md) para más información.**
 
 ## 🎨 Planned Features
 
-### Dashboard
-- Real-time disk usage statistics
-- Service health monitoring
-- Upcoming deletions preview
-- Recent activity timeline
+### ✅ Dashboard (Implementado)
+- ✅ Estadísticas de uso de disco en tiempo real
+- ✅ Monitoreo de salud de servicios
+- ✅ Vista previa de próximas eliminaciones
+- ✅ Timeline de actividad reciente
+- ✅ Widgets de Jellyseerr y Jellystat
 
-### Media Management
-- Visual library browser with posters
-- Advanced filtering and search
-- One-click exclude/delete
-- Detailed media information
+### ✅ Gestión de Medios (Implementado)
+- ✅ Navegador visual de biblioteca con posters
+- ✅ Filtrado y búsqueda avanzada
+- ✅ Exclusión/eliminación con un clic
+- ✅ Información detallada de medios
+- ✅ Eliminación masiva
 
-### Cleanup Schedules
-- Create/edit/delete schedules from UI
-- Preview what will be deleted
-- Manual execution with confirmation
-- Enable/disable schedules
+### ✅ Salud de Archivos (Implementado)
+- ✅ Análisis de salud del almacenamiento
+- ✅ Detección de huérfanos y problemas
+- ✅ Acciones de limpieza sugeridas
+- ✅ Importación a Radarr/Sonarr
+- ✅ Acciones masivas
 
-### Settings
-- Service configuration forms
-- Real-time connection testing
-- Path validation
-- No more manual YAML editing
+### 🚧 Programación de Limpiezas (En Desarrollo)
+- ⏳ Crear/editar/eliminar schedules desde UI
+- ⏳ Vista previa de qué se eliminará
+- ⏳ Ejecución manual con confirmación
+- ⏳ Habilitar/deshabilitar schedules
 
-### Logs & History
-- Live log streaming
-- Filter by level (INFO, ERROR, etc.)
-- Search and export
-- Complete action history
+### ✅ Configuración (Implementado)
+- ✅ Formularios de configuración de servicios
+- ✅ Prueba de conexión en tiempo real
+- ✅ Validación de rutas
+- ✅ Vista de estado de servicios
 
-## 🛠️ Technology Stack (Recommended)
+### 🚧 Logs e Historial (En Desarrollo)
+- ⏳ Streaming de logs en vivo
+- ⏳ Filtrado por nivel (INFO, ERROR, etc.)
+- ⏳ Búsqueda y exportación
+- ✅ Historial completo de acciones
+
+## 🛠️ Technology Stack (Implemented)
 
 **Backend:**
-- Go 1.22+
-- Fiber v2 (web framework)
-- GORM v2 (ORM)
-- SQLite/PostgreSQL
-- go-cron (scheduler)
+- Go 1.22+ ✅
+- Fiber v2 (web framework) ✅
+- GORM v2 (ORM) ✅
+- SQLite/PostgreSQL ✅
+- robfig/cron v3 (scheduler) ✅
+- go-resty/resty v2 (HTTP client) ✅
 
 **Frontend:**
-- Alpine.js 3.x (15kb reactive framework)
-- Tailwind CSS
-- Chart.js (minimal charts)
+- Alpine.js 3.x (15kb reactive framework) ✅
+- Tailwind CSS ✅
+- Chart.js (dashboards y gráficos) ✅
+
+**Integraciones:**
+- Radarr API v3 ✅
+- Sonarr API v3 ✅
+- Jellyfin API ✅
+- Jellyseerr/Overseerr API ✅
+- qBittorrent Web API ✅
+- Bazarr API ✅
+- Jellystat API ✅
 
 **DevOps:**
-- Docker (multi-stage builds)
-- Single static binary
-- ~15-25MB final image
+- Docker (multi-stage builds) ✅
+- Single static binary ✅
+- Imagen final: ~20-30MB ✅
+- GitHub Actions CI/CD ✅
+- Semantic Release ✅
 
-## 📦 Installation (Coming Soon)
+## 📦 Installation
+
+### Quick Start (Producción)
 
 ```bash
-# Docker Compose (recommended)
+# Usando Docker Compose (recomendado)
+cd quickstart
+cp .env.example .env
+# Editar .env con tus configuraciones
 docker-compose up -d
 
-# Docker
+# Acceder a la aplicación
+# http://localhost:8780
+```
+
+### Desarrollo
+
+```bash
+# Clonar repositorio
+git clone https://github.com/carcheky/keepercheky.git
+cd keepercheky
+
+# Iniciar entorno de desarrollo
+make init
+make dev
+
+# Acceder a la aplicación
+# http://localhost:8000
+```
+
+### Docker Manual
+
+```bash
 docker run -d \
   --name keepercheky \
   -p 8000:8000 \
   -v ./config:/config \
   -v ./data:/data \
   -v /path/to/media:/media \
-  keepercheky/keepercheky:latest
-
-# Binary (standalone)
-./keepercheky
+  ghcr.io/carcheky/keepercheky:latest
 ```
 
-## 🔧 Configuration Example (Coming Soon)
+Ver [quickstart/README.md](quickstart/README.md) para instrucciones detalladas.
+
+## 🔧 Configuration Example
 
 ```yaml
-# config.yml
-general:
-  dry_run: true
+# config/config.yaml
+app:
+  environment: production
+  log_level: info
+  dry_run: true              # ⚠️ IMPORTANTE: Mantener en true hasta estar seguro
   leaving_soon_days: 14
-  
+  scheduler_enabled: false   # Deshabilitar hasta configurar bien
+
+server:
+  port: "8000"
+  host: "0.0.0.0"
+
+database:
+  type: sqlite               # o postgres para producción
+  path: ./data/keepercheky.db
+
 clients:
   radarr:
     enabled: true
     url: "http://radarr:7878"
-    api_key: "your-api-key"
+    api_key: "tu-api-key-aqui"
     
   sonarr:
     enabled: true
     url: "http://sonarr:8989"
-    api_key: "your-api-key"
+    api_key: "tu-api-key-aqui"
     
   jellyfin:
     enabled: true
     url: "http://jellyfin:8096"
-    api_key: "your-api-key"
-    username: "janitor"
-    password: "password"
-
-schedules:
-  media_cleanup:
-    enabled: true
-    expiration:
-      5: 15d   # At 5% free space, delete 15+ day old media
-      10: 30d
-      15: 60d
-      20: 90d
+    api_key: "tu-api-key-aqui"
+    username: "admin"
+    password: "tu-password"
+  
+  jellyseerr:
+    enabled: false
+    url: "http://jellyseerr:5055"
+    api_key: "tu-api-key-aqui"
+  
+  qbittorrent:
+    enabled: false
+    url: "http://qbittorrent:8080"
+    username: "admin"
+    password: "adminadmin"
+  
+  bazarr:
+    enabled: false
+    url: "http://bazarr:6767"
+    api_key: "tu-api-key-aqui"
+  
+  jellystat:
+    enabled: false
+    url: "http://jellystat:3000"
+    api_key: "tu-api-key-aqui"
 ```
+
+Ver [.env.example](.env.example) para configuración con variables de entorno.
 
 ## 🗺️ Roadmap
 
-### Phase 1: MVP (Weeks 1-4) - ✅ IN PROGRESS
-- [x] Setup project structure
-- [x] Core backend + database models
-- [ ] Service clients (Radarr, Sonarr, Jellyfin) - in progress
-- [ ] Cleanup logic implementation
-- [x] Basic UI with Alpine.js
-- [x] Dashboard + Media Management pages (templates ready)
+### Phase 1: MVP (Semanas 1-4) - ✅ 90% COMPLETADO
+- [x] Estructura del proyecto
+- [x] Backend core + modelos de base de datos
+- [x] Clientes de servicios (Radarr, Sonarr, Jellyfin, Jellyseerr, Bazarr, qBittorrent, Jellystat)
+- [x] UI básica con Alpine.js
+- [x] Dashboard con estadísticas en tiempo real
+- [x] Página de gestión de archivos con análisis de salud
+- [x] Página de gestión de medios
+- [x] Página de configuración con prueba de conexiones
+- [ ] Lógica de limpieza completa
+- [ ] Sistema de programación de tareas
 
-### Phase 2: Features (Weeks 5-6)
-- [ ] All service integrations
-- [ ] Schedules management
-- [ ] Settings page
-- [ ] Logs viewer
-- [ ] Docker optimization
+### Phase 2: Features (Semanas 5-6) - 🚧 EN PROGRESO
+- [x] Integración completa de todos los servicios
+- [ ] Gestión de schedules desde UI
+- [x] Página de configuración completa
+- [ ] Visor de logs en tiempo real
+- [ ] Optimización de Docker
 
-### Phase 3: Polish (Week 7)
-- [ ] Testing
-- [ ] Documentation
-- [ ] Docker Hub publish
+### Phase 3: Pulido (Semana 7) - ⏳ PENDIENTE
+- [ ] Testing completo
+- [ ] Documentación final
+- [ ] Publicación en Docker Hub
 - [ ] Release 1.0.0
 
-## � AI Agent Development
+## 🤖 AI Agent Development
 
-This project includes comprehensive instructions for AI coding agents like GitHub Copilot:
+Este proyecto incluye instrucciones completas para agentes de código AI como GitHub Copilot:
 
-- **[AGENTS.md](AGENTS.md)** - Practical guide for Copilot Coding Agent with commands and workflows
-- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Detailed project guidelines and architecture patterns
+- **[AGENTS.md](AGENTS.md)** - Guía práctica para Copilot Coding Agent con comandos y workflows
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Lineamientos detallados del proyecto y patrones de arquitectura
 
-These files help AI agents understand the project structure, development workflows, and critical safety rules.
+Estos archivos ayudan a los agentes AI a entender la estructura del proyecto, workflows de desarrollo y reglas críticas de seguridad.
 
-## �🤝 Contributing
+## 🤝 Contributing
 
-This project is currently in the planning phase. Contributions will be welcome once we start implementation.
+El proyecto está en desarrollo activo y las contribuciones son bienvenidas.
 
-### Interested in helping?
+### ¿Interesado en ayudar?
 
-1. Review the [technical proposals](docs/propuestas/)
-2. Share your thoughts on the [recommended stack](docs/COMPARACION_Y_RECOMENDACIONES.md)
-3. Check out [AGENTS.md](AGENTS.md) for development guidelines
-4. Star this repo to stay updated
+1. Revisa las [propuestas técnicas](docs/propuestas/)
+2. Lee la [guía de desarrollo](DEVELOPMENT.md)
+3. Consulta [AGENTS.md](AGENTS.md) para lineamientos de desarrollo
+4. Abre un issue o pull request
+5. Dale una estrella al repo para mantenerte actualizado
+
+### Áreas que necesitan ayuda
+
+- 🧪 Tests unitarios y de integración
+- 📝 Documentación y ejemplos
+- 🐛 Reportar y corregir bugs
+- 💡 Sugerencias de features
+- 🌍 Traducciones (inglés, otros idiomas)
 
 ## 📝 License
 
@@ -265,7 +354,7 @@ MIT License - See [LICENSE](LICENSE) file for details
 
 ---
 
-**Note**: This is a rewrite/reimplementation project combining the best features of Janitorr (cleanup logic) and Maintainerr (beautiful UI), optimized for minimal resource usage with Go + Alpine.js.
+**Nota**: Este es un proyecto de reescritura/reimplementación que combina las mejores características de Janitorr (lógica de limpieza) y Maintainerr (UI hermosa), optimizado para uso mínimo de recursos con Go + Alpine.js.
 
-**Status**: 🚀 MVP Implementation in progress - [Development Guide](DEVELOPMENT.md)
+**Estado Actual**: 🚀 v1.0.0-dev.17 - Desarrollo activo - [Guía de Desarrollo](DEVELOPMENT.md) - [Quickstart](quickstart/README.md)
 
