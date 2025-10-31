@@ -143,6 +143,11 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 		}
 
 		// Create file entry
+		// Note: stat.Ino (uint64) is converted to int64 for SQLite compatibility.
+		// While this may theoretically cause overflow on systems with very large inode numbers,
+		// in practice, inode numbers exceeding int64 max are extremely rare on modern filesystems.
+		// Negative inodes after conversion are also extremely rare and don't affect hardlink detection
+		// since we only compare inodes for equality, not magnitude.
 		entry := &FileEntry{
 			Path:        path,
 			Size:        info.Size(),
@@ -157,7 +162,7 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 
 		// Add to inode map for hardlink detection
 		s.mu.Lock()
-		s.inodeMap[int64(stat.Ino)] = append(s.inodeMap[int64(stat.Ino)], entry)
+		s.inodeMap[entry.Inode] = append(s.inodeMap[entry.Inode], entry)
 		s.mu.Unlock()
 
 		return nil
