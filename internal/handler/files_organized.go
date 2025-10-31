@@ -115,17 +115,27 @@ func extractSeriesName(path string) string {
 	ext := filepath.Ext(base)
 	nameWithoutExt := strings.TrimSuffix(base, ext)
 	
-	// Remove episode pattern
-	nameWithoutEp := episodeRegex.ReplaceAllString(nameWithoutExt, "")
-	nameWithoutEp = altEpisodeRegex.ReplaceAllString(nameWithoutEp, "")
+	// Find episode pattern and truncate before it
+	episodeMatch := episodeRegex.FindStringIndex(nameWithoutExt)
+	if episodeMatch != nil {
+		nameWithoutExt = nameWithoutExt[:episodeMatch[0]]
+	} else {
+		altEpisodeMatch := altEpisodeRegex.FindStringIndex(nameWithoutExt)
+		if altEpisodeMatch != nil {
+			nameWithoutExt = nameWithoutExt[:altEpisodeMatch[0]]
+		}
+	}
 	
 	// Clean up
-	name := strings.TrimSpace(nameWithoutEp)
+	name := strings.TrimSpace(nameWithoutExt)
 	name = strings.ReplaceAll(name, ".", " ")
 	name = strings.ReplaceAll(name, "_", " ")
 	
-	// Remove common quality/release tags
+	// Remove common quality/release tags (case insensitive)
 	name = regexp.MustCompile(`(?i)(1080p|720p|2160p|4k|BluRay|WEB-DL|HDTV|x264|x265|HEVC).*`).ReplaceAllString(name, "")
+	
+	// Clean up multiple spaces
+	name = regexp.MustCompile(`\s+`).ReplaceAllString(name, " ")
 	
 	return strings.TrimSpace(name)
 }
