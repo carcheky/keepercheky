@@ -440,7 +440,7 @@
                             style="display: none;">
                             <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                             <div class="space-y-1">
-                                <div x-show="details.id"><span class="text-emerald-400">ID:</span> <span x-text="details.id" class="font-mono text-xs"></span></div>
+                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400">ID:</span> <span x-text="details.id" class="font-mono text-xs"></span></div>
                                 <div x-show="details.watched !== undefined">
                                     <span x-show="details.watched" class="text-green-400">✅ Reproducido</span>
                                     <span x-show="!details.watched" class="text-yellow-400">👁️ Sin reproducir</span>
@@ -821,7 +821,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         },
 
         get hasDetails() {
-            return this.isPresent && Object.keys(this.details).length > 0;
+            return this.isPresent && Object.values(this.details).some(v => v !== null && v !== undefined && v !== '');
         }
     };
 }
