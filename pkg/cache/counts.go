@@ -26,7 +26,7 @@ func NewCountsCache(ttl time.Duration) *CountsCache {
 func (c *CountsCache) Get() (map[string]int64, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	if time.Now().Before(c.expiresAt) && len(c.counts) > 0 {
 		cached := make(map[string]int64, len(c.counts))
 		for k, v := range c.counts {
@@ -34,7 +34,7 @@ func (c *CountsCache) Get() (map[string]int64, bool) {
 		}
 		return cached, true
 	}
-	
+
 	return nil, false
 }
 
@@ -43,7 +43,7 @@ func (c *CountsCache) Get() (map[string]int64, bool) {
 func (c *CountsCache) Set(counts map[string]int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	// Create defensive copy
 	c.counts = make(map[string]int64, len(counts))
 	for k, v := range counts {
@@ -56,6 +56,6 @@ func (c *CountsCache) Set(counts map[string]int64) {
 func (c *CountsCache) Invalidate() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.expiresAt = time.Now().Add(-1 * time.Second)
 }

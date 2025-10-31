@@ -509,7 +509,7 @@ func (h *FilesHandler) scanFilesystemFromPaths(servicePaths []PathInfo) ([]Media
 
 	// Convert to MediaFileInfo, grouping hardlinks
 	mediaFiles := make([]MediaFileInfo, 0, len(enrichedFiles))
-	processedInodes := make(map[uint64]bool)
+	processedInodes := make(map[int64]bool)
 
 	for _, enrichedFile := range enrichedFiles {
 		// Skip if we already processed this inode (hardlink group)
@@ -671,7 +671,7 @@ func (h *FilesHandler) inferTitleFromPath(path string) string {
 // GetFilesAPI returns files as JSON for API access with pagination support
 func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	requestStart := time.Now()
-	
+
 	// Get pagination parameters
 	page := c.QueryInt("page", 1)
 	perPage := c.QueryInt("perPage", 25)
@@ -860,18 +860,18 @@ func (h *FilesHandler) getCategoryCounts() map[string]int64 {
 	// Cache miss - recalculate
 	startTime := time.Now()
 	counts := h.calculateCategoryCounts()
-	
+
 	// Update cache only if calculation succeeded
 	if len(counts) > 0 {
 		h.countsCache.Set(counts)
-		
+
 		elapsed := time.Since(startTime)
 		h.logger.Info("Category counts calculated and cached",
 			zap.Duration("elapsed", elapsed),
 			zap.Int("total", int(counts["total"])),
 		)
 	}
-	
+
 	return counts
 }
 
@@ -902,13 +902,13 @@ func (h *FilesHandler) calculateCategoryCounts() map[string]int64 {
 		COUNT(CASE WHEN in_jellyfin = true THEN 1 END) as unwatched,
 		COUNT(*) as total
 	`).Scan(&result).Error
-	
+
 	if err != nil {
 		h.logger.Error("Failed to calculate category counts", zap.Error(err))
 		// Return nil to indicate error (caller should use cached values if available)
 		return nil
 	}
-	
+
 	counts := make(map[string]int64)
 	counts["healthy"] = result.Healthy
 	counts["attention"] = result.Attention
@@ -916,7 +916,7 @@ func (h *FilesHandler) calculateCategoryCounts() map[string]int64 {
 	counts["hardlinks"] = result.Hardlinks
 	counts["unwatched"] = result.Unwatched
 	counts["total"] = result.Total
-	
+
 	return counts
 }
 

@@ -51,11 +51,11 @@ type Media struct {
 	LastWatched *time.Time `json:"last_watched"`
 
 	// Filesystem metadata (source of truth)
-	FileInode     uint64      `json:"file_inode" gorm:"index"`          // Inode number for hardlink detection
-	FileModTime   int64       `json:"file_mod_time"`                    // Last modification time (Unix timestamp)
+	FileInode     int64       `json:"file_inode" gorm:"index"`                // Inode number for hardlink detection
+	FileModTime   int64       `json:"file_mod_time"`                          // Last modification time (Unix timestamp)
 	IsHardlink    bool        `json:"is_hardlink" gorm:"default:false;index"` // Has hardlinks
-	HardlinkPaths StringSlice `json:"hardlink_paths" gorm:"type:text"`  // All hardlink paths
-	PrimaryPath   string      `json:"primary_path"`                     // Canonical path (same as FilePath but explicit)
+	HardlinkPaths StringSlice `json:"hardlink_paths" gorm:"type:text"`        // All hardlink paths
+	PrimaryPath   string      `json:"primary_path"`                           // Canonical path (same as FilePath but explicit)
 
 	// Series specific
 	EpisodeCount     int `json:"episode_count"`
@@ -66,9 +66,9 @@ type Media struct {
 	IsSeeding       bool    `json:"is_seeding" gorm:"default:false;index"`
 	TorrentHash     string  `json:"torrent_hash" gorm:"index"` // Hash from qBittorrent
 	SeedRatio       float64 `json:"seed_ratio"`
-	TorrentCategory string  `json:"torrent_category"` // Category in qBittorrent
-	TorrentTags     string  `json:"torrent_tags"`     // Tags in qBittorrent
-	TorrentState    string  `json:"torrent_state" gorm:"index"`    // State (uploading, stalledUP, etc.)
+	TorrentCategory string  `json:"torrent_category"`           // Category in qBittorrent
+	TorrentTags     string  `json:"torrent_tags"`               // Tags in qBittorrent
+	TorrentState    string  `json:"torrent_state" gorm:"index"` // State (uploading, stalledUP, etc.)
 
 	// Service IDs
 	RadarrID     *int    `json:"radarr_id" gorm:"index"`
@@ -171,7 +171,7 @@ func RunMigrations(db *gorm.DB) error {
 	); err != nil {
 		return err
 	}
-	
+
 	// Add composite indices for common query patterns to improve performance
 	// These indices significantly speed up the Files tab filtering
 	return addPerformanceIndices(db)
@@ -182,13 +182,13 @@ func RunMigrations(db *gorm.DB) error {
 func addPerformanceIndices(db *gorm.DB) error {
 	// Detect database dialect to use appropriate syntax
 	dialectName := db.Dialector.Name()
-	
+
 	// PostgreSQL and SQLite both support partial indices with WHERE clause
 	// MySQL doesn't, so we skip the WHERE clause for MySQL
 	if dialectName == "sqlite" || dialectName == "postgres" {
 		// Use CREATE INDEX IF NOT EXISTS for SQLite
 		// PostgreSQL supports this syntax since version 9.5
-		
+
 		// Index for healthy files query
 		if err := db.Exec(`
 			CREATE INDEX IF NOT EXISTS idx_media_healthy_files 
@@ -197,7 +197,7 @@ func addPerformanceIndices(db *gorm.DB) error {
 		`).Error; err != nil {
 			return fmt.Errorf("failed to create healthy files index: %w", err)
 		}
-		
+
 		// Index for orphan downloads query
 		if err := db.Exec(`
 			CREATE INDEX IF NOT EXISTS idx_media_orphan_downloads 
@@ -206,7 +206,7 @@ func addPerformanceIndices(db *gorm.DB) error {
 		`).Error; err != nil {
 			return fmt.Errorf("failed to create orphan downloads index: %w", err)
 		}
-		
+
 		// Index for dead torrents query
 		if err := db.Exec(`
 			CREATE INDEX IF NOT EXISTS idx_media_dead_torrents 
@@ -215,7 +215,7 @@ func addPerformanceIndices(db *gorm.DB) error {
 		`).Error; err != nil {
 			return fmt.Errorf("failed to create dead torrents index: %w", err)
 		}
-		
+
 		// Index for default sorting
 		if err := db.Exec(`
 			CREATE INDEX IF NOT EXISTS idx_media_default_sort 
@@ -228,12 +228,12 @@ func addPerformanceIndices(db *gorm.DB) error {
 		// MySQL doesn't support partial indices, create without WHERE clause
 		// Also MySQL doesn't support CREATE INDEX IF NOT EXISTS until 8.0.27
 		// We'll use a simpler approach - just try to create and ignore errors if exists
-		
+
 		db.Exec(`CREATE INDEX idx_media_healthy_files ON media(in_jellyfin, in_radarr, in_sonarr, torrent_state)`)
 		db.Exec(`CREATE INDEX idx_media_orphan_downloads ON media(in_q_bittorrent, in_jellyfin, in_radarr, in_sonarr)`)
 		db.Exec(`CREATE INDEX idx_media_dead_torrents ON media(in_q_bittorrent, torrent_state)`)
 		db.Exec(`CREATE INDEX idx_media_default_sort ON media(in_q_bittorrent, in_jellyfin, file_path)`)
 	}
-	
+
 	return nil
 }

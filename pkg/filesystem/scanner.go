@@ -14,7 +14,7 @@ import (
 type FileEntry struct {
 	Path          string   // Absolute path to the file
 	Size          int64    // File size in bytes
-	Inode         uint64   // Inode number (for hardlink detection)
+	Inode         int64    // Inode number (for hardlink detection)
 	ModTime       int64    // Modification time (Unix timestamp)
 	IsHardlink    bool     // Whether this file has hardlinks
 	HardlinkPaths []string // All paths that are hardlinks to this file
@@ -38,7 +38,7 @@ type Scanner struct {
 	logger  *zap.Logger
 
 	// Internal state
-	inodeMap map[uint64][]*FileEntry // Map of inode -> list of paths (for hardlink detection)
+	inodeMap map[int64][]*FileEntry // Map of inode -> list of paths (for hardlink detection)
 	mu       sync.RWMutex
 }
 
@@ -55,7 +55,7 @@ func NewScanner(options ScanOptions, logger *zap.Logger) *Scanner {
 	return &Scanner{
 		options:  options,
 		logger:   logger,
-		inodeMap: make(map[uint64][]*FileEntry),
+		inodeMap: make(map[int64][]*FileEntry),
 	}
 }
 
@@ -143,10 +143,15 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 		}
 
 		// Create file entry
+		// Note: stat.Ino (uint64) is converted to int64 for SQLite compatibility.
+		// While this may theoretically cause overflow on systems with very large inode numbers,
+		// in practice, inode numbers exceeding int64 max are extremely rare on modern filesystems.
+		// Negative inodes after conversion are also extremely rare and don't affect hardlink detection
+		// since we only compare inodes for equality, not magnitude.
 		entry := &FileEntry{
 			Path:        path,
 			Size:        info.Size(),
-			Inode:       stat.Ino,
+			Inode:       int64(stat.Ino),
 			ModTime:     info.ModTime().Unix(),
 			MediaType:   s.inferMediaType(path),
 			PrimaryPath: path, // Will be updated in second pass
@@ -157,7 +162,7 @@ func (s *Scanner) scanPath(rootPath string, result map[string]*FileEntry) error 
 
 		// Add to inode map for hardlink detection
 		s.mu.Lock()
-		s.inodeMap[stat.Ino] = append(s.inodeMap[stat.Ino], entry)
+		s.inodeMap[entry.Inode] = append(s.inodeMap[entry.Inode], entry)
 		s.mu.Unlock()
 
 		return nil
@@ -234,7 +239,7 @@ func (s *Scanner) detectHardlinks(entries map[string]*FileEntry) {
 		}
 
 		s.logger.Debug("Detected hardlink group",
-			zap.Uint64("inode", inode),
+			zap.Int64("inode", inode),
 			zap.Int("count", len(files)),
 			zap.String("primary", primaryPath),
 			zap.Strings("all_paths", allPaths),
