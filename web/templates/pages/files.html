@@ -302,32 +302,198 @@
                 <template x-for="series in organizedData.series" :key="series.series_title">
                     <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg overflow-hidden">
                         <!-- Series Header (Collapsible) -->
-                        <div @click="toggleSeries(series.series_title)" 
-                            class="p-4 cursor-pointer hover:bg-slate-700/30 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3 flex-1">
-                                    <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-90': isSeriesExpanded(series.series_title) }" 
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                    <h3 class="text-lg font-semibold text-dark-text" x-text="series.series_title"></h3>
+                        <div class="p-4">
+                            <div @click="toggleSeries(series.series_title)" 
+                                class="cursor-pointer hover:bg-slate-700/30 transition-colors rounded-lg p-2 -m-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-90': isSeriesExpanded(series.series_title) }" 
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        <h3 class="text-lg font-semibold text-dark-text" x-text="series.series_title"></h3>
+                                    </div>
+                                    
+                                    <!-- Service Icons for Series (inline) -->
+                                    <div class="flex items-center gap-0.5" @click.stop>
+                                <div x-data="serviceStatusIndicator('qbittorrent', series.metadata?.in_qbittorrent, {})" 
+                                    @mouseenter="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    class="relative">
+                                    <span :class="colorClasses"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        role="button"
+                                        :aria-label="label + ': ' + (series.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
+                                        :title="label"
+                                        tabindex="0">
+                                        <span x-text="icon"></span>
+                                    </span>
+                                    
+                                    <div x-show="showTooltip" 
+                                        role="tooltip"
+                                        
+                                        class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                        style="display: none;">
+                                        <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
+                                        <div class="space-y-1">
+                                            <div x-show="series.metadata?.in_qbittorrent" class="text-green-400 font-medium">✅ En qBittorrent</div>
+                                            <div x-show="!series.metadata?.in_qbittorrent" class="text-slate-400 font-medium">❌ No en qBittorrent</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-4 text-sm text-dark-muted">
-                                    <span class="flex items-center gap-1">
-                                        <span>📁</span>
-                                        <span x-text="series.season_count"></span>
-                                        <span>temporada<span x-show="series.season_count !== 1">s</span></span>
+                                
+                                <div x-data="serviceStatusIndicator('radarr', false, {})"
+                                    @mouseenter="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    class="relative">
+                                    <span :class="colorClasses"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        role="button"
+                                        :aria-label="label + ': No aplicable para series'"
+                                        :title="label"
+                                        tabindex="-1">
+                                        <span x-text="icon"></span>
                                     </span>
-                                    <span class="flex items-center gap-1">
-                                        <span>🎬</span>
-                                        <span x-text="series.episode_count"></span>
-                                        <span>episodio<span x-show="series.episode_count !== 1">s</span></span>
-                                    </span>
-                                    <span class="flex items-center gap-1 font-medium text-blue-400">
-                                        <span>💾</span>
-                                        <span x-text="formatBytes(series.total_size)"></span>
-                                    </span>
+                                    
+                                    <div x-show="showTooltip" 
+                                        role="tooltip"
+                                        
+                                        class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                        style="display: none;">
+                                        <div class="font-semibold text-slate-400 mb-2">🎬 Radarr</div>
+                                        <div class="space-y-1">
+                                            <div class="text-slate-400 font-medium">N/A - Solo para películas</div>
+                                        </div>
+                                    </div>
                                 </div>
+                                
+                                <div x-data="serviceStatusIndicator('sonarr', series.metadata?.in_sonarr, { 
+                                    id: series.metadata?.sonarr_id
+                                })"
+                                    @mouseenter="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    class="relative">
+                                    <span :class="colorClasses"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        role="button"
+                                        :aria-label="label + ': ' + (series.metadata?.in_sonarr ? 'Gestionado' : 'No gestionado')"
+                                        :title="label"
+                                        tabindex="0">
+                                        <span x-text="icon"></span>
+                                    </span>
+                                    
+                                    <div x-show="showTooltip" 
+                                        role="tooltip"
+                                        
+                                        class="absolute z-50 bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                        style="display: none;">
+                                        <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
+                                        <div class="space-y-1">
+                                            <div x-show="series.metadata?.in_sonarr" class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
+                                            <div x-show="!series.metadata?.in_sonarr" class="text-slate-400 font-medium">❌ No gestionado en Sonarr</div>
+                                            <div x-show="details.id != null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div x-data="serviceStatusIndicator('jellyfin', series.metadata?.in_jellyfin, { 
+                                    id: series.metadata?.jellyfin_id
+                                })"
+                                    @mouseenter="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    class="relative">
+                                    <span :class="colorClasses"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        role="button"
+                                        :aria-label="label + ': ' + (series.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
+                                        :title="label"
+                                        tabindex="0">
+                                        <span x-text="icon"></span>
+                                    </span>
+                                    
+                                    <div x-show="showTooltip" 
+                                        role="tooltip"
+                                        
+                                        class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                        style="display: none;">
+                                        <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
+                                        <div class="space-y-1">
+                                            <div x-show="series.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
+                                            <div x-show="!series.metadata?.in_jellyfin" class="text-slate-400 font-medium">❌ No en biblioteca de Jellyfin</div>
+                                            <div x-show="details.id != null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div x-data="serviceStatusIndicator('jellyseerr', false, {})"
+                                    @mouseenter="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    class="relative">
+                                    <span :class="colorClasses"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        role="button"
+                                        :aria-label="label + ': No disponible'"
+                                        :title="label"
+                                        tabindex="-1">
+                                        <span x-text="icon"></span>
+                                    </span>
+                                    
+                                    <div x-show="showTooltip" 
+                                        role="tooltip"
+                                        
+                                        class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                        style="display: none;">
+                                        <div class="font-semibold text-slate-400 mb-2">🎫 Jellyseerr</div>
+                                        <div class="space-y-1">
+                                            <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div x-data="serviceStatusIndicator('jellystat', false, {})"
+                                    @mouseenter="showTooltip = true"
+                                    @mouseleave="showTooltip = false"
+                                    class="relative">
+                                    <span :class="colorClasses"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        role="button"
+                                        :aria-label="label + ': No disponible'"
+                                        :title="label"
+                                        tabindex="-1">
+                                        <span x-text="icon"></span>
+                                    </span>
+                                    
+                                    <div x-show="showTooltip" 
+                                        role="tooltip"
+                                        
+                                        class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                        style="display: none;">
+                                        <div class="font-semibold text-slate-400 mb-2">📊 Jellystat</div>
+                                        <div class="space-y-1">
+                                            <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats -->
+                            <div class="flex items-center gap-3 text-sm text-dark-muted ml-auto">
+                                <span class="flex items-center gap-1">
+                                    <span>📁</span>
+                                    <span x-text="series.season_count"></span>
+                                    <span class="hidden md:inline">temporada<span x-show="series.season_count !== 1">s</span></span>
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <span>🎬</span>
+                                    <span x-text="series.episode_count"></span>
+                                    <span class="hidden md:inline">ep<span x-show="series.episode_count !== 1">s</span></span>
+                                </span>
+                                <span class="flex items-center gap-1 font-medium text-blue-400">
+                                    <span>💾</span>
+                                    <span x-text="formatBytes(series.total_size)"></span>
+                                </span>
+                            </div>
+                        </div>
                             </div>
                         </div>
 
@@ -426,22 +592,184 @@
             <div class="space-y-3">
                 <template x-for="movie in organizedData.movies" :key="movie.title">
                     <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg p-4">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-dark-text mb-2" x-text="movie.title"></h3>
-                                <div class="flex items-center gap-3 text-sm text-dark-muted mb-3">
-                                    <span class="flex items-center gap-1">
-                                        <span x-show="movie.primary_file.quality" class="px-2 py-0.5 bg-emerald-900/40 border border-emerald-600/50 text-emerald-300 rounded" x-text="movie.primary_file.quality"></span>
-                                    </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-lg font-semibold text-dark-text" x-text="movie.title"></h3>
+                            
+                            <!-- Service Icons for Movie (inline) -->
+                            <div class="flex items-center gap-0.5" @click.stop>
+                                    <div x-data="serviceStatusIndicator('qbittorrent', movie.metadata?.in_qbittorrent, {})" 
+                                        @mouseenter="showTooltip = true"
+                                        @mouseleave="showTooltip = false"
+                                        class="relative">
+                                        <span :class="colorClasses"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                            role="button"
+                                            :aria-label="label + ': ' + (movie.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
+                                            :title="label"
+                                            tabindex="0">
+                                            <span x-text="icon"></span>
+                                        </span>
+                                        
+                                        <div x-show="showTooltip" 
+                                            role="tooltip"
+                                            
+                                            class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                            style="display: none;">
+                                            <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
+                                            <div class="space-y-1">
+                                                <div x-show="movie.metadata?.in_qbittorrent" class="text-green-400 font-medium">✅ En qBittorrent</div>
+                                                <div x-show="!movie.metadata?.in_qbittorrent" class="text-slate-400 font-medium">❌ No en qBittorrent</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-data="serviceStatusIndicator('radarr', movie.metadata?.in_radarr, { 
+                                        id: movie.metadata?.radarr_id
+                                    })"
+                                        @mouseenter="showTooltip = true"
+                                        @mouseleave="showTooltip = false"
+                                        class="relative">
+                                        <span :class="colorClasses"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                            role="button"
+                                            :aria-label="label + ': ' + (movie.metadata?.in_radarr ? 'Gestionado' : 'No gestionado')"
+                                            :title="label"
+                                            tabindex="0">
+                                            <span x-text="icon"></span>
+                                        </span>
+                                        
+                                        <div x-show="showTooltip" 
+                                            role="tooltip"
+                                            
+                                            class="absolute z-50 bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                            style="display: none;">
+                                            <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
+                                            <div class="space-y-1">
+                                                <div x-show="movie.metadata?.in_radarr" class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
+                                                <div x-show="!movie.metadata?.in_radarr" class="text-slate-400 font-medium">❌ No gestionado en Radarr</div>
+                                                <div x-show="details.id != null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-data="serviceStatusIndicator('sonarr', false, {})"
+                                        @mouseenter="showTooltip = true"
+                                        @mouseleave="showTooltip = false"
+                                        class="relative">
+                                        <span :class="colorClasses"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                            role="button"
+                                            :aria-label="label + ': No aplicable para películas'"
+                                            :title="label"
+                                            tabindex="-1">
+                                            <span x-text="icon"></span>
+                                        </span>
+                                        
+                                        <div x-show="showTooltip" 
+                                            role="tooltip"
+                                            
+                                            class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                            style="display: none;">
+                                            <div class="font-semibold text-slate-400 mb-2">📺 Sonarr</div>
+                                            <div class="space-y-1">
+                                                <div class="text-slate-400 font-medium">N/A - Solo para series</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-data="serviceStatusIndicator('jellyfin', movie.metadata?.in_jellyfin, { 
+                                        id: movie.metadata?.jellyfin_id
+                                    })"
+                                        @mouseenter="showTooltip = true"
+                                        @mouseleave="showTooltip = false"
+                                        class="relative">
+                                        <span :class="colorClasses"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                            role="button"
+                                            :aria-label="label + ': ' + (movie.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
+                                            :title="label"
+                                            tabindex="0">
+                                            <span x-text="icon"></span>
+                                        </span>
+                                        
+                                        <div x-show="showTooltip" 
+                                            role="tooltip"
+                                            
+                                            class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                            style="display: none;">
+                                            <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
+                                            <div class="space-y-1">
+                                                <div x-show="movie.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
+                                                <div x-show="!movie.metadata?.in_jellyfin" class="text-slate-400 font-medium">❌ No en biblioteca de Jellyfin</div>
+                                                <div x-show="details.id != null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-data="serviceStatusIndicator('jellyseerr', false, {})"
+                                        @mouseenter="showTooltip = true"
+                                        @mouseleave="showTooltip = false"
+                                        class="relative">
+                                        <span :class="colorClasses"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                            role="button"
+                                            :aria-label="label + ': No disponible'"
+                                            :title="label"
+                                            tabindex="-1">
+                                            <span x-text="icon"></span>
+                                        </span>
+                                        
+                                        <div x-show="showTooltip" 
+                                            role="tooltip"
+                                            
+                                            class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                            style="display: none;">
+                                            <div class="font-semibold text-slate-400 mb-2">🎫 Jellyseerr</div>
+                                            <div class="space-y-1">
+                                                <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-data="serviceStatusIndicator('jellystat', false, {})"
+                                        @mouseenter="showTooltip = true"
+                                        @mouseleave="showTooltip = false"
+                                        class="relative">
+                                        <span :class="colorClasses"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                            role="button"
+                                            :aria-label="label + ': No disponible'"
+                                            :title="label"
+                                            tabindex="-1">
+                                            <span x-text="icon"></span>
+                                        </span>
+                                        
+                                        <div x-show="showTooltip" 
+                                            role="tooltip"
+                                            
+                                            class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
+                                            style="display: none;">
+                                            <div class="font-semibold text-slate-400 mb-2">📊 Jellystat</div>
+                                            <div class="space-y-1">
+                                                <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stats -->
+                                <div class="flex items-center gap-2 text-sm text-dark-muted ml-auto">
+                                    <span x-show="movie.primary_file.quality" class="px-1.5 py-0.5 bg-emerald-900/40 border border-emerald-600/50 text-emerald-300 rounded text-xs" x-text="movie.primary_file.quality"></span>
                                     <span class="flex items-center gap-1 font-medium text-blue-400">
                                         <span>💾</span>
                                         <span x-text="formatBytes(movie.total_size)"></span>
                                     </span>
                                 </div>
-                                
-                                <!-- Multiple versions -->
-                                <div x-show="movie.other_versions && movie.other_versions.length > 0" class="mt-3 pt-3 border-t border-dark-border/50">
-                                    <button @click="toggleMovieVersions(movie.title)" 
+                            </div>
+                            
+                            <!-- Multiple versions -->
+                            <div x-show="movie.other_versions && movie.other_versions.length > 0" class="mt-2 pt-2 border-t border-dark-border/50">
+                                <button @click="toggleMovieVersions(movie.title)" 
                                         class="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5">
                                         <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-90': isMovieVersionsExpanded(movie.title) }" 
                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -550,7 +878,7 @@
                 </div>
                 
                 <!-- Servicios (usando serviceStatusIndicator) -->
-                <div class="grid grid-cols-3 md:grid-cols-6 gap-1.5 mb-3">
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-0.5 mb-3">
                     <div x-data="serviceStatusIndicator('qbittorrent', file.in_qbittorrent, { 
                         state: file.torrent_state, 
                         ratio: file.seed_ratio,
@@ -562,7 +890,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_qbittorrent ? 'Presente' : 'No presente')"
                             :title="label"
@@ -572,7 +900,7 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
@@ -594,7 +922,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
                             :title="label"
@@ -604,13 +932,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                <div x-show="details.id != null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                 <div x-show="details.type"><span class="text-blue-400 font-medium">Tipo:</span> <span x-text="details.type === 'movie' ? 'Película' : (details.type === 'series' ? 'Serie' : details.type)"></span></div>
                             </div>
                         </div>
@@ -624,7 +952,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
                             :title="label"
@@ -634,13 +962,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                <div x-show="details.id != null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                 <div x-show="details.type"><span class="text-purple-400 font-medium">Tipo:</span> <span x-text="details.type === 'series' ? 'Serie' : (details.type === 'episode' ? 'Episodio' : details.type)"></span></div>
                             </div>
                         </div>
@@ -655,7 +983,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
                             :title="label"
@@ -665,13 +993,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                <div x-show="details.id != null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                 <div x-show="details.watched !== undefined">
                                     <span x-show="details.watched" class="text-green-400 font-medium">✅ Reproducido</span>
                                     <span x-show="!details.watched" class="text-yellow-400 font-medium">👁️ Sin reproducir</span>
@@ -689,7 +1017,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
                             :title="label"
@@ -699,13 +1027,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-teal-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-teal-400 mb-2">🎫 Jellyseerr</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Solicitado en Jellyseerr</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-teal-400 font-medium">ID Jellyseerr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                <div x-show="details.id != null"><span class="text-teal-400 font-medium">ID Jellyseerr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                 <div x-show="details.type"><span class="text-teal-400 font-medium">Tipo:</span> <span x-text="details.type === 'movie' ? 'Película' : (details.type === 'series' ? 'Serie' : details.type)"></span></div>
                             </div>
                         </div>
@@ -719,7 +1047,7 @@
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-2 py-1 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
                             :title="label"
@@ -729,13 +1057,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-cyan-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-cyan-400 mb-2">📊 Jellystat</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Con estadísticas en Jellystat</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-cyan-400 font-medium">ID Jellystat:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                <div x-show="details.id != null"><span class="text-cyan-400 font-medium">ID Jellystat:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                 <div x-show="details.playCount !== undefined && details.playCount > 0"><span class="text-cyan-400 font-medium">Reproducciones:</span> <span x-text="details.playCount" class="font-mono"></span></div>
                                 <div x-show="!details.playCount || details.playCount === 0" class="text-yellow-400 font-medium">⚠️ Sin datos de reproducción</div>
                             </div>
@@ -758,7 +1086,7 @@
                         
                         <div x-show="showLinks" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border-2 border-green-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-2xl w-96 bottom-full mb-2 left-0" 
                             style="display: none;">
                             <div class="font-semibold text-green-400 mb-2 text-sm">🔗 Rutas enlazadas:</div>
