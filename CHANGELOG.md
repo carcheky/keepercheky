@@ -1,3 +1,10 @@
+# [1.0.0-dev.23](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2025-11-01)
+
+
+### Features
+
+* add compact inline service status icons with tooltips to organized view ([#75](https://github.com/carcheky/keepercheky/issues/75)) ([d44e3cd](https://github.com/carcheky/keepercheky/commit/d44e3cd90d92032d90113c786371cd5eaafa46d3))
+
 # [1.0.0-dev.22](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.21...v1.0.0-dev.22) (2025-10-31)
 
 
