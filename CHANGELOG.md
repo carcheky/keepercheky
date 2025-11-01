@@ -1,3 +1,10 @@
+# [1.0.0-dev.24](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.23...v1.0.0-dev.24) (2025-11-01)
+
+
+### Bug Fixes
+
+* correct HTML structure in organized view (series and movies sections) ([#79](https://github.com/carcheky/keepercheky/issues/79)) ([cf5e2fa](https://github.com/carcheky/keepercheky/commit/cf5e2fa78a77a634e0283331bec3b9a383c77352))
+
 # [1.0.0-dev.23](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2025-11-01)
 
 
