@@ -349,7 +349,7 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        aria-live="polite"
+                                        
                                         class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                         style="display: none;">
                                         <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
@@ -369,13 +369,13 @@
                                         role="button"
                                         :aria-label="label + ': No aplicable para series'"
                                         :title="label"
-                                        tabindex="0">
+                                        tabindex="-1">
                                         <span x-text="icon"></span>
                                     </span>
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        aria-live="polite"
+                                        
                                         class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                         style="display: none;">
                                         <div class="font-semibold text-slate-400 mb-2">🎬 Radarr</div>
@@ -402,14 +402,14 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        aria-live="polite"
+                                        
                                         class="absolute z-50 bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                         style="display: none;">
                                         <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
                                         <div class="space-y-1">
                                             <div x-show="series.metadata?.in_sonarr" class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
                                             <div x-show="!series.metadata?.in_sonarr" class="text-slate-400 font-medium">❌ No gestionado en Sonarr</div>
-                                            <div x-show="details.id !== undefined && details.id !== null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                            <div x-show="details.id != null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -431,14 +431,14 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        aria-live="polite"
+                                        
                                         class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                         style="display: none;">
                                         <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                                         <div class="space-y-1">
                                             <div x-show="series.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
                                             <div x-show="!series.metadata?.in_jellyfin" class="text-slate-400 font-medium">❌ No en biblioteca de Jellyfin</div>
-                                            <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                            <div x-show="details.id != null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -452,13 +452,13 @@
                                         role="button"
                                         :aria-label="label + ': No disponible'"
                                         :title="label"
-                                        tabindex="0">
+                                        tabindex="-1">
                                         <span x-text="icon"></span>
                                     </span>
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        aria-live="polite"
+                                        
                                         class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                         style="display: none;">
                                         <div class="font-semibold text-slate-400 mb-2">🎫 Jellyseerr</div>
@@ -477,13 +477,13 @@
                                         role="button"
                                         :aria-label="label + ': No disponible'"
                                         :title="label"
-                                        tabindex="0">
+                                        tabindex="-1">
                                         <span x-text="icon"></span>
                                     </span>
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        aria-live="polite"
+                                        
                                         class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                         style="display: none;">
                                         <div class="font-semibold text-slate-400 mb-2">📊 Jellystat</div>
@@ -620,7 +620,7 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            aria-live="polite"
+                                            
                                             class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                             style="display: none;">
                                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
@@ -648,14 +648,14 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            aria-live="polite"
+                                            
                                             class="absolute z-50 bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                             style="display: none;">
                                             <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
                                             <div class="space-y-1">
                                                 <div x-show="movie.metadata?.in_radarr" class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
                                                 <div x-show="!movie.metadata?.in_radarr" class="text-slate-400 font-medium">❌ No gestionado en Radarr</div>
-                                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                                <div x-show="details.id != null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -669,13 +669,13 @@
                                             role="button"
                                             :aria-label="label + ': No aplicable para películas'"
                                             :title="label"
-                                            tabindex="0">
+                                            tabindex="-1">
                                             <span x-text="icon"></span>
                                         </span>
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            aria-live="polite"
+                                            
                                             class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                             style="display: none;">
                                             <div class="font-semibold text-slate-400 mb-2">📺 Sonarr</div>
@@ -702,14 +702,14 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            aria-live="polite"
+                                            
                                             class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                             style="display: none;">
                                             <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                                             <div class="space-y-1">
                                                 <div x-show="movie.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
                                                 <div x-show="!movie.metadata?.in_jellyfin" class="text-slate-400 font-medium">❌ No en biblioteca de Jellyfin</div>
-                                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                                <div x-show="details.id != null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                             </div>
                                         </div>
                                     </div>
@@ -723,13 +723,13 @@
                                             role="button"
                                             :aria-label="label + ': No disponible'"
                                             :title="label"
-                                            tabindex="0">
+                                            tabindex="-1">
                                             <span x-text="icon"></span>
                                         </span>
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            aria-live="polite"
+                                            
                                             class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                             style="display: none;">
                                             <div class="font-semibold text-slate-400 mb-2">🎫 Jellyseerr</div>
@@ -748,13 +748,13 @@
                                             role="button"
                                             :aria-label="label + ': No disponible'"
                                             :title="label"
-                                            tabindex="0">
+                                            tabindex="-1">
                                             <span x-text="icon"></span>
                                         </span>
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            aria-live="polite"
+                                            
                                             class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                                             style="display: none;">
                                             <div class="font-semibold text-slate-400 mb-2">📊 Jellystat</div>
@@ -898,7 +898,7 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
@@ -930,13 +930,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                <div x-show="details.id != null"><span class="text-blue-400 font-medium">ID Radarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                 <div x-show="details.type"><span class="text-blue-400 font-medium">Tipo:</span> <span x-text="details.type === 'movie' ? 'Película' : (details.type === 'series' ? 'Serie' : details.type)"></span></div>
                             </div>
                         </div>
@@ -960,13 +960,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                <div x-show="details.id != null"><span class="text-purple-400 font-medium">ID Sonarr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                 <div x-show="details.type"><span class="text-purple-400 font-medium">Tipo:</span> <span x-text="details.type === 'series' ? 'Serie' : (details.type === 'episode' ? 'Episodio' : details.type)"></span></div>
                             </div>
                         </div>
@@ -991,13 +991,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                <div x-show="details.id != null"><span class="text-emerald-400 font-medium">ID Jellyfin:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                 <div x-show="details.watched !== undefined">
                                     <span x-show="details.watched" class="text-green-400 font-medium">✅ Reproducido</span>
                                     <span x-show="!details.watched" class="text-yellow-400 font-medium">👁️ Sin reproducir</span>
@@ -1025,13 +1025,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-teal-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-teal-400 mb-2">🎫 Jellyseerr</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Solicitado en Jellyseerr</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-teal-400 font-medium">ID Jellyseerr:</span> <span x-text="details.id" class="font-mono"></span></div>
+                                <div x-show="details.id != null"><span class="text-teal-400 font-medium">ID Jellyseerr:</span> <span x-text="details.id" class="font-mono"></span></div>
                                 <div x-show="details.type"><span class="text-teal-400 font-medium">Tipo:</span> <span x-text="details.type === 'movie' ? 'Película' : (details.type === 'series' ? 'Serie' : details.type)"></span></div>
                             </div>
                         </div>
@@ -1055,13 +1055,13 @@
                         
                         <div x-show="showTooltip && hasDetails" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border border-cyan-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
                             style="display: none;">
                             <div class="font-semibold text-cyan-400 mb-2">📊 Jellystat</div>
                             <div class="space-y-1">
                                 <div class="text-green-400 font-medium">✅ Con estadísticas en Jellystat</div>
-                                <div x-show="details.id !== undefined && details.id !== null"><span class="text-cyan-400 font-medium">ID Jellystat:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
+                                <div x-show="details.id != null"><span class="text-cyan-400 font-medium">ID Jellystat:</span> <span x-text="details.id" class="font-mono text-xs break-all"></span></div>
                                 <div x-show="details.playCount !== undefined && details.playCount > 0"><span class="text-cyan-400 font-medium">Reproducciones:</span> <span x-text="details.playCount" class="font-mono"></span></div>
                                 <div x-show="!details.playCount || details.playCount === 0" class="text-yellow-400 font-medium">⚠️ Sin datos de reproducción</div>
                             </div>
@@ -1084,7 +1084,7 @@
                         
                         <div x-show="showLinks" 
                             role="tooltip"
-                            aria-live="polite"
+                            
                             class="absolute z-50 bg-slate-900 border-2 border-green-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-2xl w-96 bottom-full mb-2 left-0" 
                             style="display: none;">
                             <div class="font-semibold text-green-400 mb-2 text-sm">🔗 Rutas enlazadas:</div>
