@@ -181,6 +181,5 @@ Total: ~2-5 minutos por PR ✅
 
 ---
 
-**Autor:** GitHub Copilot  
 **Fecha:** 2025-11-01  
 **PR:** #[número se asignará al crear]

@@ -70,6 +70,7 @@ jobs:
         with:
           files: ./coverage.out
           flags: unittests
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build
