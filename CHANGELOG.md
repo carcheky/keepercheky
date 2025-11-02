@@ -1,3 +1,10 @@
+# [1.0.0-dev.26](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.25...v1.0.0-dev.26) (2025-11-02)
+
+
+### Features
+
+* **dashboard:** add Chart.js visualizations and enhanced statistics API ([#82](https://github.com/carcheky/keepercheky/issues/82)) ([00ed18a](https://github.com/carcheky/keepercheky/commit/00ed18a278c436f584394dc188787ce5eaf84be7))
+
 # [1.0.0-dev.25](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.24...v1.0.0-dev.25) (2025-11-02)
 
 
