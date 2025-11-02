@@ -317,7 +317,7 @@
                                     <!-- Service Icons for Series (inline) -->
                                     <div class="flex items-center gap-0.5" @click.stop>
                                 <div x-data="serviceStatusIndicator('qbittorrent', series.metadata?.in_qbittorrent, {})" 
-                                    @mouseenter="showTooltip = true"
+                                    @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
@@ -331,9 +331,10 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        
-                                        class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                        style="display: none;">
+                                        x-transition
+                                        class="fixed z-[9999] bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                        style="display: none;"
+                                        @click.away="showTooltip = false">
                                         <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
                                         <div class="space-y-1">
                                             <div x-show="series.metadata?.in_qbittorrent" class="text-green-400 font-medium">✅ En qBittorrent</div>
@@ -343,7 +344,7 @@
                                 </div>
                                 
                                 <div x-data="serviceStatusIndicator('radarr', false, {})"
-                                    @mouseenter="showTooltip = true"
+                                    @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
@@ -357,9 +358,10 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        
-                                        class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                        style="display: none;">
+                                        x-transition
+                                        class="fixed z-[9999] bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                        style="display: none;"
+                                        @click.away="showTooltip = false">
                                         <div class="font-semibold text-slate-400 mb-2">🎬 Radarr</div>
                                         <div class="space-y-1">
                                             <div class="text-slate-400 font-medium">N/A - Solo para películas</div>
@@ -370,23 +372,26 @@
                                 <div x-data="serviceStatusIndicator('sonarr', series.metadata?.in_sonarr, { 
                                     id: series.metadata?.sonarr_id
                                 })"
-                                    @mouseenter="showTooltip = true"
+                                    @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
+                                        @click="openService($event)"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help transition-transform hover:scale-110"
+                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_sonarr ? 'Gestionado' : 'No gestionado')"
-                                        :title="label"
+                                        :title="serviceUrl ? (label + ' (click para abrir)') : label"
                                         tabindex="0">
                                         <span x-text="icon"></span>
                                     </span>
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        
-                                        class="absolute z-50 bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                        style="display: none;">
+                                        x-transition
+                                        class="fixed z-[9999] bg-slate-900 border border-purple-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                        style="display: none;"
+                                        @click.away="showTooltip = false">
                                         <div class="font-semibold text-purple-400 mb-2">📺 Sonarr</div>
                                         <div class="space-y-1">
                                             <div x-show="series.metadata?.in_sonarr" class="text-green-400 font-medium">✅ Gestionado en Sonarr</div>
@@ -399,7 +404,7 @@
                                 <div x-data="serviceStatusIndicator('jellyfin', series.metadata?.in_jellyfin, { 
                                     id: series.metadata?.jellyfin_id
                                 })"
-                                    @mouseenter="showTooltip = true"
+                                    @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
@@ -413,9 +418,10 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        
-                                        class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                        style="display: none;">
+                                        x-transition
+                                        class="fixed z-[9999] bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                        style="display: none;"
+                                        @click.away="showTooltip = false">
                                         <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                                         <div class="space-y-1">
                                             <div x-show="series.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
@@ -426,7 +432,7 @@
                                 </div>
                                 
                                 <div x-data="serviceStatusIndicator('jellyseerr', false, {})"
-                                    @mouseenter="showTooltip = true"
+                                    @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
@@ -440,9 +446,10 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        
-                                        class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                        style="display: none;">
+                                        x-transition
+                                        class="fixed z-[9999] bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                        style="display: none;"
+                                        @click.away="showTooltip = false">
                                         <div class="font-semibold text-slate-400 mb-2">🎫 Jellyseerr</div>
                                         <div class="space-y-1">
                                             <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
@@ -451,7 +458,7 @@
                                 </div>
                                 
                                 <div x-data="serviceStatusIndicator('jellystat', false, {})"
-                                    @mouseenter="showTooltip = true"
+                                    @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
@@ -465,9 +472,10 @@
                                     
                                     <div x-show="showTooltip" 
                                         role="tooltip"
-                                        
-                                        class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                        style="display: none;">
+                                        x-transition
+                                        class="fixed z-[9999] bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                        style="display: none;"
+                                        @click.away="showTooltip = false">
                                         <div class="font-semibold text-slate-400 mb-2">📊 Jellystat</div>
                                         <div class="space-y-1">
                                             <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
@@ -598,7 +606,7 @@
                             <!-- Service Icons for Movie (inline) -->
                             <div class="flex items-center gap-0.5" @click.stop>
                                     <div x-data="serviceStatusIndicator('qbittorrent', movie.metadata?.in_qbittorrent, {})" 
-                                        @mouseenter="showTooltip = true"
+                                        @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
@@ -612,9 +620,10 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            
-                                            class="absolute z-50 bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                            style="display: none;">
+                                            x-transition
+                                            class="fixed z-[9999] bg-slate-900 border border-indigo-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                            style="display: none;"
+                                            @click.away="showTooltip = false">
                                             <div class="font-semibold text-indigo-400 mb-2">🧲 qBittorrent</div>
                                             <div class="space-y-1">
                                                 <div x-show="movie.metadata?.in_qbittorrent" class="text-green-400 font-medium">✅ En qBittorrent</div>
@@ -626,7 +635,7 @@
                                     <div x-data="serviceStatusIndicator('radarr', movie.metadata?.in_radarr, { 
                                         id: movie.metadata?.radarr_id
                                     })"
-                                        @mouseenter="showTooltip = true"
+                                        @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
@@ -640,9 +649,10 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            
-                                            class="absolute z-50 bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                            style="display: none;">
+                                            x-transition
+                                            class="fixed z-[9999] bg-slate-900 border border-blue-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                            style="display: none;"
+                                            @click.away="showTooltip = false">
                                             <div class="font-semibold text-blue-400 mb-2">🎬 Radarr</div>
                                             <div class="space-y-1">
                                                 <div x-show="movie.metadata?.in_radarr" class="text-green-400 font-medium">✅ Gestionado en Radarr</div>
@@ -653,7 +663,7 @@
                                     </div>
                                     
                                     <div x-data="serviceStatusIndicator('sonarr', false, {})"
-                                        @mouseenter="showTooltip = true"
+                                        @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
@@ -667,9 +677,10 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            
-                                            class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                            style="display: none;">
+                                            x-transition
+                                            class="fixed z-[9999] bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                            style="display: none;"
+                                            @click.away="showTooltip = false">
                                             <div class="font-semibold text-slate-400 mb-2">📺 Sonarr</div>
                                             <div class="space-y-1">
                                                 <div class="text-slate-400 font-medium">N/A - Solo para series</div>
@@ -680,7 +691,7 @@
                                     <div x-data="serviceStatusIndicator('jellyfin', movie.metadata?.in_jellyfin, { 
                                         id: movie.metadata?.jellyfin_id
                                     })"
-                                        @mouseenter="showTooltip = true"
+                                        @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
@@ -694,9 +705,10 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            
-                                            class="absolute z-50 bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                            style="display: none;">
+                                            x-transition
+                                            class="fixed z-[9999] bg-slate-900 border border-emerald-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                            style="display: none;"
+                                            @click.away="showTooltip = false">
                                             <div class="font-semibold text-emerald-400 mb-2">🍿 Jellyfin</div>
                                             <div class="space-y-1">
                                                 <div x-show="movie.metadata?.in_jellyfin" class="text-green-400 font-medium">✅ En biblioteca de Jellyfin</div>
@@ -707,7 +719,7 @@
                                     </div>
                                     
                                     <div x-data="serviceStatusIndicator('jellyseerr', false, {})"
-                                        @mouseenter="showTooltip = true"
+                                        @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
@@ -721,9 +733,10 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            
-                                            class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                            style="display: none;">
+                                            x-transition
+                                            class="fixed z-[9999] bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                            style="display: none;"
+                                            @click.away="showTooltip = false">
                                             <div class="font-semibold text-slate-400 mb-2">🎫 Jellyseerr</div>
                                             <div class="space-y-1">
                                                 <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
@@ -732,7 +745,7 @@
                                     </div>
                                     
                                     <div x-data="serviceStatusIndicator('jellystat', false, {})"
-                                        @mouseenter="showTooltip = true"
+                                        @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
@@ -746,9 +759,10 @@
                                         
                                         <div x-show="showTooltip" 
                                             role="tooltip"
-                                            
-                                            class="absolute z-50 bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64 bottom-full mb-2 left-0"
-                                            style="display: none;">
+                                            x-transition
+                                            class="fixed z-[9999] bg-slate-900 border border-slate-500/50 text-slate-200 text-xs rounded-lg p-3 shadow-xl w-64"
+                                            style="display: none;"
+                                            @click.away="showTooltip = false">
                                             <div class="font-semibold text-slate-400 mb-2">📊 Jellystat</div>
                                             <div class="space-y-1">
                                                 <div class="text-slate-400 font-medium">No disponible en vista organizada</div>
@@ -884,7 +898,7 @@
                         tags: file.torrent_tags,
                         seeding: file.is_seeding
                     })" 
-                    @mouseenter="showTooltip = true"
+                    @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
@@ -916,7 +930,7 @@
                         id: file.radarr_id,
                         type: file.type
                     })"
-                    @mouseenter="showTooltip = true"
+                    @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
@@ -946,7 +960,7 @@
                         id: file.sonarr_id,
                         type: file.type
                     })"
-                    @mouseenter="showTooltip = true"
+                    @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
@@ -977,7 +991,7 @@
                         watched: file.has_been_watched,
                         playCount: file.total_play_count
                     })"
-                    @mouseenter="showTooltip = true"
+                    @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
@@ -1011,7 +1025,7 @@
                         id: file.jellyseerr_id,
                         type: file.type
                     })"
-                    @mouseenter="showTooltip = true"
+                    @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
@@ -1041,7 +1055,7 @@
                         playCount: file.total_play_count,
                         id: file.jellystat_id
                     })"
-                    @mouseenter="showTooltip = true"
+                    @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
@@ -1334,6 +1348,45 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         details,
         config,
         showTooltip: false,
+        tooltipX: 0,
+        tooltipY: 0,
+        
+        positionTooltip(event) {
+            // Get tooltip element
+            const tooltip = event.currentTarget.querySelector('[role="tooltip"]');
+            if (!tooltip) return;
+            
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const tooltipWidth = 256; // 16rem (w-64)
+            const tooltipHeight = tooltip.offsetHeight || 150;
+            
+            // Calculate position (below and to the right of cursor)
+            let x = event.clientX + 10;
+            let y = event.clientY + 10;
+            
+            // Adjust if tooltip would go off-screen
+            if (x + tooltipWidth > viewportWidth) {
+                x = event.clientX - tooltipWidth - 10;
+            }
+            if (y + tooltipHeight > viewportHeight) {
+                y = event.clientY - tooltipHeight - 10;
+            }
+            
+            // Ensure it stays on screen
+            x = Math.max(10, Math.min(x, viewportWidth - tooltipWidth - 10));
+            y = Math.max(10, Math.min(y, viewportHeight - tooltipHeight - 10));
+            
+            this.tooltipX = x;
+            this.tooltipY = y;
+            
+            // Apply position
+            if (tooltip) {
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+            }
+        },
 
         get icon() {
             return config.icon;
@@ -1382,6 +1435,57 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
 
         get hasDetails() {
             return this.isPresent && Object.values(this.details).some(v => v !== null && v !== undefined && v !== '');
+        },
+        
+        get serviceUrl() {
+            // Only return URL if service is present
+            if (!this.isPresent) return null;
+            
+            // Get base URLs from configuration (these would be set from backend)
+            const baseUrls = window.serviceBaseUrls || {};
+            
+            switch (serviceName) {
+                case 'radarr':
+                    if (baseUrls.radarr && this.details.id) {
+                        return `${baseUrls.radarr}/movie/${this.details.id}`;
+                    }
+                    return baseUrls.radarr || null;
+                    
+                case 'sonarr':
+                    if (baseUrls.sonarr && this.details.id) {
+                        return `${baseUrls.sonarr}/series/${this.details.id}`;
+                    }
+                    return baseUrls.sonarr || null;
+                    
+                case 'jellyfin':
+                    if (baseUrls.jellyfin && this.details.id) {
+                        // Jellyfin item detail page
+                        return `${baseUrls.jellyfin}/web/index.html#!/details?id=${this.details.id}`;
+                    }
+                    return baseUrls.jellyfin || null;
+                    
+                case 'jellyseerr':
+                    if (baseUrls.jellyseerr && this.details.id) {
+                        return `${baseUrls.jellyseerr}/media/${this.details.type === 'movie' ? 'movie' : 'tv'}/${this.details.id}`;
+                    }
+                    return baseUrls.jellyseerr || null;
+                    
+                case 'jellystat':
+                    return baseUrls.jellystat || null;
+                    
+                case 'qbittorrent':
+                    return baseUrls.qbittorrent || null;
+                    
+                default:
+                    return null;
+            }
+        },
+        
+        openService(event) {
+            event.stopPropagation();
+            if (this.serviceUrl) {
+                window.open(this.serviceUrl, '_blank');
+            }
         }
     };
 }
@@ -1572,6 +1676,9 @@ function filesPage() {
         selectedFiles: [],
 
         async init() {
+            // Initialize service base URLs (these will be fetched from backend config)
+            await this.loadServiceUrls();
+            
             await this.loadFiles();
             
             // Watch for page changes and reload files
@@ -2085,6 +2192,29 @@ function filesPage() {
         
         clearFilters() {
             this.filterSearch = '';
+        },
+        
+        async loadServiceUrls() {
+            try {
+                // Fetch service configuration from backend
+                const response = await fetch('/api/config/services');
+                if (response.ok) {
+                    const config = await response.json();
+                    // Set global service URLs for access by serviceStatusIndicator components
+                    window.serviceBaseUrls = {
+                        radarr: config.radarr_url || null,
+                        sonarr: config.sonarr_url || null,
+                        jellyfin: config.jellyfin_url || null,
+                        jellyseerr: config.jellyseerr_url || null,
+                        jellystat: config.jellystat_url || null,
+                        qbittorrent: config.qbittorrent_url || null
+                    };
+                }
+            } catch (error) {
+                console.warn('Failed to load service URLs:', error);
+                // Set empty object as fallback
+                window.serviceBaseUrls = {};
+            }
         },
 
         async loadFiles() {
