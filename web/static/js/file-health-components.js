@@ -828,13 +828,17 @@ function healthStatusBadge(status, severity = 'ok', size = 'md') {
  * @param {string} service - Service name (radarr, sonarr, jellyfin, etc.)
  * @param {boolean} isActive - Whether file is in this service
  * @param {object} details - Additional details (torrent state, ratio, etc.)
+ * @param {string} externalUrl - Optional external URL for the service
+ * @param {number|string} itemId - Optional ID for the item in the service
  * @returns {object} Alpine.js component object
  */
-function serviceStatusIndicator(service, isActive, details = {}) {
+function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '', itemId = null) {
     return {
         service: service,
         isActive: isActive,
         details: details,
+        externalUrl: externalUrl,
+        itemId: itemId,
         
         get icon() {
             const icons = {
@@ -862,6 +866,36 @@ function serviceStatusIndicator(service, isActive, details = {}) {
         
         get statusColor() {
             return this.isActive ? 'text-green-400' : 'text-gray-500';
+        },
+        
+        get serviceUrl() {
+            // Only return a URL if we have an external URL and the item is active
+            if (!this.externalUrl || !this.isActive) {
+                return null;
+            }
+            
+            // Remove trailing slash from external URL
+            const baseUrl = this.externalUrl.replace(/\/$/, '');
+            
+            // Build service-specific URLs
+            switch (this.service) {
+                case 'radarr':
+                    return this.itemId ? `${baseUrl}/movie/${this.itemId}` : baseUrl;
+                case 'sonarr':
+                    return this.itemId ? `${baseUrl}/series/${this.itemId}` : baseUrl;
+                case 'jellyfin':
+                    return this.itemId ? `${baseUrl}/web/index.html#!/details?id=${this.itemId}` : baseUrl;
+                case 'jellyseerr':
+                    // Jellyseerr needs media type (movie/tv) - use details.type if available
+                    const mediaType = this.details?.type === 'tv' ? 'tv' : 'movie';
+                    return this.itemId ? `${baseUrl}/${mediaType}/${this.itemId}` : baseUrl;
+                case 'qbittorrent':
+                case 'jellystat':
+                    // These services don't have item-specific URLs, just return the base
+                    return baseUrl;
+                default:
+                    return baseUrl;
+            }
         },
         
         get tooltip() {
@@ -893,6 +927,13 @@ function serviceStatusIndicator(service, isActive, details = {}) {
             }
             
             return parts.join(' | ');
+        },
+        
+        openService(event) {
+            if (this.serviceUrl) {
+                event.stopPropagation(); // Prevent event bubbling
+                window.open(this.serviceUrl, '_blank');
+            }
         }
     };
 }

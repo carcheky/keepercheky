@@ -1465,40 +1465,40 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
             // Only return URL if service is present
             if (!this.isPresent) return null;
             
-            // Get base URLs from configuration (these would be set from backend)
-            const baseUrls = window.serviceBaseUrls || {};
+            // Get external URLs from configuration for user-accessible links
+            const externalUrls = window.serviceExternalUrls || {};
             
             switch (serviceName) {
                 case 'radarr':
-                    if (baseUrls.radarr && this.details.id) {
-                        return `${baseUrls.radarr}/movie/${this.details.id}`;
+                    if (externalUrls.radarr && this.details.id) {
+                        return `${externalUrls.radarr}/movie/${this.details.id}`;
                     }
-                    return baseUrls.radarr || null;
+                    return externalUrls.radarr || null;
                     
                 case 'sonarr':
-                    if (baseUrls.sonarr && this.details.id) {
-                        return `${baseUrls.sonarr}/series/${this.details.id}`;
+                    if (externalUrls.sonarr && this.details.id) {
+                        return `${externalUrls.sonarr}/series/${this.details.id}`;
                     }
-                    return baseUrls.sonarr || null;
+                    return externalUrls.sonarr || null;
                     
                 case 'jellyfin':
-                    if (baseUrls.jellyfin && this.details.id) {
+                    if (externalUrls.jellyfin && this.details.id) {
                         // Jellyfin item detail page
-                        return `${baseUrls.jellyfin}/web/index.html#!/details?id=${this.details.id}`;
+                        return `${externalUrls.jellyfin}/web/index.html#!/details?id=${this.details.id}`;
                     }
-                    return baseUrls.jellyfin || null;
+                    return externalUrls.jellyfin || null;
                     
                 case 'jellyseerr':
-                    if (baseUrls.jellyseerr && this.details.id) {
-                        return `${baseUrls.jellyseerr}/media/${this.details.type === 'movie' ? 'movie' : 'tv'}/${this.details.id}`;
+                    if (externalUrls.jellyseerr && this.details.id) {
+                        return `${externalUrls.jellyseerr}/media/${this.details.type === 'movie' ? 'movie' : 'tv'}/${this.details.id}`;
                     }
-                    return baseUrls.jellyseerr || null;
+                    return externalUrls.jellyseerr || null;
                     
                 case 'jellystat':
-                    return baseUrls.jellystat || null;
+                    return externalUrls.jellystat || null;
                     
                 case 'qbittorrent':
-                    return baseUrls.qbittorrent || null;
+                    return externalUrls.qbittorrent || null;
                     
                 default:
                     return null;
@@ -2233,11 +2233,21 @@ function filesPage() {
                         jellystat: config.jellystat_url || null,
                         qbittorrent: config.qbittorrent_url || null
                     };
+                    // Set external URLs for clickable service indicators
+                    window.serviceExternalUrls = {
+                        radarr: config.radarr_external_url || null,
+                        sonarr: config.sonarr_external_url || null,
+                        jellyfin: config.jellyfin_external_url || null,
+                        jellyseerr: config.jellyseerr_external_url || null,
+                        jellystat: config.jellystat_external_url || null,
+                        qbittorrent: config.qbittorrent_external_url || null
+                    };
                 }
             } catch (error) {
                 console.warn('Failed to load service URLs:', error);
                 // Set empty object as fallback
                 window.serviceBaseUrls = {};
+                window.serviceExternalUrls = {};
             }
         },
 

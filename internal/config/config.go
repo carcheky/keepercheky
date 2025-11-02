@@ -12,40 +12,47 @@ import (
 // EnvSourceMap tracks which config values come from environment variables
 type EnvSourceMap struct {
 	Radarr struct {
-		Enabled bool `json:"enabled"`
-		APIKey  bool `json:"api_key"`
-		URL     bool `json:"url"`
+		Enabled     bool `json:"enabled"`
+		APIKey      bool `json:"api_key"`
+		URL         bool `json:"url"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"radarr"`
 	Sonarr struct {
-		Enabled bool `json:"enabled"`
-		APIKey  bool `json:"api_key"`
-		URL     bool `json:"url"`
+		Enabled     bool `json:"enabled"`
+		APIKey      bool `json:"api_key"`
+		URL         bool `json:"url"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"sonarr"`
 	Jellyfin struct {
-		Enabled bool `json:"enabled"`
-		APIKey  bool `json:"api_key"`
-		URL     bool `json:"url"`
+		Enabled     bool `json:"enabled"`
+		APIKey      bool `json:"api_key"`
+		URL         bool `json:"url"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"jellyfin"`
 	Jellyseerr struct {
-		Enabled bool `json:"enabled"`
-		APIKey  bool `json:"api_key"`
-		URL     bool `json:"url"`
+		Enabled     bool `json:"enabled"`
+		APIKey      bool `json:"api_key"`
+		URL         bool `json:"url"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"jellyseerr"`
 	Jellystat struct {
-		Enabled bool `json:"enabled"`
-		URL     bool `json:"url"`
-		APIKey  bool `json:"api_key"`
+		Enabled     bool `json:"enabled"`
+		URL         bool `json:"url"`
+		APIKey      bool `json:"api_key"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"jellystat"`
 	QBittorrent struct {
-		Enabled  bool `json:"enabled"`
-		Username bool `json:"username"`
-		Password bool `json:"password"`
-		URL      bool `json:"url"`
+		Enabled     bool `json:"enabled"`
+		Username    bool `json:"username"`
+		Password    bool `json:"password"`
+		URL         bool `json:"url"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"qbittorrent"`
 	Bazarr struct {
-		Enabled bool `json:"enabled"`
-		APIKey  bool `json:"api_key"`
-		URL     bool `json:"url"`
+		Enabled     bool `json:"enabled"`
+		APIKey      bool `json:"api_key"`
+		URL         bool `json:"url"`
+		ExternalURL bool `json:"external_url"`
 	} `json:"bazarr"`
 }
 
@@ -57,37 +64,44 @@ func GetEnvSourceMap() *EnvSourceMap {
 	envMap.Radarr.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_ENABLED") != ""
 	envMap.Radarr.URL = os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_URL") != ""
 	envMap.Radarr.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_API_KEY") != ""
+	envMap.Radarr.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_RADARR_EXTERNAL_URL") != ""
 
 	// Check Sonarr
 	envMap.Sonarr.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_ENABLED") != ""
 	envMap.Sonarr.URL = os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_URL") != ""
 	envMap.Sonarr.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_API_KEY") != ""
+	envMap.Sonarr.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_SONARR_EXTERNAL_URL") != ""
 
 	// Check Jellyfin
 	envMap.Jellyfin.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_ENABLED") != ""
 	envMap.Jellyfin.URL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_URL") != ""
 	envMap.Jellyfin.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_API_KEY") != ""
+	envMap.Jellyfin.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYFIN_EXTERNAL_URL") != ""
 
 	// Check Jellyseerr
 	envMap.Jellyseerr.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_ENABLED") != ""
 	envMap.Jellyseerr.URL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_URL") != ""
 	envMap.Jellyseerr.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_API_KEY") != ""
+	envMap.Jellyseerr.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSEERR_EXTERNAL_URL") != ""
 
 	// Check Jellystat
 	envMap.Jellystat.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_ENABLED") != ""
 	envMap.Jellystat.URL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_URL") != ""
 	envMap.Jellystat.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_API_KEY") != ""
+	envMap.Jellystat.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_JELLYSTAT_EXTERNAL_URL") != ""
 
 	// Check qBittorrent
 	envMap.QBittorrent.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_ENABLED") != ""
 	envMap.QBittorrent.URL = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_URL") != ""
 	envMap.QBittorrent.Username = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_USERNAME") != ""
 	envMap.QBittorrent.Password = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_PASSWORD") != ""
+	envMap.QBittorrent.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_QBITTORRENT_EXTERNAL_URL") != ""
 
 	// Check Bazarr
 	envMap.Bazarr.Enabled = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_ENABLED") != ""
 	envMap.Bazarr.URL = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_URL") != ""
 	envMap.Bazarr.APIKey = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_API_KEY") != ""
+	envMap.Bazarr.ExternalURL = os.Getenv("KEEPERCHEKY_CLIENTS_BAZARR_EXTERNAL_URL") != ""
 
 	return envMap
 }
@@ -151,22 +165,25 @@ type ClientsConfig struct {
 }
 
 type ServiceClient struct {
-	Enabled bool   `mapstructure:"enabled" yaml:"enabled"`
-	URL     string `mapstructure:"url" yaml:"url"`
-	APIKey  string `mapstructure:"api_key" yaml:"api_key"`
+	Enabled     bool   `mapstructure:"enabled" yaml:"enabled"`
+	URL         string `mapstructure:"url" yaml:"url"`
+	APIKey      string `mapstructure:"api_key" yaml:"api_key"`
+	ExternalURL string `mapstructure:"external_url" yaml:"external_url"`
 }
 
 type QBittorrentClient struct {
-	Enabled  bool   `mapstructure:"enabled" yaml:"enabled"`
-	URL      string `mapstructure:"url" yaml:"url"`
-	Username string `mapstructure:"username" yaml:"username"`
-	Password string `mapstructure:"password" yaml:"password"`
+	Enabled     bool   `mapstructure:"enabled" yaml:"enabled"`
+	URL         string `mapstructure:"url" yaml:"url"`
+	Username    string `mapstructure:"username" yaml:"username"`
+	Password    string `mapstructure:"password" yaml:"password"`
+	ExternalURL string `mapstructure:"external_url" yaml:"external_url"`
 }
 
 type JellystatClient struct {
-	Enabled bool   `mapstructure:"enabled" yaml:"enabled"`
-	URL     string `mapstructure:"url" yaml:"url"`
-	APIKey  string `mapstructure:"api_key" yaml:"api_key"`
+	Enabled     bool   `mapstructure:"enabled" yaml:"enabled"`
+	URL         string `mapstructure:"url" yaml:"url"`
+	APIKey      string `mapstructure:"api_key" yaml:"api_key"`
+	ExternalURL string `mapstructure:"external_url" yaml:"external_url"`
 }
 
 func Load() (*Config, error) {
@@ -280,6 +297,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 		fmt.Printf("  📝 Change detected: radarr.api_key (****** → ******)\n")
 		return true
 	}
+	if envSources.Radarr.ExternalURL && original.Clients.Radarr.ExternalURL != merged.Clients.Radarr.ExternalURL {
+		fmt.Printf("  📝 Change detected: radarr.external_url (%s → %s)\n", original.Clients.Radarr.ExternalURL, merged.Clients.Radarr.ExternalURL)
+		return true
+	}
 
 	if envSources.Sonarr.Enabled && original.Clients.Sonarr.Enabled != merged.Clients.Sonarr.Enabled {
 		fmt.Printf("  📝 Change detected: sonarr.enabled (%v → %v)\n", original.Clients.Sonarr.Enabled, merged.Clients.Sonarr.Enabled)
@@ -291,6 +312,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 	}
 	if envSources.Sonarr.APIKey && original.Clients.Sonarr.APIKey != merged.Clients.Sonarr.APIKey {
 		fmt.Printf("  📝 Change detected: sonarr.api_key (****** → ******)\n")
+		return true
+	}
+	if envSources.Sonarr.ExternalURL && original.Clients.Sonarr.ExternalURL != merged.Clients.Sonarr.ExternalURL {
+		fmt.Printf("  📝 Change detected: sonarr.external_url (%s → %s)\n", original.Clients.Sonarr.ExternalURL, merged.Clients.Sonarr.ExternalURL)
 		return true
 	}
 
@@ -306,6 +331,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 		fmt.Printf("  📝 Change detected: jellyfin.api_key (****** → ******)\n")
 		return true
 	}
+	if envSources.Jellyfin.ExternalURL && original.Clients.Jellyfin.ExternalURL != merged.Clients.Jellyfin.ExternalURL {
+		fmt.Printf("  📝 Change detected: jellyfin.external_url (%s → %s)\n", original.Clients.Jellyfin.ExternalURL, merged.Clients.Jellyfin.ExternalURL)
+		return true
+	}
 
 	if envSources.Jellyseerr.Enabled && original.Clients.Jellyseerr.Enabled != merged.Clients.Jellyseerr.Enabled {
 		fmt.Printf("  📝 Change detected: jellyseerr.enabled (%v → %v)\n", original.Clients.Jellyseerr.Enabled, merged.Clients.Jellyseerr.Enabled)
@@ -319,6 +348,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 		fmt.Printf("  📝 Change detected: jellyseerr.api_key (****** → ******)\n")
 		return true
 	}
+	if envSources.Jellyseerr.ExternalURL && original.Clients.Jellyseerr.ExternalURL != merged.Clients.Jellyseerr.ExternalURL {
+		fmt.Printf("  📝 Change detected: jellyseerr.external_url (%s → %s)\n", original.Clients.Jellyseerr.ExternalURL, merged.Clients.Jellyseerr.ExternalURL)
+		return true
+	}
 
 	if envSources.Jellystat.Enabled && original.Clients.Jellystat.Enabled != merged.Clients.Jellystat.Enabled {
 		fmt.Printf("  📝 Change detected: jellystat.enabled (%v → %v)\n", original.Clients.Jellystat.Enabled, merged.Clients.Jellystat.Enabled)
@@ -330,6 +363,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 	}
 	if envSources.Jellystat.APIKey && original.Clients.Jellystat.APIKey != merged.Clients.Jellystat.APIKey {
 		fmt.Printf("  📝 Change detected: jellystat.api_key (****** → ******)\n")
+		return true
+	}
+	if envSources.Jellystat.ExternalURL && original.Clients.Jellystat.ExternalURL != merged.Clients.Jellystat.ExternalURL {
+		fmt.Printf("  📝 Change detected: jellystat.external_url (%s → %s)\n", original.Clients.Jellystat.ExternalURL, merged.Clients.Jellystat.ExternalURL)
 		return true
 	}
 
@@ -349,6 +386,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 		fmt.Printf("  📝 Change detected: qbittorrent.password (****** → ******)\n")
 		return true
 	}
+	if envSources.QBittorrent.ExternalURL && original.Clients.QBittorrent.ExternalURL != merged.Clients.QBittorrent.ExternalURL {
+		fmt.Printf("  📝 Change detected: qbittorrent.external_url (%s → %s)\n", original.Clients.QBittorrent.ExternalURL, merged.Clients.QBittorrent.ExternalURL)
+		return true
+	}
 
 	if envSources.Bazarr.Enabled && original.Clients.Bazarr.Enabled != merged.Clients.Bazarr.Enabled {
 		fmt.Printf("  📝 Change detected: bazarr.enabled (%v → %v)\n", original.Clients.Bazarr.Enabled, merged.Clients.Bazarr.Enabled)
@@ -360,6 +401,10 @@ func configHasChanges(original, merged *Config, envSources *EnvSourceMap) bool {
 	}
 	if envSources.Bazarr.APIKey && original.Clients.Bazarr.APIKey != merged.Clients.Bazarr.APIKey {
 		fmt.Printf("  📝 Change detected: bazarr.api_key (****** → ******)\n")
+		return true
+	}
+	if envSources.Bazarr.ExternalURL && original.Clients.Bazarr.ExternalURL != merged.Clients.Bazarr.ExternalURL {
+		fmt.Printf("  📝 Change detected: bazarr.external_url (%s → %s)\n", original.Clients.Bazarr.ExternalURL, merged.Clients.Bazarr.ExternalURL)
 		return true
 	}
 
