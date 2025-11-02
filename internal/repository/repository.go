@@ -332,7 +332,7 @@ func (r *MediaRepository) GetDistributionByQuality() ([]QualityCount, error) {
 		Group("quality").
 		Order("count DESC").
 		Scan(&results).Error
-	
+
 	return results, err
 }
 
@@ -345,7 +345,7 @@ type SizeDistribution struct {
 // GetDistributionBySize returns media count grouped by size ranges
 func (r *MediaRepository) GetDistributionBySize() (map[string]int64, error) {
 	distribution := make(map[string]int64)
-	
+
 	// Small (< 5 GB)
 	var smallCount int64
 	if err := r.db.Model(&models.Media{}).
@@ -354,7 +354,7 @@ func (r *MediaRepository) GetDistributionBySize() (map[string]int64, error) {
 		return nil, err
 	}
 	distribution["< 5 GB"] = smallCount
-	
+
 	// Medium (5-20 GB)
 	var mediumCount int64
 	if err := r.db.Model(&models.Media{}).
@@ -363,7 +363,7 @@ func (r *MediaRepository) GetDistributionBySize() (map[string]int64, error) {
 		return nil, err
 	}
 	distribution["5-20 GB"] = mediumCount
-	
+
 	// Large (20-50 GB)
 	var largeCount int64
 	if err := r.db.Model(&models.Media{}).
@@ -372,7 +372,7 @@ func (r *MediaRepository) GetDistributionBySize() (map[string]int64, error) {
 		return nil, err
 	}
 	distribution["20-50 GB"] = largeCount
-	
+
 	// XLarge (> 50 GB)
 	var xlargeCount int64
 	if err := r.db.Model(&models.Media{}).
@@ -381,7 +381,7 @@ func (r *MediaRepository) GetDistributionBySize() (map[string]int64, error) {
 		return nil, err
 	}
 	distribution["> 50 GB"] = xlargeCount
-	
+
 	return distribution, nil
 }
 
@@ -402,7 +402,7 @@ func (r *MediaRepository) GetTopMediaBySize(limit int) ([]MediaSize, error) {
 		Order("size DESC").
 		Limit(limit).
 		Scan(&topMedia).Error
-	
+
 	return topMedia, err
 }
 
@@ -410,20 +410,20 @@ func (r *MediaRepository) GetTopMediaBySize(limit int) ([]MediaSize, error) {
 func (r *MediaRepository) GetNeverWatchedStats() (int64, int64, error) {
 	var count int64
 	var totalSize int64
-	
+
 	if err := r.db.Model(&models.Media{}).
 		Where("last_watched IS NULL").
 		Count(&count).Error; err != nil {
 		return 0, 0, err
 	}
-	
+
 	if err := r.db.Model(&models.Media{}).
 		Where("last_watched IS NULL").
 		Select("COALESCE(SUM(size), 0)").
 		Scan(&totalSize).Error; err != nil {
 		return 0, 0, err
 	}
-	
+
 	return count, totalSize, nil
 }
 
@@ -432,14 +432,14 @@ func (r *MediaRepository) GetTorrentStats() (int64, float64, float64, error) {
 	var activeTorrents int64
 	var totalSeedRatio float64
 	var avgSeedRatio float64
-	
+
 	// Count active torrents
 	if err := r.db.Model(&models.Media{}).
 		Where("is_seeding = ?", true).
 		Count(&activeTorrents).Error; err != nil {
 		return 0, 0, 0, err
 	}
-	
+
 	// Calculate total and average seed ratio
 	if err := r.db.Model(&models.Media{}).
 		Where("is_seeding = ?", true).
@@ -447,11 +447,11 @@ func (r *MediaRepository) GetTorrentStats() (int64, float64, float64, error) {
 		Scan(&totalSeedRatio).Error; err != nil {
 		return 0, 0, 0, err
 	}
-	
+
 	if activeTorrents > 0 {
 		avgSeedRatio = totalSeedRatio / float64(activeTorrents)
 	}
-	
+
 	return activeTorrents, totalSeedRatio, avgSeedRatio, nil
 }
 

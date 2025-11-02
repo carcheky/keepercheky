@@ -57,7 +57,7 @@ func (h *DashboardHandler) Stats(c *fiber.Ctx) error {
 // buildEnhancedStats creates comprehensive dashboard statistics
 func (h *DashboardHandler) buildEnhancedStats(basicStats map[string]interface{}) map[string]interface{} {
 	stats := make(map[string]interface{})
-	
+
 	// Copy basic stats
 	for k, v := range basicStats {
 		stats[k] = v
@@ -114,7 +114,7 @@ type DiskUsagePoint struct {
 func (h *DashboardHandler) getDiskUsageHistory() []DiskUsagePoint {
 	var history []DiskUsagePoint
 	now := time.Now()
-	
+
 	// Get current total size from repository
 	totalSize, err := h.repos.Media.GetTotalSize()
 	if err != nil {
@@ -122,20 +122,20 @@ func (h *DashboardHandler) getDiskUsageHistory() []DiskUsagePoint {
 		return history
 	}
 	currentUsedGB := float64(totalSize) / (1024 * 1024 * 1024)
-	
+
 	// Simulate historyDays of history with slight variations
 	// In production, this should come from actual historical tracking
 	for i := historyDays - 1; i >= 0; i-- {
 		date := now.AddDate(0, 0, -i)
-		
+
 		// Simulate gradual growth with dailyGrowthRate
 		growthFactor := 1.0 - (float64(i) * dailyGrowthRate)
 		usedGB := currentUsedGB * growthFactor
-		
+
 		// Use defaultDiskCapacityGB for simulation
 		freeGB := defaultDiskCapacityGB - usedGB
 		usedPercent := (usedGB / defaultDiskCapacityGB) * 100
-		
+
 		history = append(history, DiskUsagePoint{
 			Date:        date,
 			UsedGB:      usedGB,
@@ -143,7 +143,7 @@ func (h *DashboardHandler) getDiskUsageHistory() []DiskUsagePoint {
 			UsedPercent: usedPercent,
 		})
 	}
-	
+
 	return history
 }
 
@@ -154,7 +154,7 @@ func (h *DashboardHandler) getDistributionByQuality() map[string]int {
 		h.logger.Error("Failed to get distribution by quality", "error", err)
 		return make(map[string]int)
 	}
-	
+
 	distribution := make(map[string]int)
 	for _, r := range results {
 		quality := r.Quality
@@ -163,7 +163,7 @@ func (h *DashboardHandler) getDistributionByQuality() map[string]int {
 		}
 		distribution[quality] = r.Count
 	}
-	
+
 	return distribution
 }
 
@@ -174,13 +174,13 @@ func (h *DashboardHandler) getDistributionBySize() map[string]int {
 		h.logger.Error("Failed to get distribution by size", "error", err)
 		return make(map[string]int)
 	}
-	
+
 	// Convert int64 to int for consistency
 	result := make(map[string]int)
 	for k, v := range distribution {
 		result[k] = int(v)
 	}
-	
+
 	return result
 }
 
@@ -194,14 +194,14 @@ type ActivityEvent struct {
 // getRecentActivity returns recent activity from history
 func (h *DashboardHandler) getRecentActivity(limit int) []ActivityEvent {
 	var events []ActivityEvent
-	
+
 	// Get recent history entries
 	history, err := h.repos.History.GetRecent(limit)
 	if err != nil {
 		h.logger.Error("Failed to get recent history", "error", err)
 		return events
 	}
-	
+
 	// Convert history to activity events
 	for _, entry := range history {
 		eventType := "added"
@@ -210,14 +210,14 @@ func (h *DashboardHandler) getRecentActivity(limit int) []ActivityEvent {
 		} else if entry.Action == "excluded" {
 			eventType = "excluded"
 		}
-		
+
 		events = append(events, ActivityEvent{
 			Timestamp: entry.CreatedAt,
 			Type:      eventType,
 			Title:     entry.MediaTitle,
 		})
 	}
-	
+
 	return events
 }
 
@@ -257,17 +257,17 @@ func (h *DashboardHandler) calculateTrend(historyInterface interface{}) (string,
 	if !ok || len(history) < 2 {
 		return "stable", 0.0
 	}
-	
+
 	// Compare first and last day
 	first := history[0].UsedGB
 	last := history[len(history)-1].UsedGB
-	
+
 	if first == 0 {
 		return "stable", 0.0
 	}
-	
+
 	percentChange := ((last - first) / first) * 100
-	
+
 	// Determine trend using trendThreshold constant
 	trend := "stable"
 	if percentChange > trendThreshold {
@@ -275,7 +275,7 @@ func (h *DashboardHandler) calculateTrend(historyInterface interface{}) (string,
 	} else if percentChange < -trendThreshold {
 		trend = "shrinking"
 	}
-	
+
 	return trend, percentChange
 }
 
