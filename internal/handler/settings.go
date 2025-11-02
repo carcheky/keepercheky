@@ -30,12 +30,18 @@ func NewSettingsHandler(repos *repository.Repositories, logger *logger.Logger, c
 func (h *SettingsHandler) GetServiceUrls(c *fiber.Ctx) error {
 	// Return only the service URLs for frontend to generate links
 	return c.JSON(fiber.Map{
-		"radarr_url":      h.config.Clients.Radarr.URL,
-		"sonarr_url":      h.config.Clients.Sonarr.URL,
-		"jellyfin_url":    h.config.Clients.Jellyfin.URL,
-		"jellyseerr_url":  h.config.Clients.Jellyseerr.URL,
-		"jellystat_url":   h.config.Clients.Jellystat.URL,
-		"qbittorrent_url": h.config.Clients.QBittorrent.URL,
+		"radarr_url":          h.config.Clients.Radarr.URL,
+		"radarr_external_url": h.config.Clients.Radarr.ExternalURL,
+		"sonarr_url":          h.config.Clients.Sonarr.URL,
+		"sonarr_external_url": h.config.Clients.Sonarr.ExternalURL,
+		"jellyfin_url":        h.config.Clients.Jellyfin.URL,
+		"jellyfin_external_url": h.config.Clients.Jellyfin.ExternalURL,
+		"jellyseerr_url":      h.config.Clients.Jellyseerr.URL,
+		"jellyseerr_external_url": h.config.Clients.Jellyseerr.ExternalURL,
+		"jellystat_url":       h.config.Clients.Jellystat.URL,
+		"jellystat_external_url": h.config.Clients.Jellystat.ExternalURL,
+		"qbittorrent_url":     h.config.Clients.QBittorrent.URL,
+		"qbittorrent_external_url": h.config.Clients.QBittorrent.ExternalURL,
 	})
 }
 
@@ -63,35 +69,41 @@ func (h *SettingsHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"services": fiber.Map{
 			"radarr": fiber.Map{
-				"enabled": h.config.Clients.Radarr.Enabled,
-				"url":     h.config.Clients.Radarr.URL,
-				"api_key": h.config.Clients.Radarr.APIKey,
+				"enabled":      h.config.Clients.Radarr.Enabled,
+				"url":          h.config.Clients.Radarr.URL,
+				"api_key":      h.config.Clients.Radarr.APIKey,
+				"external_url": h.config.Clients.Radarr.ExternalURL,
 			},
 			"sonarr": fiber.Map{
-				"enabled": h.config.Clients.Sonarr.Enabled,
-				"url":     h.config.Clients.Sonarr.URL,
-				"api_key": h.config.Clients.Sonarr.APIKey,
+				"enabled":      h.config.Clients.Sonarr.Enabled,
+				"url":          h.config.Clients.Sonarr.URL,
+				"api_key":      h.config.Clients.Sonarr.APIKey,
+				"external_url": h.config.Clients.Sonarr.ExternalURL,
 			},
 			"jellyfin": fiber.Map{
-				"enabled": h.config.Clients.Jellyfin.Enabled,
-				"url":     h.config.Clients.Jellyfin.URL,
-				"api_key": h.config.Clients.Jellyfin.APIKey,
+				"enabled":      h.config.Clients.Jellyfin.Enabled,
+				"url":          h.config.Clients.Jellyfin.URL,
+				"api_key":      h.config.Clients.Jellyfin.APIKey,
+				"external_url": h.config.Clients.Jellyfin.ExternalURL,
 			},
 			"jellyseerr": fiber.Map{
-				"enabled": h.config.Clients.Jellyseerr.Enabled,
-				"url":     h.config.Clients.Jellyseerr.URL,
-				"api_key": h.config.Clients.Jellyseerr.APIKey,
+				"enabled":      h.config.Clients.Jellyseerr.Enabled,
+				"url":          h.config.Clients.Jellyseerr.URL,
+				"api_key":      h.config.Clients.Jellyseerr.APIKey,
+				"external_url": h.config.Clients.Jellyseerr.ExternalURL,
 			},
 			"jellystat": fiber.Map{
-				"enabled": h.config.Clients.Jellystat.Enabled,
-				"url":     h.config.Clients.Jellystat.URL,
-				"api_key": h.config.Clients.Jellystat.APIKey,
+				"enabled":      h.config.Clients.Jellystat.Enabled,
+				"url":          h.config.Clients.Jellystat.URL,
+				"api_key":      h.config.Clients.Jellystat.APIKey,
+				"external_url": h.config.Clients.Jellystat.ExternalURL,
 			},
 			"qbittorrent": fiber.Map{
-				"enabled":  h.config.Clients.QBittorrent.Enabled,
-				"url":      h.config.Clients.QBittorrent.URL,
-				"username": h.config.Clients.QBittorrent.Username,
-				"password": h.config.Clients.QBittorrent.Password,
+				"enabled":      h.config.Clients.QBittorrent.Enabled,
+				"url":          h.config.Clients.QBittorrent.URL,
+				"username":     h.config.Clients.QBittorrent.Username,
+				"password":     h.config.Clients.QBittorrent.Password,
+				"external_url": h.config.Clients.QBittorrent.ExternalURL,
 			},
 		},
 		"cleanup": fiber.Map{
@@ -109,35 +121,41 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 	type ConfigUpdate struct {
 		Services struct {
 			Radarr struct {
-				Enabled bool   `json:"enabled"`
-				URL     string `json:"url"`
-				APIKey  string `json:"api_key"`
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				APIKey      string `json:"api_key"`
+				ExternalURL string `json:"external_url"`
 			} `json:"radarr"`
 			Sonarr struct {
-				Enabled bool   `json:"enabled"`
-				URL     string `json:"url"`
-				APIKey  string `json:"api_key"`
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				APIKey      string `json:"api_key"`
+				ExternalURL string `json:"external_url"`
 			} `json:"sonarr"`
 			Jellyfin struct {
-				Enabled bool   `json:"enabled"`
-				URL     string `json:"url"`
-				APIKey  string `json:"api_key"`
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				APIKey      string `json:"api_key"`
+				ExternalURL string `json:"external_url"`
 			} `json:"jellyfin"`
 			Jellyseerr struct {
-				Enabled bool   `json:"enabled"`
-				URL     string `json:"url"`
-				APIKey  string `json:"api_key"`
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				APIKey      string `json:"api_key"`
+				ExternalURL string `json:"external_url"`
 			} `json:"jellyseerr"`
 			Jellystat struct {
-				Enabled bool   `json:"enabled"`
-				URL     string `json:"url"`
-				APIKey  string `json:"api_key"`
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				APIKey      string `json:"api_key"`
+				ExternalURL string `json:"external_url"`
 			} `json:"jellystat"`
 			QBittorrent struct {
-				Enabled  bool   `json:"enabled"`
-				URL      string `json:"url"`
-				Username string `json:"username"`
-				Password string `json:"password"`
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				Username    string `json:"username"`
+				Password    string `json:"password"`
+				ExternalURL string `json:"external_url"`
 			} `json:"qbittorrent"`
 		} `json:"services"`
 		Cleanup struct {
@@ -159,27 +177,33 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 	h.config.Clients.Radarr.Enabled = update.Services.Radarr.Enabled
 	h.config.Clients.Radarr.URL = update.Services.Radarr.URL
 	h.config.Clients.Radarr.APIKey = update.Services.Radarr.APIKey
+	h.config.Clients.Radarr.ExternalURL = update.Services.Radarr.ExternalURL
 
 	h.config.Clients.Sonarr.Enabled = update.Services.Sonarr.Enabled
 	h.config.Clients.Sonarr.URL = update.Services.Sonarr.URL
 	h.config.Clients.Sonarr.APIKey = update.Services.Sonarr.APIKey
+	h.config.Clients.Sonarr.ExternalURL = update.Services.Sonarr.ExternalURL
 
 	h.config.Clients.Jellyfin.Enabled = update.Services.Jellyfin.Enabled
 	h.config.Clients.Jellyfin.URL = update.Services.Jellyfin.URL
 	h.config.Clients.Jellyfin.APIKey = update.Services.Jellyfin.APIKey
+	h.config.Clients.Jellyfin.ExternalURL = update.Services.Jellyfin.ExternalURL
 
 	h.config.Clients.Jellyseerr.Enabled = update.Services.Jellyseerr.Enabled
 	h.config.Clients.Jellyseerr.URL = update.Services.Jellyseerr.URL
 	h.config.Clients.Jellyseerr.APIKey = update.Services.Jellyseerr.APIKey
+	h.config.Clients.Jellyseerr.ExternalURL = update.Services.Jellyseerr.ExternalURL
 
 	h.config.Clients.Jellystat.Enabled = update.Services.Jellystat.Enabled
 	h.config.Clients.Jellystat.URL = update.Services.Jellystat.URL
 	h.config.Clients.Jellystat.APIKey = update.Services.Jellystat.APIKey
+	h.config.Clients.Jellystat.ExternalURL = update.Services.Jellystat.ExternalURL
 
 	h.config.Clients.QBittorrent.Enabled = update.Services.QBittorrent.Enabled
 	h.config.Clients.QBittorrent.URL = update.Services.QBittorrent.URL
 	h.config.Clients.QBittorrent.Username = update.Services.QBittorrent.Username
 	h.config.Clients.QBittorrent.Password = update.Services.QBittorrent.Password
+	h.config.Clients.QBittorrent.ExternalURL = update.Services.QBittorrent.ExternalURL
 
 	h.config.Cleanup.DryRun = update.Cleanup.DryRun
 	h.config.Cleanup.DaysToKeep = update.Cleanup.DaysToKeep

@@ -327,13 +327,13 @@
             activeTab: 'services',
             config: {
                 services: {
-                    radarr: { enabled: false, url: '', api_key: '' },
-                    sonarr: { enabled: false, url: '', api_key: '' },
-                    jellyfin: { enabled: false, url: '', api_key: '' },
-                    jellyseerr: { enabled: false, url: '', api_key: '' },
-                    jellystat: { enabled: false, url: '', api_key: '' },
-                    qbittorrent: { enabled: false, url: '', username: '', password: '' },
-                    bazarr: { enabled: false, url: '', api_key: '' },
+                    radarr: { enabled: false, url: '', api_key: '', external_url: '' },
+                    sonarr: { enabled: false, url: '', api_key: '', external_url: '' },
+                    jellyfin: { enabled: false, url: '', api_key: '', external_url: '' },
+                    jellyseerr: { enabled: false, url: '', api_key: '', external_url: '' },
+                    jellystat: { enabled: false, url: '', api_key: '', external_url: '' },
+                    qbittorrent: { enabled: false, url: '', username: '', password: '', external_url: '' },
+                    bazarr: { enabled: false, url: '', api_key: '', external_url: '' },
                 },
                 cleanup: {
                     dry_run: true,
@@ -357,7 +357,8 @@
                     label: 'Radarr',
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:7878' },
-                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Radarr API Key' }
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Radarr API Key' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://radarr.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' },
@@ -377,7 +378,8 @@
                     label: 'Sonarr',
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:8989' },
-                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Sonarr API Key' }
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Sonarr API Key' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://sonarr.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' },
@@ -397,7 +399,8 @@
                     label: 'Jellyfin',
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:8096' },
-                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellyfin API Key' }
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellyfin API Key' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://jellyfin.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' },
@@ -414,7 +417,8 @@
                     label: 'Jellyseerr',
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:5055' },
-                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellyseerr API Key' }
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellyseerr API Key' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://jellyseerr.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' },
@@ -428,7 +432,8 @@
                     label: 'Jellystat',
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:3000' },
-                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellystat API Key' }
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Jellystat API Key' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://jellystat.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' }
@@ -440,7 +445,8 @@
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:8080' },
                         { name: 'username', label: 'Username', type: 'text', placeholder: 'admin' },
-                        { name: 'password', label: 'Password', type: 'password', placeholder: 'Enter qBittorrent Password' }
+                        { name: 'password', label: 'Password', type: 'password', placeholder: 'Enter qBittorrent Password' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://qbittorrent.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'version', label: 'Version' },
@@ -463,7 +469,8 @@
                     description: 'Subtitle management companion for Radarr and Sonarr',
                     fields: [
                         { name: 'url', label: 'URL', type: 'url', placeholder: 'http://localhost:6767' },
-                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Bazarr API Key' }
+                        { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter Bazarr API Key' },
+                        { name: 'external_url', label: 'External URL', type: 'url', placeholder: 'https://bazarr.example.com' }
                     ],
                     systemInfoFields: [
                         { key: 'bazarr_version', label: 'Bazarr Version' },
