@@ -1,3 +1,10 @@
+# [1.0.0-dev.25](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.24...v1.0.0-dev.25) (2025-11-02)
+
+
+### Bug Fixes
+
+* corregir tooltips en vista organizada y agregar enlaces a servicios ([#81](https://github.com/carcheky/keepercheky/issues/81)) ([fbd8fa0](https://github.com/carcheky/keepercheky/commit/fbd8fa009db8cf990f80fc2df623f12afd0adfd2))
+
 # [1.0.0-dev.24](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.23...v1.0.0-dev.24) (2025-11-01)
 
 
