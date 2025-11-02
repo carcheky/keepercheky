@@ -322,7 +322,7 @@
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
@@ -351,7 +351,7 @@
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': No aplicable para series'"
@@ -382,7 +382,7 @@
                                     <span :class="colorClasses"
                                         @click="openService($event)"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_sonarr ? 'Gestionado' : 'No gestionado')"
                                         :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -413,7 +413,7 @@
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
@@ -443,7 +443,7 @@
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': No disponible'"
@@ -471,7 +471,7 @@
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': No disponible'"
@@ -621,7 +621,7 @@
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
@@ -652,7 +652,7 @@
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_radarr ? 'Gestionado' : 'No gestionado')"
@@ -682,7 +682,7 @@
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': No aplicable para películas'"
@@ -712,7 +712,7 @@
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
@@ -742,7 +742,7 @@
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': No disponible'"
@@ -770,7 +770,7 @@
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': No disponible'"
@@ -925,7 +925,7 @@
                     class="relative">
                         <span :class="colorClasses"
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
-                            :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                            :class="cursorClasses"
                             @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_qbittorrent ? 'Presente' : 'No presente')"
@@ -959,7 +959,7 @@
                     class="relative">
                         <span :class="colorClasses"
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
-                            :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                            :class="cursorClasses"
                             @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
@@ -991,7 +991,7 @@
                     class="relative">
                         <span :class="colorClasses"
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
-                            :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                            :class="cursorClasses"
                             @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
@@ -1024,7 +1024,7 @@
                     class="relative">
                         <span :class="colorClasses"
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
-                            :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                            :class="cursorClasses"
                             @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
@@ -1060,7 +1060,7 @@
                     class="relative">
                         <span :class="colorClasses"
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
-                            :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                            :class="cursorClasses"
                             @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
@@ -1092,7 +1092,7 @@
                     class="relative">
                         <span :class="colorClasses"
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
-                            :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                            :class="cursorClasses"
                             @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
@@ -1475,6 +1475,13 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}, externalUr
             return this.isPresent && Object.values(this.details).some(v => v !== null && v !== undefined && v !== '');
         },
         
+        get cursorClasses() {
+            return {
+                'cursor-pointer hover:opacity-80': this.serviceUrl,
+                'cursor-help': !this.serviceUrl
+            };
+        },
+        
         get serviceUrl() {
             // Only return URL if we have an external URL and service is present
             if (!this.externalUrl || !this.isPresent) {
@@ -1499,7 +1506,7 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}, externalUr
                     // Jellyseerr needs media type (movie/tv)
                     if (this.itemId) {
                         const mediaType = this.details?.type === 'tv' || this.details?.type === 'series' ? 'tv' : 'movie';
-                        return `${baseUrl}/${mediaType}/${this.itemId}`;
+                        return `${baseUrl}/media/${mediaType}/${this.itemId}`;
                     }
                     return baseUrl;
                     
