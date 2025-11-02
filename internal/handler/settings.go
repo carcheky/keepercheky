@@ -30,17 +30,17 @@ func NewSettingsHandler(repos *repository.Repositories, logger *logger.Logger, c
 func (h *SettingsHandler) GetServiceUrls(c *fiber.Ctx) error {
 	// Return only the service URLs for frontend to generate links
 	return c.JSON(fiber.Map{
-		"radarr_url":          h.config.Clients.Radarr.URL,
-		"radarr_external_url": h.config.Clients.Radarr.ExternalURL,
-		"sonarr_url":          h.config.Clients.Sonarr.URL,
-		"sonarr_external_url": h.config.Clients.Sonarr.ExternalURL,
-		"jellyfin_url":        h.config.Clients.Jellyfin.URL,
-		"jellyfin_external_url": h.config.Clients.Jellyfin.ExternalURL,
-		"jellyseerr_url":      h.config.Clients.Jellyseerr.URL,
-		"jellyseerr_external_url": h.config.Clients.Jellyseerr.ExternalURL,
-		"jellystat_url":       h.config.Clients.Jellystat.URL,
-		"jellystat_external_url": h.config.Clients.Jellystat.ExternalURL,
-		"qbittorrent_url":     h.config.Clients.QBittorrent.URL,
+		"radarr_url":               h.config.Clients.Radarr.URL,
+		"radarr_external_url":      h.config.Clients.Radarr.ExternalURL,
+		"sonarr_url":               h.config.Clients.Sonarr.URL,
+		"sonarr_external_url":      h.config.Clients.Sonarr.ExternalURL,
+		"jellyfin_url":             h.config.Clients.Jellyfin.URL,
+		"jellyfin_external_url":    h.config.Clients.Jellyfin.ExternalURL,
+		"jellyseerr_url":           h.config.Clients.Jellyseerr.URL,
+		"jellyseerr_external_url":  h.config.Clients.Jellyseerr.ExternalURL,
+		"jellystat_url":            h.config.Clients.Jellystat.URL,
+		"jellystat_external_url":   h.config.Clients.Jellystat.ExternalURL,
+		"qbittorrent_url":          h.config.Clients.QBittorrent.URL,
 		"qbittorrent_external_url": h.config.Clients.QBittorrent.ExternalURL,
 	})
 }
