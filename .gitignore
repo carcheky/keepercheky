@@ -60,6 +60,7 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+*.backup
 
 # OS
 .DS_Store
