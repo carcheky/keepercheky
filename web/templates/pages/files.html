@@ -1328,7 +1328,7 @@ function healthCard(status, count, severity, clickHandler) {
 }
 
 // Alpine.js Component: Service Status Indicator
-function serviceStatusIndicator(serviceName, isPresent, details = {}) {
+function serviceStatusIndicator(serviceName, isPresent, details = {}, externalUrl = '', itemId = null) {
     // Service configuration
     const serviceConfig = {
         qbittorrent: { 
@@ -1380,6 +1380,8 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         serviceName,
         isPresent,
         details,
+        externalUrl,
+        itemId,
         config,
         showTooltip: false,
         tooltipX: 0,
@@ -1474,46 +1476,40 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         },
         
         get serviceUrl() {
-            // Only return URL if service is present
-            if (!this.isPresent) return null;
+            // Only return URL if we have an external URL and service is present
+            if (!this.externalUrl || !this.isPresent) {
+                return null;
+            }
             
-            // Get external URLs from configuration for user-accessible links
-            const externalUrls = window.serviceExternalUrls || {};
+            // Remove trailing slash from external URL
+            const baseUrl = this.externalUrl.replace(/\/$/, '');
             
+            // Build service-specific URLs based on itemId
             switch (serviceName) {
                 case 'radarr':
-                    if (externalUrls.radarr && this.details.id) {
-                        return `${externalUrls.radarr}/movie/${this.details.id}`;
-                    }
-                    return externalUrls.radarr || null;
+                    return this.itemId ? `${baseUrl}/movie/${this.itemId}` : baseUrl;
                     
                 case 'sonarr':
-                    if (externalUrls.sonarr && this.details.id) {
-                        return `${externalUrls.sonarr}/series/${this.details.id}`;
-                    }
-                    return externalUrls.sonarr || null;
+                    return this.itemId ? `${baseUrl}/series/${this.itemId}` : baseUrl;
                     
                 case 'jellyfin':
-                    if (externalUrls.jellyfin && this.details.id) {
-                        // Jellyfin item detail page
-                        return `${externalUrls.jellyfin}/web/index.html#!/details?id=${this.details.id}`;
-                    }
-                    return externalUrls.jellyfin || null;
+                    return this.itemId ? `${baseUrl}/web/index.html#!/details?id=${this.itemId}` : baseUrl;
                     
                 case 'jellyseerr':
-                    if (externalUrls.jellyseerr && this.details.id) {
-                        return `${externalUrls.jellyseerr}/media/${this.details.type === 'movie' ? 'movie' : 'tv'}/${this.details.id}`;
+                    // Jellyseerr needs media type (movie/tv)
+                    if (this.itemId) {
+                        const mediaType = this.details?.type === 'tv' || this.details?.type === 'series' ? 'tv' : 'movie';
+                        return `${baseUrl}/${mediaType}/${this.itemId}`;
                     }
-                    return externalUrls.jellyseerr || null;
+                    return baseUrl;
                     
                 case 'jellystat':
-                    return externalUrls.jellystat || null;
-                    
                 case 'qbittorrent':
-                    return externalUrls.qbittorrent || null;
+                    // These don't have item-specific URLs
+                    return baseUrl;
                     
                 default:
-                    return null;
+                    return baseUrl;
             }
         },
         
