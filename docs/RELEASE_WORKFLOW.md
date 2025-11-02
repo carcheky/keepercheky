@@ -22,6 +22,40 @@ graph LR
 
 ## 📋 Workflow Unificado
 
+KeeperCheky utiliza **3 workflows principales** para gestionar CI/CD:
+
+### 1. CI Workflow (`.github/workflows/ci.yml`)
+
+**Propósito**: Validaciones rápidas para Pull Requests y pushes a ramas
+
+**Se ejecuta en:**
+- Pull Requests a `develop` o `stable`
+- Pushes a `develop` o `stable`
+
+**Jobs en paralelo:**
+
+1. **Lint**: Verifica formato de código
+   - `go fmt -s -l .` (formato)
+   - `go vet ./...` (análisis estático)
+
+2. **Test**: Ejecuta pruebas unitarias
+   - `go test -v -race -coverprofile=coverage.out ./...`
+   - Sube coverage a Codecov (opcional)
+
+3. **Build**: Compila el binario
+   - `CGO_ENABLED=1 go build -o bin/keepercheky ./cmd/server`
+   - Verifica que la compilación sea exitosa
+
+**Beneficios:**
+- ✅ Feedback muy rápido en PRs (1-2 minutos)
+- ✅ No construye imágenes Docker (ahorro de recursos)
+- ✅ Validación de código antes de merge
+- ✅ Cancel-in-progress habilitado (cancela builds antiguos)
+
+### 2. Release Workflow (`.github/workflows/release.yml`)
+
+**Propósito**: Gestionar releases automáticos y construcción de imágenes
+
 ### Archivo: `.github/workflows/release.yml`
 
 El workflow se activa en:
@@ -62,6 +96,29 @@ El workflow se activa en:
 - Siempre se ejecuta (incluso si fallan pasos anteriores)
 - Genera resumen del workflow
 - Estado de cada job
+
+### 3. Docker Build Workflow (`.github/workflows/docker-build.yml`)
+
+**Propósito**: Construcción directa de imágenes Docker desde tags
+
+**Se ejecuta en:**
+- Push de tags que coincidan con `v*` (ej: `v1.0.0`, `v2.1.0-dev.3`)
+
+**Jobs:**
+
+1. **build-and-push**: Construye y publica imagen
+   - Checkout del código en el tag
+   - Construcción multi-arquitectura (`linux/amd64`, `linux/arm64`)
+   - Push automático a GitHub Container Registry
+   - Tags generados según el tipo de versión
+
+**Uso típico:**
+- Reconstruir imagen de una versión específica
+- Publicar manualmente un tag existente
+- Generalmente **no se usa manualmente** porque `release.yml` ya construye imágenes
+
+**Nota:** Este workflow es complementario a `release.yml`. En flujo normal, las imágenes se construyen vía `release.yml`.
+
 
 ## 🏷️ Estrategia de Tags
 
@@ -239,13 +296,34 @@ https://github.com/carcheky/keepercheky/pkgs/container/keepercheky
 
 ## 🔄 Migración desde Workflows Antiguos
 
-Los workflows anteriores fueron renombrados:
-- `semantic-release.yml` → `semantic-release.yml.old`
-- `docker-build.yml` → `docker-build.yml.old`
+Los workflows fueron reorganizados para optimizar CI/CD:
 
-Están disponibles como referencia pero **no se ejecutarán**.
+### Workflows Actuales (Octubre 2025)
+
+1. **`release.yml`**: Gestiona releases automáticos con semantic-release
+   - Se ejecuta en push a `develop` y `stable`
+   - Genera versiones, tags y CHANGELOG
+   - Construye y publica imágenes Docker cuando hay nueva versión
+
+2. **`docker-build.yml`**: Construcción directa de Docker (solo tags)
+   - Se ejecuta cuando se crea un tag manualmente (`v*`)
+   - Útil para reconstruir imágenes de versiones específicas
+   - Push directo a GHCR
+
+3. **`ci.yml`**: Validaciones para Pull Requests
+   - Linting (go fmt, go vet)
+   - Tests unitarios con coverage
+   - Build check del binario
+   - Docker build check (sin push)
+   - Se ejecuta en PRs y pushes a ramas principales
+
+### Workflows Antiguos (Renombrados)
+
+Estos workflows están disponibles como referencia pero **no se ejecutarán**:
+- `semantic-release.yml.old`
+- `docker-build.yml.old`
 
 ---
 
-**Última actualización:** 2025-10-28
-**Versión workflow:** 1.0.0
+**Última actualización:** 2025-11-01
+**Versión workflow:** 2.0.0

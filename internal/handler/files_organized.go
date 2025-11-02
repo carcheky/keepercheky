@@ -31,41 +31,41 @@ type EpisodeInfo struct {
 
 // SeriesInfo represents a TV series with seasons
 type SeriesInfo struct {
-	SeriesTitle  string               `json:"series_title"`
-	TotalSize    int64                `json:"total_size"`
-	SeasonCount  int                  `json:"season_count"`
-	EpisodeCount int                  `json:"episode_count"`
-	Seasons      []SeasonInfo         `json:"seasons"`
-	PosterURL    string               `json:"poster_url"`
-	PrimaryPath  string               `json:"primary_path"` // Ruta principal (en Jellyfin)
-	Files        []MediaFileInfo      `json:"files"`        // Todos los archivos relacionados
-	Metadata     SeriesMetadata       `json:"metadata"`
+	SeriesTitle  string          `json:"series_title"`
+	TotalSize    int64           `json:"total_size"`
+	SeasonCount  int             `json:"season_count"`
+	EpisodeCount int             `json:"episode_count"`
+	Seasons      []SeasonInfo    `json:"seasons"`
+	PosterURL    string          `json:"poster_url"`
+	PrimaryPath  string          `json:"primary_path"` // Ruta principal (en Jellyfin)
+	Files        []MediaFileInfo `json:"files"`        // Todos los archivos relacionados
+	Metadata     SeriesMetadata  `json:"metadata"`
 }
 
 // SeriesMetadata contains metadata about the series
 type SeriesMetadata struct {
-	InJellyfin    bool   `json:"in_jellyfin"`
-	InSonarr      bool   `json:"in_sonarr"`
-	InQBittorrent bool   `json:"in_qbittorrent"`
-	SonarrID      *int   `json:"sonarr_id,omitempty"`
+	InJellyfin    bool    `json:"in_jellyfin"`
+	InSonarr      bool    `json:"in_sonarr"`
+	InQBittorrent bool    `json:"in_qbittorrent"`
+	SonarrID      *int    `json:"sonarr_id,omitempty"`
 	JellyfinID    *string `json:"jellyfin_id,omitempty"`
 }
 
 // MovieInfo represents a movie with possible multiple versions
 type MovieInfo struct {
-	Title        string          `json:"title"`
-	TotalSize    int64           `json:"total_size"`
-	PrimaryFile  MediaFileInfo   `json:"primary_file"`  // Versión principal (en Jellyfin)
+	Title         string          `json:"title"`
+	TotalSize     int64           `json:"total_size"`
+	PrimaryFile   MediaFileInfo   `json:"primary_file"`             // Versión principal (en Jellyfin)
 	OtherVersions []MediaFileInfo `json:"other_versions,omitempty"` // Otras versiones
-	Metadata     MovieMetadata   `json:"metadata"`
+	Metadata      MovieMetadata   `json:"metadata"`
 }
 
 // MovieMetadata contains metadata about the movie
 type MovieMetadata struct {
-	InJellyfin    bool   `json:"in_jellyfin"`
-	InRadarr      bool   `json:"in_radarr"`
-	InQBittorrent bool   `json:"in_qbittorrent"`
-	RadarrID      *int   `json:"radarr_id,omitempty"`
+	InJellyfin    bool    `json:"in_jellyfin"`
+	InRadarr      bool    `json:"in_radarr"`
+	InQBittorrent bool    `json:"in_qbittorrent"`
+	RadarrID      *int    `json:"radarr_id,omitempty"`
 	JellyfinID    *string `json:"jellyfin_id,omitempty"`
 }
 
@@ -113,11 +113,11 @@ func parseSeasonEpisode(filename string) (season int, episode int, found bool) {
 func extractSeriesName(path string) string {
 	// Get the base name
 	base := filepath.Base(path)
-	
+
 	// Remove extension
 	ext := filepath.Ext(base)
 	nameWithoutExt := strings.TrimSuffix(base, ext)
-	
+
 	// Find episode pattern and truncate before it
 	episodeMatch := episodeRegex.FindStringIndex(nameWithoutExt)
 	if episodeMatch != nil {
@@ -128,18 +128,18 @@ func extractSeriesName(path string) string {
 			nameWithoutExt = nameWithoutExt[:altEpisodeMatch[0]]
 		}
 	}
-	
+
 	// Clean up
 	name := strings.TrimSpace(nameWithoutExt)
 	name = strings.ReplaceAll(name, ".", " ")
 	name = strings.ReplaceAll(name, "_", " ")
-	
+
 	// Remove common quality/release tags (case insensitive)
 	name = qualityRegex.ReplaceAllString(name, "")
-	
+
 	// Clean up multiple spaces
 	name = spaceRegex.ReplaceAllString(name, " ")
-	
+
 	return strings.TrimSpace(name)
 }
 
@@ -232,7 +232,7 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 	if startIdx < totalSeries {
 		seriesEnd := min(endIdx, totalSeries)
 		response.Series = organized.Series[startIdx:seriesEnd]
-		
+
 		// If there's room for movies
 		if endIdx > totalSeries {
 			moviesStart := 0
@@ -292,14 +292,14 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 		sort.Slice(s.Seasons, func(i, j int) bool {
 			return s.Seasons[i].SeasonNumber < s.Seasons[j].SeasonNumber
 		})
-		
+
 		// Sort episodes within each season
 		for i := range s.Seasons {
 			sort.Slice(s.Seasons[i].Episodes, func(a, b int) bool {
 				return s.Seasons[i].Episodes[a].EpisodeNumber < s.Seasons[i].Episodes[b].EpisodeNumber
 			})
 		}
-		
+
 		series = append(series, *s)
 	}
 	sort.Slice(series, func(i, j int) bool {

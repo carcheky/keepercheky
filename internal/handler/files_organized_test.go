@@ -6,53 +6,53 @@ import (
 
 func TestParseSeasonEpisode(t *testing.T) {
 	tests := []struct {
-		filename string
-		wantSeason int
+		filename    string
+		wantSeason  int
 		wantEpisode int
-		wantFound bool
+		wantFound   bool
 	}{
 		{
-			filename: "Breaking.Bad.S01E01.720p.mkv",
-			wantSeason: 1,
+			filename:    "Breaking.Bad.S01E01.720p.mkv",
+			wantSeason:  1,
 			wantEpisode: 1,
-			wantFound: true,
+			wantFound:   true,
 		},
 		{
-			filename: "Game.of.Thrones.s05e08.1080p.mp4",
-			wantSeason: 5,
+			filename:    "Game.of.Thrones.s05e08.1080p.mp4",
+			wantSeason:  5,
 			wantEpisode: 8,
-			wantFound: true,
+			wantFound:   true,
 		},
 		{
-			filename: "The.Office.1x01.Pilot.mp4",
-			wantSeason: 1,
+			filename:    "The.Office.1x01.Pilot.mp4",
+			wantSeason:  1,
 			wantEpisode: 1,
-			wantFound: true,
+			wantFound:   true,
 		},
 		{
-			filename: "Friends.2X10.The.One.mkv",
-			wantSeason: 2,
+			filename:    "Friends.2X10.The.One.mkv",
+			wantSeason:  2,
 			wantEpisode: 10,
-			wantFound: true,
+			wantFound:   true,
 		},
 		{
-			filename: "Movie.Title.2023.1080p.mkv",
-			wantSeason: 0,
+			filename:    "Movie.Title.2023.1080p.mkv",
+			wantSeason:  0,
 			wantEpisode: 0,
-			wantFound: false,
+			wantFound:   false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.filename, func(t *testing.T) {
 			season, episode, found := parseSeasonEpisode(tt.filename)
-			
+
 			if found != tt.wantFound {
 				t.Errorf("parseSeasonEpisode(%q) found = %v, want %v", tt.filename, found, tt.wantFound)
 			}
-			
+
 			if found && (season != tt.wantSeason || episode != tt.wantEpisode) {
-				t.Errorf("parseSeasonEpisode(%q) = (%d, %d), want (%d, %d)", 
+				t.Errorf("parseSeasonEpisode(%q) = (%d, %d), want (%d, %d)",
 					tt.filename, season, episode, tt.wantSeason, tt.wantEpisode)
 			}
 		})
