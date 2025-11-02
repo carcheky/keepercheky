@@ -886,8 +886,9 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                 case 'jellyfin':
                     return this.itemId ? `${baseUrl}/web/index.html#!/details?id=${this.itemId}` : baseUrl;
                 case 'jellyseerr':
-                    // Jellyseerr needs media type (movie/tv) - we'll default to movie for now
-                    return this.itemId ? `${baseUrl}/movie/${this.itemId}` : baseUrl;
+                    // Jellyseerr needs media type (movie/tv) - use details.type if available
+                    const mediaType = this.details?.type === 'tv' ? 'tv' : 'movie';
+                    return this.itemId ? `${baseUrl}/${mediaType}/${this.itemId}` : baseUrl;
                 case 'qbittorrent':
                 case 'jellystat':
                     // These services don't have item-specific URLs, just return the base
