@@ -321,12 +321,10 @@
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
-                                        :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                        :title="label"
                                         tabindex="0">
                                         <span x-text="icon"></span>
                                     </span>
@@ -350,12 +348,10 @@
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                         role="button"
                                         :aria-label="label + ': No aplicable para series'"
-                                        :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                        :title="label"
                                         tabindex="-1">
                                         <span x-text="icon"></span>
                                     </span>
@@ -412,12 +408,10 @@
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
-                                        :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                        :title="label"
                                         tabindex="0">
                                         <span x-text="icon"></span>
                                     </span>
@@ -442,12 +436,10 @@
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                         role="button"
                                         :aria-label="label + ': No disponible'"
-                                        :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                        :title="label"
                                         tabindex="-1">
                                         <span x-text="icon"></span>
                                     </span>
@@ -470,12 +462,10 @@
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                         role="button"
                                         :aria-label="label + ': No disponible'"
-                                        :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                        :title="label"
                                         tabindex="-1">
                                         <span x-text="icon"></span>
                                     </span>
@@ -620,12 +610,10 @@
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
-                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
-                                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                            :title="label"
                                             tabindex="0">
                                             <span x-text="icon"></span>
                                         </span>
@@ -651,12 +639,10 @@
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
-                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_radarr ? 'Gestionado' : 'No gestionado')"
-                                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                            :title="label"
                                             tabindex="0">
                                             <span x-text="icon"></span>
                                         </span>
@@ -681,12 +667,10 @@
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
-                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                             role="button"
                                             :aria-label="label + ': No aplicable para películas'"
-                                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                            :title="label"
                                             tabindex="-1">
                                             <span x-text="icon"></span>
                                         </span>
@@ -711,12 +695,10 @@
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
-                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
-                                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                            :title="label"
                                             tabindex="0">
                                             <span x-text="icon"></span>
                                         </span>
@@ -741,12 +723,10 @@
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
-                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                             role="button"
                                             :aria-label="label + ': No disponible'"
-                                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                            :title="label"
                                             tabindex="-1">
                                             <span x-text="icon"></span>
                                         </span>
@@ -769,12 +749,10 @@
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
-                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
-                                        @click="openService($event)"
+                                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help"
                                             role="button"
                                             :aria-label="label + ': No disponible'"
-                                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                                            :title="label"
                                             tabindex="-1">
                                             <span x-text="icon"></span>
                                         </span>
@@ -927,7 +905,7 @@
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_qbittorrent ? 'Presente' : 'No presente')"
-                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                            :title="label"
                             tabindex="0">
                             <span x-text="icon"></span>
                         </span>
@@ -959,7 +937,7 @@
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
-                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                            :title="label"
                             tabindex="0">
                             <span x-text="icon"></span>
                         </span>
@@ -989,7 +967,7 @@
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
-                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                            :title="label"
                             tabindex="0">
                             <span x-text="icon"></span>
                         </span>
@@ -1020,7 +998,7 @@
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
-                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                            :title="label"
                             tabindex="0">
                             <span x-text="icon"></span>
                         </span>
@@ -1054,7 +1032,7 @@
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
-                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                            :title="label"
                             tabindex="0">
                             <span x-text="icon"></span>
                         </span>
@@ -1084,7 +1062,7 @@
                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
-                            :title="serviceUrl ? (label + ' (click para abrir)') : label"
+                            :title="label"
                             tabindex="0">
                             <span x-text="icon"></span>
                         </span>
