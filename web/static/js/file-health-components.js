@@ -858,7 +858,8 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                 'jellyfin': '📚',
                 'jellyseerr': '📋',
                 'qbittorrent': '🌊',
-                'jellystat': '📊'
+                'jellystat': '📊',
+                'bazarr': '🗣️'
             };
             return icons[this.service] || '📦';
         },
@@ -870,7 +871,8 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                 'jellyfin': 'Jellyfin',
                 'jellyseerr': 'Jellyseerr',
                 'qbittorrent': 'qBittorrent',
-                'jellystat': 'Jellystat'
+                'jellystat': 'Jellystat',
+                'bazarr': 'Bazarr'
             };
             return labels[this.service] || this.service;
         },
@@ -915,6 +917,7 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                     return this.itemId ? `${baseUrl}/${mediaType}/${this.itemId}` : baseUrl;
                 case 'qbittorrent':
                 case 'jellystat':
+                case 'bazarr':
                     // These services don't have item-specific URLs, just return the base
                     return baseUrl;
                 default:
