@@ -99,6 +99,21 @@ func (r *MediaRepository) CreateOrUpdate(media *models.Media) error {
 func (r *MediaRepository) GetStats() (map[string]interface{}, error) {
 	var stats models.GlobalStats
 
+	// Count total media
+	var totalMedia int64
+	r.db.Model(&models.Media{}).Count(&totalMedia)
+	stats.TotalMedia = totalMedia
+
+	// Count movies
+	var totalMovies int64
+	r.db.Model(&models.Media{}).Where("type = ?", "movie").Count(&totalMovies)
+	stats.TotalMovies = totalMovies
+
+	// Count series
+	var totalSeries int64
+	r.db.Model(&models.Media{}).Where("type = ?", "series").Count(&totalSeries)
+	stats.TotalSeries = totalSeries
+
 	_ = r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&stats.TotalSize)
 	_ = r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_count), 0)").Row().Scan(&stats.TotalEpisodes)
 	_ = r.db.Model(&models.Media{}).Where("type = ?", "series").Select("COALESCE(SUM(episode_file_count), 0)").Row().Scan(&stats.TotalEpisodesDownload)
