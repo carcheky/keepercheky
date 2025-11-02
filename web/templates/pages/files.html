@@ -316,13 +316,13 @@
                                     
                                     <!-- Service Icons for Series (inline) -->
                                     <div class="flex items-center gap-0.5" @click.stop>
-                                <div x-data="serviceStatusIndicator('qbittorrent', series.metadata?.in_qbittorrent, {})" 
+                                <div x-data="serviceStatusIndicator('qbittorrent', series.metadata?.in_qbittorrent, {}, window.serviceExternalUrls?.qbittorrent || '', null)" 
                                     @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
@@ -345,13 +345,13 @@
                                     </div>
                                 </div>
                                 
-                                <div x-data="serviceStatusIndicator('radarr', false, {})"
+                                <div x-data="serviceStatusIndicator('radarr', false, {}, window.serviceExternalUrls?.radarr || '', null)"
                                     @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': No aplicable para series'"
@@ -375,14 +375,14 @@
                                 
                                 <div x-data="serviceStatusIndicator('sonarr', series.metadata?.in_sonarr, { 
                                     id: series.metadata?.sonarr_id
-                                })"
+                                }, window.serviceExternalUrls?.sonarr || '', series.metadata?.sonarr_id)"
                                     @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
                                         @click="openService($event)"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_sonarr ? 'Gestionado' : 'No gestionado')"
                                         :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -407,13 +407,13 @@
                                 
                                 <div x-data="serviceStatusIndicator('jellyfin', series.metadata?.in_jellyfin, { 
                                     id: series.metadata?.jellyfin_id
-                                })"
+                                }, window.serviceExternalUrls?.jellyfin || '', series.metadata?.jellyfin_id)"
                                     @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
@@ -437,13 +437,13 @@
                                     </div>
                                 </div>
                                 
-                                <div x-data="serviceStatusIndicator('jellyseerr', false, {})"
+                                <div x-data="serviceStatusIndicator('jellyseerr', false, {}, window.serviceExternalUrls?.jellyseerr || '', null)"
                                     @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': No disponible'"
@@ -465,13 +465,13 @@
                                     </div>
                                 </div>
                                 
-                                <div x-data="serviceStatusIndicator('jellystat', false, {})"
+                                <div x-data="serviceStatusIndicator('jellystat', false, {}, window.serviceExternalUrls?.jellystat || '', null)"
                                     @mouseenter="showTooltip = true; positionTooltip($event)"
                                     @mouseleave="showTooltip = false"
                                     class="relative">
                                     <span :class="colorClasses"
                                         class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                         role="button"
                                         :aria-label="label + ': No disponible'"
@@ -615,13 +615,13 @@
                             
                             <!-- Service Icons for Movie (inline) -->
                             <div class="flex items-center gap-0.5" @click.stop>
-                                    <div x-data="serviceStatusIndicator('qbittorrent', movie.metadata?.in_qbittorrent, {})" 
+                                    <div x-data="serviceStatusIndicator('qbittorrent', movie.metadata?.in_qbittorrent, {}, window.serviceExternalUrls?.qbittorrent || '', null)" 
                                         @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_qbittorrent ? 'Presente' : 'No presente')"
@@ -646,13 +646,13 @@
                                     
                                     <div x-data="serviceStatusIndicator('radarr', movie.metadata?.in_radarr, { 
                                         id: movie.metadata?.radarr_id
-                                    })"
+                                    }, window.serviceExternalUrls?.radarr || '', movie.metadata?.radarr_id)"
                                         @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_radarr ? 'Gestionado' : 'No gestionado')"
@@ -676,13 +676,13 @@
                                         </div>
                                     </div>
                                     
-                                    <div x-data="serviceStatusIndicator('sonarr', false, {})"
+                                    <div x-data="serviceStatusIndicator('sonarr', false, {}, window.serviceExternalUrls?.sonarr || '', null)"
                                         @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': No aplicable para películas'"
@@ -706,13 +706,13 @@
                                     
                                     <div x-data="serviceStatusIndicator('jellyfin', movie.metadata?.in_jellyfin, { 
                                         id: movie.metadata?.jellyfin_id
-                                    })"
+                                    }, window.serviceExternalUrls?.jellyfin || '', movie.metadata?.jellyfin_id)"
                                         @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': ' + (movie.metadata?.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
@@ -736,13 +736,13 @@
                                         </div>
                                     </div>
                                     
-                                    <div x-data="serviceStatusIndicator('jellyseerr', false, {})"
+                                    <div x-data="serviceStatusIndicator('jellyseerr', false, {}, window.serviceExternalUrls?.jellyseerr || '', null)"
                                         @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': No disponible'"
@@ -764,13 +764,13 @@
                                         </div>
                                     </div>
                                     
-                                    <div x-data="serviceStatusIndicator('jellystat', false, {})"
+                                    <div x-data="serviceStatusIndicator('jellystat', false, {}, window.serviceExternalUrls?.jellystat || '', null)"
                                         @mouseenter="showTooltip = true; positionTooltip($event)"
                                         @mouseleave="showTooltip = false"
                                         class="relative">
                                         <span :class="colorClasses"
                                             class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
-                                        :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
+                                        :class="cursorClasses"
                                         @click="openService($event)"
                                             role="button"
                                             :aria-label="label + ': No disponible'"
@@ -919,12 +919,14 @@
                         category: file.torrent_category,
                         tags: file.torrent_tags,
                         seeding: file.is_seeding
-                    })" 
+                    }, window.serviceExternalUrls?.qbittorrent || '', null)" 
                     @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
+                            :class="cursorClasses"
+                            @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_qbittorrent ? 'Presente' : 'No presente')"
                             :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -951,12 +953,14 @@
                     <div x-data="serviceStatusIndicator('radarr', file.in_radarr, { 
                         id: file.radarr_id,
                         type: file.type
-                    })"
+                    }, window.serviceExternalUrls?.radarr || '', file.radarr_id)"
                     @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
+                            :class="cursorClasses"
+                            @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_radarr ? 'Gestionado' : 'No gestionado')"
                             :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -981,12 +985,14 @@
                     <div x-data="serviceStatusIndicator('sonarr', file.in_sonarr, { 
                         id: file.sonarr_id,
                         type: file.type
-                    })"
+                    }, window.serviceExternalUrls?.sonarr || '', file.sonarr_id)"
                     @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
+                            :class="cursorClasses"
+                            @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_sonarr ? 'Gestionado' : 'No gestionado')"
                             :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -1012,12 +1018,14 @@
                         id: file.jellyfin_id,
                         watched: file.has_been_watched,
                         playCount: file.total_play_count
-                    })"
+                    }, window.serviceExternalUrls?.jellyfin || '', file.jellyfin_id)"
                     @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
+                            :class="cursorClasses"
+                            @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyfin ? 'En biblioteca' : 'No en biblioteca')"
                             :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -1046,12 +1054,14 @@
                     <div x-data="serviceStatusIndicator('jellyseerr', file.in_jellyseerr, { 
                         id: file.jellyseerr_id,
                         type: file.type
-                    })"
+                    }, window.serviceExternalUrls?.jellyseerr || '', file.jellyseerr_id)"
                     @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
+                            :class="cursorClasses"
+                            @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellyseerr ? 'Solicitado' : 'No solicitado')"
                             :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -1076,12 +1086,14 @@
                     <div x-data="serviceStatusIndicator('jellystat', file.in_jellystat, { 
                         playCount: file.total_play_count,
                         id: file.jellystat_id
-                    })"
+                    }, window.serviceExternalUrls?.jellystat || '', file.jellystat_id)"
                     @mouseenter="showTooltip = true; positionTooltip($event)"
                     @mouseleave="showTooltip = false"
                     class="relative">
                         <span :class="colorClasses"
-                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help w-full"
+                            class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs w-full"
+                            :class="cursorClasses"
+                            @click="openService($event)"
                             role="button"
                             :aria-label="label + ': ' + (file.in_jellystat ? 'Con estadísticas' : 'Sin estadísticas')"
                             :title="serviceUrl ? (label + ' (click para abrir)') : label"
@@ -1316,7 +1328,7 @@ function healthCard(status, count, severity, clickHandler) {
 }
 
 // Alpine.js Component: Service Status Indicator
-function serviceStatusIndicator(serviceName, isPresent, details = {}) {
+function serviceStatusIndicator(serviceName, isPresent, details = {}, externalUrl = '', itemId = null) {
     // Service configuration
     const serviceConfig = {
         qbittorrent: { 
@@ -1368,6 +1380,8 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         serviceName,
         isPresent,
         details,
+        externalUrl,
+        itemId,
         config,
         showTooltip: false,
         tooltipX: 0,
@@ -1461,47 +1475,48 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
             return this.isPresent && Object.values(this.details).some(v => v !== null && v !== undefined && v !== '');
         },
         
+        get cursorClasses() {
+            return {
+                'cursor-pointer hover:opacity-80': this.serviceUrl,
+                'cursor-help': !this.serviceUrl
+            };
+        },
+        
         get serviceUrl() {
-            // Only return URL if service is present
-            if (!this.isPresent) return null;
+            // Only return URL if we have an external URL and service is present
+            if (!this.externalUrl || !this.isPresent) {
+                return null;
+            }
             
-            // Get external URLs from configuration for user-accessible links
-            const externalUrls = window.serviceExternalUrls || {};
+            // Remove trailing slash from external URL
+            const baseUrl = this.externalUrl.replace(/\/$/, '');
             
+            // Build service-specific URLs based on itemId
             switch (serviceName) {
                 case 'radarr':
-                    if (externalUrls.radarr && this.details.id) {
-                        return `${externalUrls.radarr}/movie/${this.details.id}`;
-                    }
-                    return externalUrls.radarr || null;
+                    return this.itemId ? `${baseUrl}/movie/${this.itemId}` : baseUrl;
                     
                 case 'sonarr':
-                    if (externalUrls.sonarr && this.details.id) {
-                        return `${externalUrls.sonarr}/series/${this.details.id}`;
-                    }
-                    return externalUrls.sonarr || null;
+                    return this.itemId ? `${baseUrl}/series/${this.itemId}` : baseUrl;
                     
                 case 'jellyfin':
-                    if (externalUrls.jellyfin && this.details.id) {
-                        // Jellyfin item detail page
-                        return `${externalUrls.jellyfin}/web/index.html#!/details?id=${this.details.id}`;
-                    }
-                    return externalUrls.jellyfin || null;
+                    return this.itemId ? `${baseUrl}/web/index.html#!/details?id=${this.itemId}` : baseUrl;
                     
                 case 'jellyseerr':
-                    if (externalUrls.jellyseerr && this.details.id) {
-                        return `${externalUrls.jellyseerr}/media/${this.details.type === 'movie' ? 'movie' : 'tv'}/${this.details.id}`;
+                    // Jellyseerr needs media type (movie/tv)
+                    if (this.itemId) {
+                        const mediaType = this.details?.type === 'tv' || this.details?.type === 'series' ? 'tv' : 'movie';
+                        return `${baseUrl}/media/${mediaType}/${this.itemId}`;
                     }
-                    return externalUrls.jellyseerr || null;
+                    return baseUrl;
                     
                 case 'jellystat':
-                    return externalUrls.jellystat || null;
-                    
                 case 'qbittorrent':
-                    return externalUrls.qbittorrent || null;
+                    // These don't have item-specific URLs
+                    return baseUrl;
                     
                 default:
-                    return null;
+                    return baseUrl;
             }
         },
         
