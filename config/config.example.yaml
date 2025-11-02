@@ -43,24 +43,40 @@ clients:
     enabled: false
     url: "http://radarr:7878"
     api_key: "your_radarr_api_key_here"
+    # Optional: External URL for direct links from Files page (e.g., https://radarr.yourdomain.com)
+    external_url: ""
 
   # Sonarr (TV Shows Management)
   sonarr:
     enabled: false
     url: "http://sonarr:8989"
     api_key: "your_sonarr_api_key_here"
+    # Optional: External URL for direct links from Files page (e.g., https://sonarr.yourdomain.com)
+    external_url: ""
 
   # Jellyfin (Media Server)
   jellyfin:
     enabled: false
     url: "http://jellyfin:8096"
     api_key: "your_jellyfin_api_key_here"
+    # Optional: External URL for direct links from Files page (e.g., https://jellyfin.yourdomain.com)
+    external_url: ""
 
   # Jellyseerr (Request Management)
   jellyseerr:
     enabled: false
     url: "http://jellyseerr:5055"
     api_key: "your_jellyseerr_api_key_here"
+    # Optional: External URL for direct links from Files page (e.g., https://jellyseerr.yourdomain.com)
+    external_url: ""
+
+  # Jellystat (Jellyfin Statistics)
+  jellystat:
+    enabled: false
+    url: "http://jellystat:3000"
+    api_key: "your_jellystat_api_key_here"
+    # Optional: External URL for direct links from Files page (e.g., https://jellystat.yourdomain.com)
+    external_url: ""
 
   # qBittorrent (Torrent Client - Seeding Validation)
   qbittorrent:
@@ -68,6 +84,16 @@ clients:
     url: "http://qbittorrent:8080"
     username: "admin"
     password: "adminadmin"
+    # Optional: External URL for direct links from Files page (e.g., https://qbittorrent.yourdomain.com)
+    external_url: ""
+
+  # Bazarr (Subtitle Management)
+  bazarr:
+    enabled: false
+    url: "http://bazarr:6767"
+    api_key: "your_bazarr_api_key_here"
+    # Optional: External URL for direct links from Files page (e.g., https://bazarr.yourdomain.com)
+    external_url: ""
 
 # Cleanup Rules Configuration
 cleanup:
