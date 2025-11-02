@@ -29,12 +29,11 @@ Ahora tenemos **3 workflows independientes**:
        │
        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ ci.yml - Validaciones rápidas (~2-5 min)                    │
+│ ci.yml - Validaciones rápidas (~1-2 min)                    │
 ├─────────────────────────────────────────────────────────────┤
 │ ✓ Lint (go fmt, go vet)                                     │
 │ ✓ Test (go test -race -cover)                               │
 │ ✓ Build (compilación binario)                               │
-│ ✓ Docker Build Check (validar Dockerfile, sin push)         │
 └─────────────────────────────────────────────────────────────┘
        │
        │ merge
@@ -77,10 +76,9 @@ Ahora tenemos **3 workflows independientes**:
 1. **Lint** - Formato y análisis estático
 2. **Test** - Tests unitarios con coverage
 3. **Build** - Compilación del binario
-4. **Docker Build Check** - Validar que Dockerfile compila (linux/amd64 only, sin push)
 
-**Tiempo:** ~2-5 minutos
-**Recursos:** Mínimos (solo compilación Go y build Docker de prueba)
+**Tiempo:** ~1-2 minutos
+**Recursos:** Mínimos (solo compilación Go)
 
 #### `release.yml` - Sin cambios
 **Trigger:** Push a `develop`/`stable`
@@ -118,23 +116,22 @@ Total: ~10-15 minutos por PR ❌
 PR → ci.yml
      ├─ Lint                              ~30 seg
      ├─ Test                              ~1 min
-     ├─ Build                             ~1 min
-     └─ Docker Build Check (amd64)        ~2 min
+     └─ Build                             ~30 seg
      
-Total: ~2-5 minutos por PR ✅
+Total: ~1-2 minutos por PR ✅
 ```
 
 ## Beneficios
 
 ### 🚀 Velocidad
 - **Antes:** ~10-15 min por PR
-- **Ahora:** ~2-5 min por PR
-- **Mejora:** 2-3x más rápido
+- **Ahora:** ~1-2 min por PR
+- **Mejora:** 5-10x más rápido
 
 ### 💰 Recursos
 - **Antes:** Build multi-arch completo en cada PR
-- **Ahora:** Solo validación de compilación
-- **Ahorro:** ~70-80% de minutos de GitHub Actions
+- **Ahora:** Solo validación de código Go
+- **Ahorro:** ~85-90% de minutos de GitHub Actions
 
 ### ✅ Feedback
 - Validación de código más rápida
@@ -152,11 +149,10 @@ Total: ~2-5 minutos por PR ✅
 
 **Nada cambia en el flujo de trabajo:**
 1. Crear PR como siempre
-2. Ahora verás 4 checks en lugar de 1:
+2. Ahora verás 3 checks en lugar de 1:
    - ✅ Lint
    - ✅ Test
    - ✅ Build
-   - ✅ Docker Build Check
 3. Merge cuando todos pasen
 
 ### Para releases

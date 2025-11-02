@@ -46,14 +46,9 @@ KeeperCheky utiliza **3 workflows principales** para gestionar CI/CD:
    - `CGO_ENABLED=1 go build -o bin/keepercheky ./cmd/server`
    - Verifica que la compilación sea exitosa
 
-4. **Docker Build Check**: Valida Dockerfile
-   - Build de prueba solo para `linux/amd64`
-   - **No hace push** de la imagen
-   - Usa cache de GitHub Actions
-
 **Beneficios:**
-- ✅ Feedback rápido en PRs (2-5 minutos)
-- ✅ No construye imágenes Docker completas (ahorro de recursos)
+- ✅ Feedback muy rápido en PRs (1-2 minutos)
+- ✅ No construye imágenes Docker (ahorro de recursos)
 - ✅ Validación de código antes de merge
 - ✅ Cancel-in-progress habilitado (cancela builds antiguos)
 
