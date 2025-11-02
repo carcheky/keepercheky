@@ -1,3 +1,10 @@
+# [1.0.0-dev.27](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.26...v1.0.0-dev.27) (2025-11-02)
+
+
+### Features
+
+* enable external URL linking for service indicators in Files view ([#85](https://github.com/carcheky/keepercheky/issues/85)) ([89331ed](https://github.com/carcheky/keepercheky/commit/89331edfc6374cb2adadc1b97a1f1368b2d59984))
+
 # [1.0.0-dev.26](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.25...v1.0.0-dev.26) (2025-11-02)
 
 
