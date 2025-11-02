@@ -1,223 +1,106 @@
-# AGENTS Guidelines for KeeperCheky
+# AGENTS - KeeperCheky Quick Reference
 
-**KeeperCheky** is a modern web-based media library cleanup manager - a complete rewrite of Janitorr with a beautiful UI. Built with Go + Fiber backend and Alpine.js + Tailwind CSS frontend.
+> **Media Library Cleanup Manager** - Go + Fiber + Alpine.js | [Full Guide](.github/copilot-instructions.md)
 
-**Stack:** Go 1.22+, Fiber v2, GORM v2, Alpine.js 3.x, Tailwind CSS, Docker
-
----
-
-## ⛔️ CRITICAL RULE - NEVER VIOLATE ⛔️
-
-**YOU MUST NEVER, UNDER ANY CIRCUMSTANCES:**
-
-- Run `make dev` or `make run` or ANY make command that starts services
-- Run `docker-compose up`, `docker-compose down`, `docker-compose restart`, or `docker-compose stop`
-- Run `docker start`, `docker stop`, `docker restart`, `docker kill`, or `docker rm`
-- Execute ANY command that starts, stops, restarts, kills, or removes Docker containers
-- Use `run_in_terminal` with `isBackground: true` for ANY command that starts servers or services
-
-**ONLY THE USER CAN START, STOP, OR RESTART SERVICES.**
-
-**WHAT YOU CAN DO:**
-
-- Read logs with `cat`, `tail`, `grep`, etc.
-- Execute commands INSIDE running containers (`docker exec`) for debugging
-- Inspect files and configurations
-- Make code changes
-- Run tests (but NOT start test servers)
-
-**IF YOU NEED TO TEST SOMETHING, ASK THE USER TO START/RESTART THE SERVICE.**
+**Stack:** Go 1.22+ • Fiber v2 • GORM v2 • Alpine.js 3.x • Tailwind CSS • Docker
 
 ---
 
-## 📂 Project Structure Quick Reference
+**✅ You CAN:**
 
-```
+- Read logs: `cat/tail/grep logs/keepercheky-dev.log`
+- Debug containers: `docker exec -it keepercheky-app sh`
+- Build/test: `go build`, `go test ./...`
+- Edit code and config files
+
+> **🔄 Need to test? Ask user to restart service**
+
+---
+
+## 📂 Project Structure
+
+```txt
 keepercheky/
-├── cmd/server/main.go              # Application entry point
-├── internal/                       # Private application code (NOT importable)
-│   ├── config/                     # Configuration management
-│   ├── models/                     # Database models (GORM)
-│   ├── repository/                 # Data access layer
+├── cmd/server/main.go              # Entry point
+├── internal/                       # Private code (NOT importable)
+│   ├── config/, models/, repository/
 │   ├── service/                    # Business logic
-│   │   ├── clients/                # External service clients (Radarr, Sonarr, etc.)
+│   │   ├── clients/                # Radarr, Sonarr, etc.
 │   │   ├── cleanup/                # Cleanup strategies
-│   │   └── scheduler/              # Job scheduling (cron)
+│   │   └── scheduler/              # Cron jobs
 │   ├── handler/                    # HTTP handlers (Fiber)
-│   └── middleware/                 # HTTP middleware
+│   └── middleware/
 ├── web/
-│   ├── templates/                  # Go html/template files
-│   │   ├── layouts/
-│   │   ├── pages/
-│   │   └── components/
+│   ├── templates/                  # Go templates
 │   └── static/                     # CSS, JS, images
-├── pkg/                            # Public/shared packages (reusable)
-│   ├── filesystem/
-│   ├── logger/
-│   └── utils/
-├── migrations/                     # Database migrations
-├── scripts/                        # Build and utility scripts
+├── pkg/                            # Public packages
 └── docs/                           # Documentation
 ```
 
-**Key Architecture Patterns:**
-
-- **Repository Pattern**: Data access abstraction (`internal/repository/`)
-- **Service Layer**: Business logic (`internal/service/`)
-- **Handler Pattern**: HTTP request handling (`internal/handler/`)
-- **Client Interface**: External services abstraction (`internal/service/clients/`)
+**Patterns:** Repository → Service → Handler → Client Interface
 
 ---
 
-## 🔧 Development Environment Setup
+## ⚡ Quick Commands
 
-### Prerequisites
-
-- Go 1.22+
-- Docker & Docker Compose
-- Make (optional, for convenience)
-
-### Initial Setup
+### Build & Test
 
 ```bash
-# Clone and enter directory
-cd /home/user/projects/keepercheky
-
-# Install Go dependencies
-go mod download
-
-# Copy example configuration
-cp config/config.example.yaml config/config.yaml
-```
-
-**IMPORTANT:** Do NOT run `make dev` or `docker-compose up` - the user manages services.
-
----
-
-## 🏗️ Building and Testing
-
-### Build the Binary
-
-```bash
-# Build for current OS
+# Build
 go build -o bin/keepercheky ./cmd/server
 
-# Build with optimizations (same as Dockerfile)
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-  -ldflags="-w -s" \
-  -o bin/keepercheky \
-  ./cmd/server
-```
+# Test
+go test ./...              # All tests
+go test -cover ./...       # With coverage
 
-### Run Tests
-
-```bash
-# Run all tests
-go test ./...
-
-# Run tests with coverage
-go test -cover ./...
-
-# Run tests in a specific package
-go test ./internal/service/...
-
-# Run a specific test
-go test -run TestCleanupService_GetMediaToDelete ./internal/service
-```
-
-### Code Quality
-
-```bash
-# Format code
-gofmt -w .
-
-# Run linter (if installed)
-golangci-lint run
-
-# Vet code
-go vet ./...
+# Code quality
+gofmt -w .                 # Format
+go vet ./...               # Vet
+golangci-lint run          # Lint (if installed)
 ```
 
 ---
 
-## 🐛 Debugging and Inspection
+---
 
-### Read Logs
+## 🐛 Debugging
 
-**ALWAYS read logs directly after making changes:**
+### Logs (ALWAYS read after changes)
 
 ```bash
-# Read the entire log
-cat logs/keepercheky-dev.log
-
-# Tail the last 100 lines
-tail -n 100 logs/keepercheky-dev.log
-
-# Follow logs in real-time
-tail -f logs/keepercheky-dev.log
-
-# Search for errors
-grep -i error logs/keepercheky-dev.log
-
-# Search for specific patterns
-grep -i "media" logs/keepercheky-dev.log
+cat logs/keepercheky-dev.log           # Full log
+tail -n 100 logs/keepercheky-dev.log   # Last 100 lines
+tail -f logs/keepercheky-dev.log       # Follow real-time
+grep -i error logs/keepercheky-dev.log # Search errors
 ```
 
-### Inspect Running Containers
+### Containers
 
 ```bash
-# List running containers
-docker ps
-
-# View logs of a container
-docker logs keepercheky-app
-
-# Execute commands inside a running container
-docker exec -it keepercheky-app sh
-
-# Inside container, you can:
-ls -la /app
-cat /app/config/config.yaml
-ps aux
+docker ps                              # List containers
+docker logs keepercheky-app            # View logs
+docker exec -it keepercheky-app sh     # Enter container
 ```
 
-### Check Service Health
+### Service Health
 
 ```bash
-# Check if the service is responding
-curl http://localhost:8000/health
-
-# Check API endpoints
-curl http://localhost:8000/api/media
-```
-
-### Inspect Database
-
-```bash
-# Access SQLite database (development)
-docker exec -it keepercheky-app sqlite3 /app/data/keepercheky.db
-
-# Inside SQLite:
-.tables                 # List tables
-.schema media           # Show schema for media table
-SELECT * FROM media;    # Query data
-.exit                   # Exit
+curl http://localhost:8000/health      # Health check
+curl http://localhost:8000/api/media   # API test
 ```
 
 ---
 
-## 🎨 Frontend Development (Alpine.js)
+---
 
-### Alpine.js Component Structure
+## 🎨 Frontend (Alpine.js)
 
-Components are defined in `web/templates/` as inline Alpine.js components:
+### Component Example
 
 ```html
-<!-- Example: Media Card Component -->
 <div x-data="mediaCard({{ .Media.ID }})" class="card">
-    <img :src="media.poster_url" :alt="media.title">
     <h4 x-text="media.title"></h4>
-    <button @click="exclude()" class="btn">Exclude</button>
+    <button @click="exclude()">Exclude</button>
 </div>
 
 <script>
@@ -225,21 +108,13 @@ function mediaCard(mediaId) {
     return {
         media: null,
         async init() { await this.fetchMedia(); },
-        async fetchMedia() { /* ... */ },
         async exclude() { /* ... */ }
     }
 }
 </script>
 ```
 
-### State Management
-
-- **Local state**: Use `x-data` for component-specific state
-- **Global state**: Use `Alpine.store()` for shared state (config, user settings)
-
-### API Calls Best Practices
-
-Always handle loading and error states:
+### API Calls Pattern
 
 ```javascript
 {
@@ -251,9 +126,9 @@ Always handle loading and error states:
         this.loading = true;
         this.error = null;
         try {
-            const response = await fetch('/api/endpoint');
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            this.data = await response.json();
+            const res = await fetch('/api/endpoint');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            this.data = await res.json();
         } catch (err) {
             this.error = err.message;
         } finally {
@@ -265,11 +140,11 @@ Always handle loading and error states:
 
 ---
 
-## 📝 Code Conventions
+---
+
+## 📝 Code Guidelines
 
 ### Error Handling
-
-**ALWAYS handle errors explicitly:**
 
 ```go
 // ❌ BAD
@@ -278,97 +153,70 @@ result, _ := someFunction()
 // ✅ GOOD
 result, err := someFunction()
 if err != nil {
-    log.Printf("Error in someFunction: %v", err)
-    return fmt.Errorf("failed to execute: %w", err)
+    return fmt.Errorf("failed: %w", err)
 }
 ```
 
 ### Logging
 
-Use structured logging with context:
-
 ```go
-logger.Info("Starting cleanup process",
-    "media_count", len(mediaList),
-    "dry_run", config.DryRun,
+logger.Info("Processing",
+    "count", len(items),
+    "dry_run", cfg.DryRun,
 )
 ```
 
-### Database Operations
-
-Use transactions for multi-step operations:
+### Database Transactions
 
 ```go
-return r.db.Transaction(func(tx *gorm.DB) error {
-    if err := tx.Save(media).Error; err != nil {
+return db.Transaction(func(tx *gorm.DB) error {
+    if err := tx.Save(item).Error; err != nil {
         return err
     }
-    // ... more operations
     return nil
 })
 ```
 
-### Context Propagation
-
-Always pass context through the call chain:
-
-```go
-func (s *Service) ProcessMedia(ctx context.Context, mediaID int) error {
-    media, err := s.repo.GetByID(ctx, mediaID)
-    // ...
-}
-```
+---
 
 ---
 
 ## 🔄 Git Workflow
 
-### Commit Message Format
-
-**ALL commit messages MUST be in English** following Conventional Commits:
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
 ### Commit Types
 
-**⚠️ IMPORTANT: Only `feat`, `fix`, and `perf` trigger releases and Docker builds!**
+**⚠️ Only `feat`, `fix`, `perf` trigger releases!**
 
-**Types that TRIGGER builds (use sparingly):**
+**Trigger builds:**
 
-- `feat`: New user-facing feature or significant functionality
-- `fix`: Bug fix that affects runtime behavior
-- `perf`: Performance improvement that affects runtime
+- `feat` - New user-facing feature
+- `fix` - Runtime bug fix
+- `perf` - Performance improvement
 
-**Types that DO NOT trigger builds (use for maintenance):**
+**No builds:**
 
-- `docs`: Documentation-only changes (README, comments, .env.example)
-- `chore`: Maintenance tasks, config changes, dependencies
-- `refactor`: Code restructuring without changing behavior
-- `test`: Adding or updating tests only
-- `style`: Code style/formatting changes (gofmt, linting)
-- `ci`: CI/CD configuration changes
+- `docs` - Documentation only
+- `chore` - Dependencies, config
+- `refactor` - Code restructure (no behavior change)
+- `test` - Tests only
+- `style` - Formatting (gofmt)
+- `ci` - CI/CD changes
 
 ### Examples
 
 ```bash
 # TRIGGERS BUILD
-feat(api): add endpoint for bulk media deletion
-fix(sync): correct torrent hash matching algorithm
-perf(db): add index on media.created_at for faster queries
+feat(api): add bulk deletion endpoint
+fix(sync): correct hash matching
 
-# DOES NOT TRIGGER BUILD
-docs(config): update .env.example with Bazarr configuration
-chore(deps): update Go dependencies to latest versions
-refactor(handler): extract validation logic to separate function
-test(repository): add unit tests for media queries
-style(models): format code with gofmt
+# NO BUILD
+docs(config): update .env.example
+chore(deps): update dependencies
 ```
+
+> See [commit instructions](.vscode/copilot-commit-message-instructions.md) for details
+
+---
 
 ---
 
@@ -491,6 +339,6 @@ For more detailed guidelines, see:
 
 ---
 
-**Last Updated:** 2025-01-25  
+**Last Updated:** 2025-11-02  
 **Format:** AGENTS.md v1.0 (OpenAI standard)  
 **Project:** KeeperCheky - Media Library Cleanup Manager
