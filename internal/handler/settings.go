@@ -27,6 +27,18 @@ func NewSettingsHandler(repos *repository.Repositories, logger *logger.Logger, c
 	}
 }
 
+func (h *SettingsHandler) GetServiceUrls(c *fiber.Ctx) error {
+	// Return only the service URLs for frontend to generate links
+	return c.JSON(fiber.Map{
+		"radarr_url":      h.config.Clients.Radarr.URL,
+		"sonarr_url":      h.config.Clients.Sonarr.URL,
+		"jellyfin_url":    h.config.Clients.Jellyfin.URL,
+		"jellyseerr_url":  h.config.Clients.Jellyseerr.URL,
+		"jellystat_url":   h.config.Clients.Jellystat.URL,
+		"qbittorrent_url": h.config.Clients.QBittorrent.URL,
+	})
+}
+
 func (h *SettingsHandler) Index(c *fiber.Ctx) error {
 	return c.Render("pages/settings", fiber.Map{
 		"Title": "Settings - KeeperCheky",
