@@ -256,7 +256,7 @@ function createQualityDistributionChart(canvasId, distribution) {
     const counts = qualities.map(q => distribution[q]);
 
     // Generate colors based on quality
-    const colors = qualities.map(quality => {
+    const backgroundColors = qualities.map(quality => {
         if (quality.includes('2160p') || quality.includes('4K')) {
             return 'rgba(251, 146, 60, 0.8)'; // Orange for 4K
         } else if (quality.includes('1080p')) {
@@ -268,6 +268,19 @@ function createQualityDistributionChart(canvasId, distribution) {
         }
     });
 
+    // Border colors with full opacity
+    const borderColors = qualities.map(quality => {
+        if (quality.includes('2160p') || quality.includes('4K')) {
+            return 'rgba(251, 146, 60, 1)'; // Orange for 4K
+        } else if (quality.includes('1080p')) {
+            return 'rgba(34, 197, 94, 1)'; // Green for 1080p
+        } else if (quality.includes('720p')) {
+            return 'rgba(59, 130, 246, 1)'; // Blue for 720p
+        } else {
+            return 'rgba(148, 163, 184, 1)'; // Gray for others
+        }
+    });
+
     window.dashboardCharts.qualityDistribution = new Chart(ctx.getContext('2d'), {
         type: 'bar',
         data: {
@@ -275,8 +288,8 @@ function createQualityDistributionChart(canvasId, distribution) {
             datasets: [{
                 label: 'Archivos',
                 data: counts,
-                backgroundColor: colors,
-                borderColor: colors.map(c => c.replace('0.8', '1')),
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
                 borderWidth: 1,
                 borderRadius: 4
             }]

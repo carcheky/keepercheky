@@ -4,11 +4,18 @@ import (
 	"context"
 	"time"
 
-	"github.com/carcheky/keepercheky/internal/models"
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	// Dashboard simulation constants
+	defaultDiskCapacityGB = 5000.0 // 5TB default for simulation
+	dailyGrowthRate       = 0.01   // 1% daily growth for simulation
+	historyDays           = 30     // Days of history to simulate
+	trendThreshold        = 1.0    // Percentage threshold for trend detection
 )
 
 type DashboardHandler struct {
@@ -108,24 +115,26 @@ func (h *DashboardHandler) getDiskUsageHistory() []DiskUsagePoint {
 	var history []DiskUsagePoint
 	now := time.Now()
 	
-	// Get current total size
-	var totalSize int64
-	h.repos.Media.GetDB().Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Scan(&totalSize)
+	// Get current total size from repository
+	totalSize, err := h.repos.Media.GetTotalSize()
+	if err != nil {
+		h.logger.Error("Failed to get total size", "error", err)
+		return history
+	}
 	currentUsedGB := float64(totalSize) / (1024 * 1024 * 1024)
 	
-	// Simulate 30 days of history with slight variations
+	// Simulate historyDays of history with slight variations
 	// In production, this should come from actual historical tracking
-	for i := 29; i >= 0; i-- {
+	for i := historyDays - 1; i >= 0; i-- {
 		date := now.AddDate(0, 0, -i)
 		
-		// Simulate gradual growth with some randomness
-		growthFactor := 1.0 - (float64(i) * 0.01) // Grow ~1% per day
+		// Simulate gradual growth with dailyGrowthRate
+		growthFactor := 1.0 - (float64(i) * dailyGrowthRate)
 		usedGB := currentUsedGB * growthFactor
 		
-		// Assume disk capacity of 5TB for simulation
-		diskCapacityGB := 5000.0
-		freeGB := diskCapacityGB - usedGB
-		usedPercent := (usedGB / diskCapacityGB) * 100
+		// Use defaultDiskCapacityGB for simulation
+		freeGB := defaultDiskCapacityGB - usedGB
+		usedPercent := (usedGB / defaultDiskCapacityGB) * 100
 		
 		history = append(history, DiskUsagePoint{
 			Date:        date,
@@ -140,25 +149,19 @@ func (h *DashboardHandler) getDiskUsageHistory() []DiskUsagePoint {
 
 // getDistributionByQuality returns media count grouped by quality
 func (h *DashboardHandler) getDistributionByQuality() map[string]int {
-	type QualityCount struct {
-		Quality string
-		Count   int
+	results, err := h.repos.Media.GetDistributionByQuality()
+	if err != nil {
+		h.logger.Error("Failed to get distribution by quality", "error", err)
+		return make(map[string]int)
 	}
-	
-	var results []QualityCount
-	h.repos.Media.GetDB().
-		Model(&models.Media{}).
-		Select("COALESCE(quality, 'Unknown') as quality, COUNT(*) as count").
-		Group("quality").
-		Order("count DESC").
-		Scan(&results)
 	
 	distribution := make(map[string]int)
 	for _, r := range results {
-		if r.Quality == "" {
-			r.Quality = "Unknown"
+		quality := r.Quality
+		if quality == "" {
+			quality = "Unknown"
 		}
-		distribution[r.Quality] = r.Count
+		distribution[quality] = r.Count
 	}
 	
 	return distribution
@@ -166,45 +169,26 @@ func (h *DashboardHandler) getDistributionByQuality() map[string]int {
 
 // getDistributionBySize returns media count grouped by size ranges
 func (h *DashboardHandler) getDistributionBySize() map[string]int {
-	distribution := make(map[string]int)
+	distribution, err := h.repos.Media.GetDistributionBySize()
+	if err != nil {
+		h.logger.Error("Failed to get distribution by size", "error", err)
+		return make(map[string]int)
+	}
 	
-	// Small (< 5 GB)
-	var smallCount int64
-	h.repos.Media.GetDB().Model(&models.Media{}).
-		Where("size < ?", int64(5*1024*1024*1024)).
-		Count(&smallCount)
-	distribution["< 5 GB"] = int(smallCount)
+	// Convert int64 to int for consistency
+	result := make(map[string]int)
+	for k, v := range distribution {
+		result[k] = int(v)
+	}
 	
-	// Medium (5-20 GB)
-	var mediumCount int64
-	h.repos.Media.GetDB().Model(&models.Media{}).
-		Where("size >= ? AND size < ?", int64(5*1024*1024*1024), int64(20*1024*1024*1024)).
-		Count(&mediumCount)
-	distribution["5-20 GB"] = int(mediumCount)
-	
-	// Large (20-50 GB)
-	var largeCount int64
-	h.repos.Media.GetDB().Model(&models.Media{}).
-		Where("size >= ? AND size < ?", int64(20*1024*1024*1024), int64(50*1024*1024*1024)).
-		Count(&largeCount)
-	distribution["20-50 GB"] = int(largeCount)
-	
-	// XLarge (> 50 GB)
-	var xlargeCount int64
-	h.repos.Media.GetDB().Model(&models.Media{}).
-		Where("size >= ?", int64(50*1024*1024*1024)).
-		Count(&xlargeCount)
-	distribution["> 50 GB"] = int(xlargeCount)
-	
-	return distribution
+	return result
 }
 
 // ActivityEvent represents a recent activity event
 type ActivityEvent struct {
 	Timestamp time.Time `json:"timestamp"`
-	Type      string    `json:"type"` // "added", "deleted", "watched"
+	Type      string    `json:"type"` // "added", "deleted", "excluded"
 	Title     string    `json:"title"`
-	Size      int64     `json:"size,omitempty"`
 }
 
 // getRecentActivity returns recent activity from history
@@ -219,89 +203,51 @@ func (h *DashboardHandler) getRecentActivity(limit int) []ActivityEvent {
 	}
 	
 	// Convert history to activity events
-	for _, h := range history {
+	for _, entry := range history {
 		eventType := "added"
-		if h.Action == "deleted" {
+		if entry.Action == "deleted" {
 			eventType = "deleted"
-		} else if h.Action == "excluded" {
+		} else if entry.Action == "excluded" {
 			eventType = "excluded"
 		}
 		
 		events = append(events, ActivityEvent{
-			Timestamp: h.CreatedAt,
+			Timestamp: entry.CreatedAt,
 			Type:      eventType,
-			Title:     h.MediaTitle,
-			Size:      0, // Size not tracked in history currently
+			Title:     entry.MediaTitle,
 		})
 	}
 	
 	return events
 }
 
-// MediaSize represents a media item with just ID, title, and size for top lists
-type MediaSize struct {
-	ID    uint   `json:"id"`
-	Title string `json:"title"`
-	Size  int64  `json:"size"`
-	Type  string `json:"type"`
-}
-
 // getTopMediaBySize returns the largest media items
-func (h *DashboardHandler) getTopMediaBySize(limit int) []MediaSize {
-	var topMedia []MediaSize
-	
-	h.repos.Media.GetDB().
-		Model(&models.Media{}).
-		Select("id, title, size, type").
-		Order("size DESC").
-		Limit(limit).
-		Scan(&topMedia)
-	
+func (h *DashboardHandler) getTopMediaBySize(limit int) []repository.MediaSize {
+	topMedia, err := h.repos.Media.GetTopMediaBySize(limit)
+	if err != nil {
+		h.logger.Error("Failed to get top media by size", "error", err)
+		return []repository.MediaSize{}
+	}
 	return topMedia
 }
 
 // getNeverWatchedStats returns count and size of never watched content
 func (h *DashboardHandler) getNeverWatchedStats() (int, int64) {
-	var count int64
-	var totalSize int64
-	
-	h.repos.Media.GetDB().
-		Model(&models.Media{}).
-		Where("last_watched IS NULL").
-		Count(&count)
-	
-	h.repos.Media.GetDB().
-		Model(&models.Media{}).
-		Where("last_watched IS NULL").
-		Select("COALESCE(SUM(size), 0)").
-		Scan(&totalSize)
-	
+	count, totalSize, err := h.repos.Media.GetNeverWatchedStats()
+	if err != nil {
+		h.logger.Error("Failed to get never watched stats", "error", err)
+		return 0, 0
+	}
 	return int(count), totalSize
 }
 
 // getTorrentStats returns torrent statistics
 func (h *DashboardHandler) getTorrentStats() (int, float64, float64) {
-	var activeTorrents int64
-	var totalSeedRatio float64
-	var avgSeedRatio float64
-	
-	// Count active torrents
-	h.repos.Media.GetDB().
-		Model(&models.Media{}).
-		Where("is_seeding = ?", true).
-		Count(&activeTorrents)
-	
-	// Calculate total and average seed ratio
-	h.repos.Media.GetDB().
-		Model(&models.Media{}).
-		Where("is_seeding = ?", true).
-		Select("COALESCE(SUM(seed_ratio), 0)").
-		Scan(&totalSeedRatio)
-	
-	if activeTorrents > 0 {
-		avgSeedRatio = totalSeedRatio / float64(activeTorrents)
+	activeTorrents, totalSeedRatio, avgSeedRatio, err := h.repos.Media.GetTorrentStats()
+	if err != nil {
+		h.logger.Error("Failed to get torrent stats", "error", err)
+		return 0, 0, 0
 	}
-	
 	return int(activeTorrents), totalSeedRatio, avgSeedRatio
 }
 
@@ -322,11 +268,11 @@ func (h *DashboardHandler) calculateTrend(historyInterface interface{}) (string,
 	
 	percentChange := ((last - first) / first) * 100
 	
-	// Determine trend
+	// Determine trend using trendThreshold constant
 	trend := "stable"
-	if percentChange > 1.0 {
+	if percentChange > trendThreshold {
 		trend = "growing"
-	} else if percentChange < -1.0 {
+	} else if percentChange < -trendThreshold {
 		trend = "shrinking"
 	}
 	

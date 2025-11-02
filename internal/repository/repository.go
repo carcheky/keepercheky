@@ -310,6 +310,151 @@ func (r *MediaRepository) CountByType() (map[string]int64, error) {
 	return counts, nil
 }
 
+// GetTotalSize returns the total size of all media
+func (r *MediaRepository) GetTotalSize() (int64, error) {
+	var totalSize int64
+	err := r.db.Model(&models.Media{}).Select("COALESCE(SUM(size), 0)").Row().Scan(&totalSize)
+	return totalSize, err
+}
+
+// QualityCount represents quality distribution data
+type QualityCount struct {
+	Quality string
+	Count   int
+}
+
+// GetDistributionByQuality returns media count grouped by quality
+func (r *MediaRepository) GetDistributionByQuality() ([]QualityCount, error) {
+	var results []QualityCount
+	err := r.db.
+		Model(&models.Media{}).
+		Select("COALESCE(quality, 'Unknown') as quality, COUNT(*) as count").
+		Group("quality").
+		Order("count DESC").
+		Scan(&results).Error
+	
+	return results, err
+}
+
+// SizeDistribution represents size range distribution
+type SizeDistribution struct {
+	Range string
+	Count int64
+}
+
+// GetDistributionBySize returns media count grouped by size ranges
+func (r *MediaRepository) GetDistributionBySize() (map[string]int64, error) {
+	distribution := make(map[string]int64)
+	
+	// Small (< 5 GB)
+	var smallCount int64
+	if err := r.db.Model(&models.Media{}).
+		Where("size < ?", int64(5*1024*1024*1024)).
+		Count(&smallCount).Error; err != nil {
+		return nil, err
+	}
+	distribution["< 5 GB"] = smallCount
+	
+	// Medium (5-20 GB)
+	var mediumCount int64
+	if err := r.db.Model(&models.Media{}).
+		Where("size >= ? AND size < ?", int64(5*1024*1024*1024), int64(20*1024*1024*1024)).
+		Count(&mediumCount).Error; err != nil {
+		return nil, err
+	}
+	distribution["5-20 GB"] = mediumCount
+	
+	// Large (20-50 GB)
+	var largeCount int64
+	if err := r.db.Model(&models.Media{}).
+		Where("size >= ? AND size < ?", int64(20*1024*1024*1024), int64(50*1024*1024*1024)).
+		Count(&largeCount).Error; err != nil {
+		return nil, err
+	}
+	distribution["20-50 GB"] = largeCount
+	
+	// XLarge (> 50 GB)
+	var xlargeCount int64
+	if err := r.db.Model(&models.Media{}).
+		Where("size >= ?", int64(50*1024*1024*1024)).
+		Count(&xlargeCount).Error; err != nil {
+		return nil, err
+	}
+	distribution["> 50 GB"] = xlargeCount
+	
+	return distribution, nil
+}
+
+// MediaSize represents a media item with size info for top lists
+type MediaSize struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+	Size  int64  `json:"size"`
+	Type  string `json:"type"`
+}
+
+// GetTopMediaBySize returns the largest media items
+func (r *MediaRepository) GetTopMediaBySize(limit int) ([]MediaSize, error) {
+	var topMedia []MediaSize
+	err := r.db.
+		Model(&models.Media{}).
+		Select("id, title, size, type").
+		Order("size DESC").
+		Limit(limit).
+		Scan(&topMedia).Error
+	
+	return topMedia, err
+}
+
+// GetNeverWatchedStats returns count and size of never watched content
+func (r *MediaRepository) GetNeverWatchedStats() (int64, int64, error) {
+	var count int64
+	var totalSize int64
+	
+	if err := r.db.Model(&models.Media{}).
+		Where("last_watched IS NULL").
+		Count(&count).Error; err != nil {
+		return 0, 0, err
+	}
+	
+	if err := r.db.Model(&models.Media{}).
+		Where("last_watched IS NULL").
+		Select("COALESCE(SUM(size), 0)").
+		Scan(&totalSize).Error; err != nil {
+		return 0, 0, err
+	}
+	
+	return count, totalSize, nil
+}
+
+// GetTorrentStats returns torrent statistics
+func (r *MediaRepository) GetTorrentStats() (int64, float64, float64, error) {
+	var activeTorrents int64
+	var totalSeedRatio float64
+	var avgSeedRatio float64
+	
+	// Count active torrents
+	if err := r.db.Model(&models.Media{}).
+		Where("is_seeding = ?", true).
+		Count(&activeTorrents).Error; err != nil {
+		return 0, 0, 0, err
+	}
+	
+	// Calculate total and average seed ratio
+	if err := r.db.Model(&models.Media{}).
+		Where("is_seeding = ?", true).
+		Select("COALESCE(SUM(seed_ratio), 0)").
+		Scan(&totalSeedRatio).Error; err != nil {
+		return 0, 0, 0, err
+	}
+	
+	if activeTorrents > 0 {
+		avgSeedRatio = totalSeedRatio / float64(activeTorrents)
+	}
+	
+	return activeTorrents, totalSeedRatio, avgSeedRatio, nil
+}
+
 // ScheduleRepository handles schedule data access
 type ScheduleRepository struct {
 	db *gorm.DB
