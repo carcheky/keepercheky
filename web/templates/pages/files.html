@@ -381,7 +381,7 @@
                                     class="relative">
                                     <span :class="colorClasses"
                                         @click="openService($event)"
-                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs cursor-help transition-transform hover:scale-110"
+                                        class="px-1 py-0.5 rounded border inline-flex items-center justify-center text-xs transition-transform hover:scale-110"
                                         :class="{ 'cursor-pointer hover:opacity-80': serviceUrl, 'cursor-help': !serviceUrl }"
                                         role="button"
                                         :aria-label="label + ': ' + (series.metadata?.in_sonarr ? 'Gestionado' : 'No gestionado')"
@@ -1374,6 +1374,10 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
         tooltipY: 0,
         
         positionTooltip(event) {
+            // Tooltip width constant (matches w-64 = 16rem = 256px)
+            const TOOLTIP_WIDTH = 256;
+            const MIN_MARGIN = 10;
+            
             // Get tooltip element
             const tooltip = event.currentTarget.querySelector('[role="tooltip"]');
             if (!tooltip) return;
@@ -1381,33 +1385,31 @@ function serviceStatusIndicator(serviceName, isPresent, details = {}) {
             // Get viewport dimensions
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-            const tooltipWidth = 256; // 16rem (w-64)
+            const tooltipWidth = tooltip.offsetWidth || TOOLTIP_WIDTH;
             const tooltipHeight = tooltip.offsetHeight || 150;
             
             // Calculate position (below and to the right of cursor)
-            let x = event.clientX + 10;
-            let y = event.clientY + 10;
+            let x = event.clientX + MIN_MARGIN;
+            let y = event.clientY + MIN_MARGIN;
             
             // Adjust if tooltip would go off-screen
             if (x + tooltipWidth > viewportWidth) {
-                x = event.clientX - tooltipWidth - 10;
+                x = event.clientX - tooltipWidth - MIN_MARGIN;
             }
             if (y + tooltipHeight > viewportHeight) {
-                y = event.clientY - tooltipHeight - 10;
+                y = event.clientY - tooltipHeight - MIN_MARGIN;
             }
             
             // Ensure it stays on screen
-            x = Math.max(10, Math.min(x, viewportWidth - tooltipWidth - 10));
-            y = Math.max(10, Math.min(y, viewportHeight - tooltipHeight - 10));
+            x = Math.max(MIN_MARGIN, Math.min(x, viewportWidth - tooltipWidth - MIN_MARGIN));
+            y = Math.max(MIN_MARGIN, Math.min(y, viewportHeight - tooltipHeight - MIN_MARGIN));
             
             this.tooltipX = x;
             this.tooltipY = y;
             
             // Apply position
-            if (tooltip) {
-                tooltip.style.left = x + 'px';
-                tooltip.style.top = y + 'px';
-            }
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
         },
 
         get icon() {
