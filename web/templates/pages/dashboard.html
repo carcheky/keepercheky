@@ -1,4 +1,4 @@
-<div x-data="dashboard()" x-init="init()" class="space-y-6">
+<div x-data="dashboard()" x-init="init()" @unmount.window="destroy()" class="space-y-6">
     <!-- Header with Sync Button -->
     <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-dark-text dark:text-dark-text">Dashboard</h1>
@@ -752,18 +752,24 @@
             message: '',
             messageType: 'success',
             chartsInitialized: false,
+            refreshInterval: null,
 
             async init() {
                 await this.loadStats();
                 // Refresh stats every 60 seconds (as per requirements)
-                setInterval(() => this.loadStats(), 60000);
-                
-                // Cleanup charts when component is destroyed
-                this.$cleanup(() => {
-                    if (typeof destroyDashboardCharts === 'function') {
-                        destroyDashboardCharts();
-                    }
-                });
+                this.refreshInterval = setInterval(() => this.loadStats(), 60000);
+            },
+            
+            destroy() {
+                // Cleanup interval
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                }
+                // Cleanup charts
+                if (typeof destroyDashboardCharts === 'function') {
+                    destroyDashboardCharts();
+                }
             },
 
             async loadStats() {

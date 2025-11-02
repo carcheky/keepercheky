@@ -348,7 +348,7 @@ function createQualityDistributionChart(canvasId, distribution) {
  * @param {string} timestampStr - ISO timestamp string
  * @returns {string} Formatted time string
  */
-function formatTimestamp(timestampStr) {
+window.formatTimestamp = function formatTimestamp(timestampStr) {
     if (!timestampStr) return '';
     
     const timestamp = new Date(timestampStr);
@@ -369,7 +369,7 @@ function formatTimestamp(timestampStr) {
         day: 'numeric',
         year: timestamp.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
-}
+};
 
 /**
  * Cleanup all dashboard charts when component is destroyed
