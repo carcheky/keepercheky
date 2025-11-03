@@ -227,7 +227,7 @@ func (e *Enricher) EnrichWithQBittorrent(
 	enriched := 0
 
 	for path, file := range files {
-		// Try exact match
+		// Try exact match first (fast path)
 		if torrent, found := torrentMap[path]; found {
 			e.applyTorrentData(file, torrent)
 			enriched++
@@ -242,6 +242,15 @@ func (e *Enricher) EnrichWithQBittorrent(
 				continue
 			}
 		}
+
+		// Try intelligent directory-based matching
+		// qBittorrent torrentMap is indexed by content_path (directories)
+		// We need to check if this file is contained within any torrent's directory
+		if torrent := e.findTorrentByDirectory(path, file.HardlinkPaths, torrentMap); torrent != nil {
+			e.applyTorrentData(file, torrent)
+			enriched++
+			continue
+		}
 	}
 
 	e.logger.Info("qBittorrent enrichment complete",
@@ -249,6 +258,54 @@ func (e *Enricher) EnrichWithQBittorrent(
 	)
 
 	return enriched
+}
+
+// findTorrentByDirectory finds a torrent by checking if the file path is within a torrent's directory.
+// This handles the case where qBittorrent returns directory paths (content_path, save_path)
+// but we have file paths from the filesystem scanner.
+func (e *Enricher) findTorrentByDirectory(
+	filePath string,
+	hardlinkPaths []string,
+	torrentMap map[string]*models.TorrentInfo,
+) *models.TorrentInfo {
+	// Collect all paths to check (file path + hardlink paths)
+	pathsToCheck := []string{filePath}
+	if len(hardlinkPaths) > 0 {
+		pathsToCheck = append(pathsToCheck, hardlinkPaths...)
+	}
+
+	// For each path, check if it's contained within any torrent directory
+	for _, checkPath := range pathsToCheck {
+		for torrentPath, torrent := range torrentMap {
+			// Check if the file path starts with (is inside) the torrent directory
+			// Normalize paths by ensuring trailing slash for directory comparison
+			normalizedTorrentPath := strings.TrimSuffix(torrentPath, "/") + "/"
+			normalizedCheckPath := strings.TrimSuffix(checkPath, "/") + "/"
+
+			if strings.HasPrefix(normalizedCheckPath, normalizedTorrentPath) {
+				e.logger.Debug("Matched torrent by directory",
+					zap.String("file_path", checkPath),
+					zap.String("torrent_path", torrentPath),
+					zap.String("torrent_hash", torrent.Hash),
+				)
+				return torrent
+			}
+
+			// Also check if the file's directory matches the torrent path
+			fileDir := filepath.Dir(checkPath)
+			if strings.HasPrefix(fileDir+"/", normalizedTorrentPath) {
+				e.logger.Debug("Matched torrent by file directory",
+					zap.String("file_path", checkPath),
+					zap.String("file_dir", fileDir),
+					zap.String("torrent_path", torrentPath),
+					zap.String("torrent_hash", torrent.Hash),
+				)
+				return torrent
+			}
+		}
+	}
+
+	return nil
 }
 
 // Helper methods to apply service data
