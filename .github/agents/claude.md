@@ -54,7 +54,16 @@ Resolve issues in the KeeperCheky project following established guidelines and c
 
 ```bash
 <type>(<scope>): <description>
+
+[optional body]
+
+Fixes #issue_number
 ```
+
+**CRITICAL - ALWAYS close issues:**
+- **ALWAYS** add `Fixes #issue_number` or `Closes #issue_number` at the end of commit/PR description
+- This automatically closes the issue when the PR is merged
+- Use `Resolves #123` for alternative syntax
 
 **Types that trigger builds** (use sparingly):
 
@@ -70,6 +79,25 @@ Resolve issues in the KeeperCheky project following established guidelines and c
 - `test` - Tests only
 - `style` - Formatting
 - `ci` - CI/CD changes
+
+**Example commit messages:**
+```bash
+feat(dashboard): add interactive charts with Chart.js
+
+Implemented disk usage evolution chart, media distribution chart,
+and quality distribution chart.
+
+Fixes #46
+```
+
+```bash
+fix(settings): add external_url field for all services
+
+Added external URL configuration field to allow direct links
+from service indicators in Files view.
+
+Closes #83
+```
 
 ### 7. Response Template
 
