@@ -280,25 +280,17 @@ func (e *Enricher) findTorrentByDirectory(
 		cleanCheckPath := filepath.Clean(checkPath)
 
 		for torrentPath, torrent := range torrentMap {
-			// Clean the torrent path
+			// Clean and normalize the torrent path with trailing slash
 			cleanTorrentPath := filepath.Clean(torrentPath)
-
-			// Ensure trailing slash for proper directory boundary checking
-			// This prevents false matches like "/data/tor" matching "/data/torrents/file.mkv"
-			normalizedTorrentPath := cleanTorrentPath
-			if !strings.HasSuffix(normalizedTorrentPath, "/") {
-				normalizedTorrentPath += "/"
-			}
+			normalizedTorrentPath := ensureTrailingSlash(cleanTorrentPath)
 
 			// Check if the file's directory is within the torrent directory
 			checkDir := filepath.Dir(cleanCheckPath)
-			if !strings.HasSuffix(checkDir, "/") {
-				checkDir += "/"
-			}
+			normalizedCheckDir := ensureTrailingSlash(checkDir)
 
 			// Match if the file's directory starts with the torrent path
 			// This ensures we're checking directory containment, not just prefix matching
-			if strings.HasPrefix(checkDir, normalizedTorrentPath) {
+			if strings.HasPrefix(normalizedCheckDir, normalizedTorrentPath) {
 				e.logger.Debug("Matched torrent by directory",
 					zap.String("file_path", checkPath),
 					zap.String("file_dir", checkDir),
@@ -428,4 +420,13 @@ func matchByHardlinks[T any](pathMap map[string]T, hardlinkPaths []string) (T, b
 	}
 	var zero T
 	return zero, false
+}
+
+// ensureTrailingSlash ensures a path ends with a trailing slash for directory comparison.
+// This is used to prevent false positives when matching directory paths.
+func ensureTrailingSlash(path string) string {
+	if !strings.HasSuffix(path, "/") {
+		return path + "/"
+	}
+	return path
 }
