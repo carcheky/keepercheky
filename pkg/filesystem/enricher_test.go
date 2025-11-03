@@ -686,3 +686,61 @@ func TestEnricher_QBittorrent_MultipleFilesInSameTorrent(t *testing.T) {
 		}
 	}
 }
+
+// TestEnricher_QBittorrent_NoFalsePositives tests that similar paths don't cause false matches
+// This validates the fix for the code review comment about preventing false positives
+func TestEnricher_QBittorrent_NoFalsePositives(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// File in a directory that shares a prefix with the torrent directory
+	// but is NOT contained within it
+	files := map[string]*EnrichedFile{
+		"/data/torrents-backup/Movie.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents-backup/Movie.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       88888,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents-backup/Movie.mkv",
+			},
+		},
+		"/data/tor/Movie2.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/tor/Movie2.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       88889,
+				IsHardlink:  false,
+				PrimaryPath: "/data/tor/Movie2.mkv",
+			},
+		},
+	}
+
+	// Torrents in /data/torrents/ should NOT match /data/torrents-backup/ or /data/tor/
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents": {
+			Hash:      "should-not-match",
+			IsSeeding: true,
+		},
+		"/data/torrents/Movie3": {
+			Hash:      "should-not-match-2",
+			IsSeeding: true,
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	// No files should be enriched due to proper boundary checking
+	if count != 0 {
+		t.Errorf("Expected 0 files enriched (no false positives), got %d", count)
+	}
+
+	for path, file := range files {
+		if file.InQBittorrent {
+			t.Errorf("File %s should NOT be marked as InQBittorrent (false positive)", path)
+		}
+		if file.TorrentHash != "" {
+			t.Errorf("File %s should have empty hash, got '%s'", path, file.TorrentHash)
+		}
+	}
+}
