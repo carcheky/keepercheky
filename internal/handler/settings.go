@@ -42,6 +42,8 @@ func (h *SettingsHandler) GetServiceUrls(c *fiber.Ctx) error {
 		"jellystat_external_url":   h.config.Clients.Jellystat.ExternalURL,
 		"qbittorrent_url":          h.config.Clients.QBittorrent.URL,
 		"qbittorrent_external_url": h.config.Clients.QBittorrent.ExternalURL,
+		"bazarr_url":               h.config.Clients.Bazarr.URL,
+		"bazarr_external_url":      h.config.Clients.Bazarr.ExternalURL,
 	})
 }
 
@@ -105,6 +107,12 @@ func (h *SettingsHandler) Get(c *fiber.Ctx) error {
 				"password":     h.config.Clients.QBittorrent.Password,
 				"external_url": h.config.Clients.QBittorrent.ExternalURL,
 			},
+			"bazarr": fiber.Map{
+				"enabled":      h.config.Clients.Bazarr.Enabled,
+				"url":          h.config.Clients.Bazarr.URL,
+				"api_key":      h.config.Clients.Bazarr.APIKey,
+				"external_url": h.config.Clients.Bazarr.ExternalURL,
+			},
 		},
 		"cleanup": fiber.Map{
 			"dry_run":            h.config.Cleanup.DryRun,
@@ -157,6 +165,12 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 				Password    string `json:"password"`
 				ExternalURL string `json:"external_url"`
 			} `json:"qbittorrent"`
+			Bazarr struct {
+				Enabled     bool   `json:"enabled"`
+				URL         string `json:"url"`
+				APIKey      string `json:"api_key"`
+				ExternalURL string `json:"external_url"`
+			} `json:"bazarr"`
 		} `json:"services"`
 		Cleanup struct {
 			DryRun            bool `json:"dry_run"`
@@ -204,6 +218,11 @@ func (h *SettingsHandler) Update(c *fiber.Ctx) error {
 	h.config.Clients.QBittorrent.Username = update.Services.QBittorrent.Username
 	h.config.Clients.QBittorrent.Password = update.Services.QBittorrent.Password
 	h.config.Clients.QBittorrent.ExternalURL = update.Services.QBittorrent.ExternalURL
+
+	h.config.Clients.Bazarr.Enabled = update.Services.Bazarr.Enabled
+	h.config.Clients.Bazarr.URL = update.Services.Bazarr.URL
+	h.config.Clients.Bazarr.APIKey = update.Services.Bazarr.APIKey
+	h.config.Clients.Bazarr.ExternalURL = update.Services.Bazarr.ExternalURL
 
 	h.config.Cleanup.DryRun = update.Cleanup.DryRun
 	h.config.Cleanup.DaysToKeep = update.Cleanup.DaysToKeep

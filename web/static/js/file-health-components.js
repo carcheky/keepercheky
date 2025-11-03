@@ -839,6 +839,17 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
         details: details,
         externalUrl: externalUrl,
         itemId: itemId,
+        showTooltip: false,
+        
+        positionTooltip(event) {
+            // Position tooltip near the mouse cursor
+            const tooltip = event.currentTarget.querySelector('[role="tooltip"]');
+            if (tooltip) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                tooltip.style.left = `${rect.left}px`;
+                tooltip.style.top = `${rect.bottom + 8}px`;
+            }
+        },
         
         get icon() {
             const icons = {
@@ -847,7 +858,8 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                 'jellyfin': '📚',
                 'jellyseerr': '📋',
                 'qbittorrent': '🌊',
-                'jellystat': '📊'
+                'jellystat': '📊',
+                'bazarr': '🗣️'
             };
             return icons[this.service] || '📦';
         },
@@ -859,13 +871,27 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                 'jellyfin': 'Jellyfin',
                 'jellyseerr': 'Jellyseerr',
                 'qbittorrent': 'qBittorrent',
-                'jellystat': 'Jellystat'
+                'jellystat': 'Jellystat',
+                'bazarr': 'Bazarr'
             };
             return labels[this.service] || this.service;
         },
         
         get statusColor() {
             return this.isActive ? 'text-green-400' : 'text-gray-500';
+        },
+        
+        get colorClasses() {
+            // Define color scheme based on service and active state
+            const baseClasses = this.isActive 
+                ? 'bg-green-900/20 border-green-600/50 text-green-400'
+                : 'bg-gray-900/20 border-gray-600/50 text-gray-500';
+            return baseClasses;
+        },
+        
+        get cursorClasses() {
+            // Cursor pointer if clickable (has external URL), otherwise help cursor
+            return this.serviceUrl ? 'cursor-pointer hover:opacity-80' : 'cursor-help';
         },
         
         get serviceUrl() {
@@ -891,6 +917,7 @@ function serviceStatusIndicator(service, isActive, details = {}, externalUrl = '
                     return this.itemId ? `${baseUrl}/${mediaType}/${this.itemId}` : baseUrl;
                 case 'qbittorrent':
                 case 'jellystat':
+                case 'bazarr':
                     // These services don't have item-specific URLs, just return the base
                     return baseUrl;
                 default:
