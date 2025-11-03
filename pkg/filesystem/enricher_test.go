@@ -578,3 +578,111 @@ func TestEnricher_QBittorrent_SavePathMatching(t *testing.T) {
 		t.Errorf("Expected hash 'save-path-hash', got '%s'", file.TorrentHash)
 	}
 }
+
+// TestEnricher_QBittorrent_SingleFileTorrent tests matching for single-file torrents
+// where content_path points to the file itself, not a directory
+func TestEnricher_QBittorrent_SingleFileTorrent(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// Single file torrent - content_path is the file itself
+	files := map[string]*EnrichedFile{
+		"/downloads/single-video.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/downloads/single-video.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       77777,
+				IsHardlink:  false,
+				PrimaryPath: "/downloads/single-video.mkv",
+			},
+		},
+	}
+
+	// qBittorrent content_path is the file itself for single-file torrents
+	torrentMap := map[string]*models.TorrentInfo{
+		"/downloads/single-video.mkv": {
+			Hash:      "single-file-hash",
+			IsSeeding: true,
+			Ratio:     2.0,
+			SavePath:  "/downloads",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 1 {
+		t.Errorf("Expected 1 file enriched, got %d", count)
+	}
+
+	file := files["/downloads/single-video.mkv"]
+	if !file.InQBittorrent {
+		t.Error("File should be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "single-file-hash" {
+		t.Errorf("Expected hash 'single-file-hash', got '%s'", file.TorrentHash)
+	}
+}
+
+// TestEnricher_QBittorrent_MultipleFilesInSameTorrent tests that multiple files
+// in the same torrent directory all get enriched with the same torrent info
+func TestEnricher_QBittorrent_MultipleFilesInSameTorrent(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// Multiple files in the same torrent directory
+	files := map[string]*EnrichedFile{
+		"/data/torrents/Movie.2024/Movie.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents/Movie.2024/Movie.mkv",
+				Size:        5 * 1024 * 1024 * 1024,
+				Inode:       10001,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents/Movie.2024/Movie.mkv",
+			},
+		},
+		"/data/torrents/Movie.2024/Sample/sample.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents/Movie.2024/Sample/sample.mkv",
+				Size:        50 * 1024 * 1024,
+				Inode:       10002,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents/Movie.2024/Sample/sample.mkv",
+			},
+		},
+		"/data/torrents/Movie.2024/Subs/english.srt": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents/Movie.2024/Subs/english.srt",
+				Size:        100 * 1024,
+				Inode:       10003,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents/Movie.2024/Subs/english.srt",
+			},
+		},
+	}
+
+	// Single torrent with all these files
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents/Movie.2024": {
+			Hash:      "multi-file-torrent",
+			IsSeeding: true,
+			Ratio:     1.5,
+			Category:  "movies",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 3 {
+		t.Errorf("Expected 3 files enriched, got %d", count)
+	}
+
+	// All files should have the same torrent info
+	for path, file := range files {
+		if !file.InQBittorrent {
+			t.Errorf("File %s should be marked as InQBittorrent", path)
+		}
+		if file.TorrentHash != "multi-file-torrent" {
+			t.Errorf("File %s: expected hash 'multi-file-torrent', got '%s'", path, file.TorrentHash)
+		}
+	}
+}
