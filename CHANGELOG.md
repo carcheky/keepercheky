@@ -1,3 +1,10 @@
+# [1.0.0-dev.28](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.27...v1.0.0-dev.28) (2025-11-03)
+
+
+### Features
+
+* completar funcionalidad External URL para links directos a servicios ([#86](https://github.com/carcheky/keepercheky/issues/86)) ([6a6d3e6](https://github.com/carcheky/keepercheky/commit/6a6d3e64e4d4c4f7e23d334250b0f44c5127fc0e))
+
 # [1.0.0-dev.27](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.26...v1.0.0-dev.27) (2025-11-02)
 
 
