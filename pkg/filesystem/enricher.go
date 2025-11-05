@@ -268,33 +268,49 @@ func (e *Enricher) findTorrentByDirectory(
 	hardlinkPaths []string,
 	torrentMap map[string]*models.TorrentInfo,
 ) *models.TorrentInfo {
+	// Build an index mapping normalized torrent directories to torrent objects
+	// This avoids O(n*m) complexity when checking multiple paths against many torrents
+	torrentDirIndex := make(map[string]*models.TorrentInfo, len(torrentMap))
+	for torrentPath, torrent := range torrentMap {
+		cleanTorrentPath := filepath.Clean(torrentPath)
+		normalizedTorrentPath := ensureTrailingSlash(cleanTorrentPath)
+		torrentDirIndex[normalizedTorrentPath] = torrent
+	}
+
 	// Collect all paths to check (file path + hardlink paths)
 	pathsToCheck := []string{filePath}
 	if len(hardlinkPaths) > 0 {
 		pathsToCheck = append(pathsToCheck, hardlinkPaths...)
 	}
 
-	// For each path, check if it's contained within any torrent directory
+	// For each path, check if it matches a torrent
 	for _, checkPath := range pathsToCheck {
 		// Clean the path to handle edge cases like double slashes
 		cleanCheckPath := filepath.Clean(checkPath)
 
-		for torrentPath, torrent := range torrentMap {
-			// Clean and normalize the torrent path with trailing slash
-			cleanTorrentPath := filepath.Clean(torrentPath)
-			normalizedTorrentPath := ensureTrailingSlash(cleanTorrentPath)
+		// First, check for exact file path match (single-file torrent case)
+		// This handles torrents where content_path points to the file itself
+		normalizedCheckPath := ensureTrailingSlash(cleanCheckPath)
+		if torrent, found := torrentDirIndex[normalizedCheckPath]; found {
+			e.logger.Debug("Matched torrent by exact file path",
+				zap.String("file_path", checkPath),
+				zap.String("torrent_path", cleanCheckPath),
+				zap.String("torrent_hash", torrent.Hash),
+			)
+			return torrent
+		}
 
-			// Check if the file's directory is within the torrent directory
-			checkDir := filepath.Dir(cleanCheckPath)
-			normalizedCheckDir := ensureTrailingSlash(checkDir)
+		// Check if the file's directory is within any torrent directory
+		checkDir := filepath.Dir(cleanCheckPath)
+		normalizedCheckDir := ensureTrailingSlash(checkDir)
 
-			// Match if the file's directory starts with the torrent path
-			// This ensures we're checking directory containment, not just prefix matching
-			if strings.HasPrefix(normalizedCheckDir, normalizedTorrentPath) {
+		// Try to find a matching torrent directory by prefix
+		for torrentDir, torrent := range torrentDirIndex {
+			if strings.HasPrefix(normalizedCheckDir, torrentDir) {
 				e.logger.Debug("Matched torrent by directory",
 					zap.String("file_path", checkPath),
 					zap.String("file_dir", checkDir),
-					zap.String("torrent_path", torrentPath),
+					zap.String("torrent_path", strings.TrimSuffix(torrentDir, "/")),
 					zap.String("torrent_hash", torrent.Hash),
 				)
 				return torrent
