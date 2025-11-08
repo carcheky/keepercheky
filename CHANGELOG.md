@@ -1,3 +1,10 @@
+# [1.0.0-dev.29](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.28...v1.0.0-dev.29) (2025-11-08)
+
+
+### Bug Fixes
+
+* **enrichment:** implement directory-based path matching for qBittorrent ([#96](https://github.com/carcheky/keepercheky/issues/96)) ([117ef4e](https://github.com/carcheky/keepercheky/commit/117ef4ee8805be23a610262d4519a9043d6949f3))
+
 # [1.0.0-dev.28](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.27...v1.0.0-dev.28) (2025-11-03)
 
 

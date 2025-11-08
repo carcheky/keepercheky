@@ -227,7 +227,7 @@ func (e *Enricher) EnrichWithQBittorrent(
 	enriched := 0
 
 	for path, file := range files {
-		// Try exact match
+		// Try exact match first (fast path)
 		if torrent, found := torrentMap[path]; found {
 			e.applyTorrentData(file, torrent)
 			enriched++
@@ -242,6 +242,15 @@ func (e *Enricher) EnrichWithQBittorrent(
 				continue
 			}
 		}
+
+		// Try intelligent directory-based matching
+		// qBittorrent torrentMap is indexed by content_path (directories)
+		// We need to check if this file is contained within any torrent's directory
+		if torrent := e.findTorrentByDirectory(path, file.HardlinkPaths, torrentMap); torrent != nil {
+			e.applyTorrentData(file, torrent)
+			enriched++
+			continue
+		}
 	}
 
 	e.logger.Info("qBittorrent enrichment complete",
@@ -249,6 +258,67 @@ func (e *Enricher) EnrichWithQBittorrent(
 	)
 
 	return enriched
+}
+
+// findTorrentByDirectory finds a torrent by checking if the file path is within a torrent's directory.
+// This handles the case where qBittorrent returns directory paths (content_path, save_path)
+// but we have file paths from the filesystem scanner.
+func (e *Enricher) findTorrentByDirectory(
+	filePath string,
+	hardlinkPaths []string,
+	torrentMap map[string]*models.TorrentInfo,
+) *models.TorrentInfo {
+	// Build an index mapping normalized torrent directories to torrent objects
+	// This avoids O(n*m) complexity when checking multiple paths against many torrents
+	torrentDirIndex := make(map[string]*models.TorrentInfo, len(torrentMap))
+	for torrentPath, torrent := range torrentMap {
+		cleanTorrentPath := filepath.Clean(torrentPath)
+		normalizedTorrentPath := ensureTrailingSlash(cleanTorrentPath)
+		torrentDirIndex[normalizedTorrentPath] = torrent
+	}
+
+	// Collect all paths to check (file path + hardlink paths)
+	pathsToCheck := []string{filePath}
+	if len(hardlinkPaths) > 0 {
+		pathsToCheck = append(pathsToCheck, hardlinkPaths...)
+	}
+
+	// For each path, check if it matches a torrent
+	for _, checkPath := range pathsToCheck {
+		// Clean the path to handle edge cases like double slashes
+		cleanCheckPath := filepath.Clean(checkPath)
+
+		// First, check for exact file path match (single-file torrent case)
+		// This handles torrents where content_path points to the file itself
+		normalizedCheckPath := ensureTrailingSlash(cleanCheckPath)
+		if torrent, found := torrentDirIndex[normalizedCheckPath]; found {
+			e.logger.Debug("Matched torrent by exact file path",
+				zap.String("file_path", checkPath),
+				zap.String("torrent_path", cleanCheckPath),
+				zap.String("torrent_hash", torrent.Hash),
+			)
+			return torrent
+		}
+
+		// Check if the file's directory is within any torrent directory
+		checkDir := filepath.Dir(cleanCheckPath)
+		normalizedCheckDir := ensureTrailingSlash(checkDir)
+
+		// Try to find a matching torrent directory by prefix
+		for torrentDir, torrent := range torrentDirIndex {
+			if strings.HasPrefix(normalizedCheckDir, torrentDir) {
+				e.logger.Debug("Matched torrent by directory",
+					zap.String("file_path", checkPath),
+					zap.String("file_dir", checkDir),
+					zap.String("torrent_path", strings.TrimSuffix(torrentDir, "/")),
+					zap.String("torrent_hash", torrent.Hash),
+				)
+				return torrent
+			}
+		}
+	}
+
+	return nil
 }
 
 // Helper methods to apply service data
@@ -366,4 +436,13 @@ func matchByHardlinks[T any](pathMap map[string]T, hardlinkPaths []string) (T, b
 	}
 	var zero T
 	return zero, false
+}
+
+// ensureTrailingSlash ensures a path ends with a trailing slash for directory comparison.
+// This is used to prevent false positives when matching directory paths.
+func ensureTrailingSlash(path string) string {
+	if !strings.HasSuffix(path, "/") {
+		return path + "/"
+	}
+	return path
 }
