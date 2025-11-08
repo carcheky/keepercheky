@@ -1,3 +1,10 @@
+# [1.0.0-dev.31](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.30...v1.0.0-dev.31) (2025-11-08)
+
+
+### Bug Fixes
+
+* **frontend:** add missing colorClasses getter to healthStatusBadge component ([#98](https://github.com/carcheky/keepercheky/issues/98)) ([3570261](https://github.com/carcheky/keepercheky/commit/3570261fa3b827c32861bd155fdc79d512f724c2)), closes [#89](https://github.com/carcheky/keepercheky/issues/89)
+
 # [1.0.0-dev.30](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.29...v1.0.0-dev.30) (2025-11-08)
 
 
