@@ -251,8 +251,11 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 		zap.Int("total_series", totalSeries),
 		zap.Int("total_movies", totalMovies),
 		zap.Int("page", page),
+		zap.Int("perPage", perPage),
 		zap.Int("returned_series", len(response.Series)),
 		zap.Int("returned_movies", len(response.Movies)),
+		zap.String("tab", tab),
+		zap.String("type_filter", mediaType),
 	)
 
 	return c.JSON(fiber.Map{
@@ -268,22 +271,64 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 	seriesMap := make(map[string]*SeriesInfo)
 	movieMap := make(map[string]*MovieInfo)
 
+	// Count how many files we process
+	seriesCount := 0
+	movieCount := 0
+
 	// Group files
 	for _, file := range files {
-		// Check file type first, then fall back to path-based detection
+		isSeries := false
+		
+		// Method 1: Check explicit file type first
 		if file.Type == "series" || file.Type == "episode" {
-			h.addToSeries(seriesMap, file)
+			isSeries = true
 		} else if file.Type == "movie" {
-			h.addToMovies(movieMap, file)
-		} else if strings.Contains(strings.ToLower(file.FilePath), "/tv/") {
-			// Fallback: path-based heuristic for files without explicit type.
-			// This assumes a common directory structure where TV shows are under "/tv/".
-			// Note: This is a best-effort fallback and may not work for all setups.
+			isSeries = false
+		} else {
+			// Method 2: If type is not set, use intelligent heuristics
+			
+			// Check if filename contains episode patterns (S01E01, 1x01, etc.)
+			_, _, hasEpisodePattern := parseSeasonEpisode(file.FilePath)
+			if hasEpisodePattern {
+				isSeries = true
+			} else if file.InSonarr {
+				// If it's in Sonarr, it's definitely a series
+				isSeries = true
+			} else if file.InRadarr {
+				// If it's in Radarr, it's definitely a movie
+				isSeries = false
+			} else if strings.Contains(strings.ToLower(file.FilePath), "/tv/") || 
+			          strings.Contains(strings.ToLower(file.FilePath), "/series/") ||
+			          strings.Contains(strings.ToLower(file.FilePath), "/shows/") {
+				// Path-based heuristic: common TV show directory names
+				isSeries = true
+			} else if strings.Contains(strings.ToLower(file.FilePath), "/movies/") ||
+			          strings.Contains(strings.ToLower(file.FilePath), "/films/") {
+				// Path-based heuristic: common movie directory names
+				isSeries = false
+			} else {
+				// Default: if no indicators, treat as movie
+				// (movies are more common as standalone files)
+				isSeries = false
+			}
+		}
+		
+		if isSeries {
 			h.addToSeries(seriesMap, file)
+			seriesCount++
 		} else {
 			h.addToMovies(movieMap, file)
+			movieCount++
 		}
 	}
+	
+	h.logger.Info("Organized files by type",
+		zap.Int("total_files", len(files)),
+		zap.Int("files_to_series", seriesCount),
+		zap.Int("files_to_movies", movieCount),
+		zap.Int("unique_series", len(seriesMap)),
+		zap.Int("unique_movies", len(movieMap)),
+	)
 
 	// Convert maps to slices and sort
 	series := make([]SeriesInfo, 0, len(seriesMap))
