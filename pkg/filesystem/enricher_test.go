@@ -340,3 +340,407 @@ func TestEnricher_NoHardlinks_ExactMatch(t *testing.T) {
 		t.Errorf("Expected title 'Single File Movie', got '%s'", file.Title)
 	}
 }
+
+// TestEnricher_QBittorrent_DirectoryMatching tests the critical path matching fix
+// where qBittorrent returns directory paths but filesystem returns file paths
+func TestEnricher_QBittorrent_DirectoryMatching(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// Scenario: qBittorrent returns content_path as directory
+	// File is inside that directory
+	files := map[string]*EnrichedFile{
+		"/media/movies/Movie (2024)/Movie.2024.1080p.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/media/movies/Movie (2024)/Movie.2024.1080p.mkv",
+				Size:        2 * 1024 * 1024 * 1024,
+				Inode:       12345,
+				IsHardlink:  false,
+				PrimaryPath: "/media/movies/Movie (2024)/Movie.2024.1080p.mkv",
+			},
+		},
+	}
+
+	// qBittorrent indexes by content_path (directory)
+	torrentMap := map[string]*models.TorrentInfo{
+		"/media/movies/Movie (2024)": {
+			Hash:      "hash123",
+			IsSeeding: true,
+			Ratio:     1.5,
+			Category:  "movies",
+			State:     "uploading",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 1 {
+		t.Errorf("Expected 1 file enriched, got %d", count)
+	}
+
+	file := files["/media/movies/Movie (2024)/Movie.2024.1080p.mkv"]
+	if !file.InQBittorrent {
+		t.Error("File should be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "hash123" {
+		t.Errorf("Expected hash 'hash123', got '%s'", file.TorrentHash)
+	}
+	if !file.IsSeeding {
+		t.Error("File should be marked as seeding")
+	}
+}
+
+// TestEnricher_QBittorrent_DirectoryMatching_WithHardlinks tests directory matching
+// when files have hardlinks in different locations
+func TestEnricher_QBittorrent_DirectoryMatching_WithHardlinks(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// Scenario: File is in library, hardlink is in downloads
+	// qBittorrent knows about the downloads directory
+	files := map[string]*EnrichedFile{
+		"/media/movies/Movie (2024)/Movie.mkv": {
+			FileEntry: &FileEntry{
+				Path:       "/media/movies/Movie (2024)/Movie.mkv",
+				Size:       3 * 1024 * 1024 * 1024,
+				Inode:      99999,
+				IsHardlink: true,
+				HardlinkPaths: []string{
+					"/data/torrents/Movie.2024.1080p/Movie.mkv",
+					"/media/movies/Movie (2024)/Movie.mkv",
+				},
+				PrimaryPath: "/media/movies/Movie (2024)/Movie.mkv",
+			},
+		},
+	}
+
+	// qBittorrent knows the torrent directory
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents/Movie.2024.1080p": {
+			Hash:      "torrent-abc",
+			IsSeeding: true,
+			Ratio:     3.2,
+			Category:  "radarr",
+			State:     "uploading",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 1 {
+		t.Errorf("Expected 1 file enriched, got %d", count)
+	}
+
+	file := files["/media/movies/Movie (2024)/Movie.mkv"]
+	if !file.InQBittorrent {
+		t.Error("File should be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "torrent-abc" {
+		t.Errorf("Expected hash 'torrent-abc', got '%s'", file.TorrentHash)
+	}
+	if file.SeedRatio != 3.2 {
+		t.Errorf("Expected ratio 3.2, got %f", file.SeedRatio)
+	}
+}
+
+// TestEnricher_QBittorrent_NestedDirectories tests matching with nested directory structures
+func TestEnricher_QBittorrent_NestedDirectories(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// TV Show with season folders
+	files := map[string]*EnrichedFile{
+		"/media/tv/Show Name/Season 01/Show.S01E01.mkv": {
+			FileEntry: &FileEntry{
+				Path:       "/media/tv/Show Name/Season 01/Show.S01E01.mkv",
+				Size:       500 * 1024 * 1024,
+				Inode:      11111,
+				IsHardlink: true,
+				HardlinkPaths: []string{
+					"/data/torrents/Show.S01/Show.S01E01.mkv",
+					"/media/tv/Show Name/Season 01/Show.S01E01.mkv",
+				},
+				PrimaryPath: "/media/tv/Show Name/Season 01/Show.S01E01.mkv",
+			},
+		},
+	}
+
+	// qBittorrent has the season pack directory
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents/Show.S01": {
+			Hash:      "season-hash",
+			IsSeeding: true,
+			Ratio:     2.0,
+			Category:  "tv-sonarr",
+			State:     "uploading",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 1 {
+		t.Errorf("Expected 1 file enriched, got %d", count)
+	}
+
+	file := files["/media/tv/Show Name/Season 01/Show.S01E01.mkv"]
+	if !file.InQBittorrent {
+		t.Error("File should be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "season-hash" {
+		t.Errorf("Expected hash 'season-hash', got '%s'", file.TorrentHash)
+	}
+}
+
+// TestEnricher_QBittorrent_NoMatch verifies that non-matching files aren't enriched
+func TestEnricher_QBittorrent_NoMatch(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// File in a completely different location
+	files := map[string]*EnrichedFile{
+		"/backup/old-movies/Movie.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/backup/old-movies/Movie.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       55555,
+				IsHardlink:  false,
+				PrimaryPath: "/backup/old-movies/Movie.mkv",
+			},
+		},
+	}
+
+	// qBittorrent has torrents in different directories
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents/Movie1": {
+			Hash:      "hash1",
+			IsSeeding: true,
+		},
+		"/data/torrents/Movie2": {
+			Hash:      "hash2",
+			IsSeeding: true,
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 0 {
+		t.Errorf("Expected 0 files enriched, got %d", count)
+	}
+
+	file := files["/backup/old-movies/Movie.mkv"]
+	if file.InQBittorrent {
+		t.Error("File should NOT be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "" {
+		t.Errorf("TorrentHash should be empty, got '%s'", file.TorrentHash)
+	}
+}
+
+// TestEnricher_QBittorrent_SavePathMatching tests matching using save_path
+func TestEnricher_QBittorrent_SavePathMatching(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// File directly in save_path
+	files := map[string]*EnrichedFile{
+		"/downloads/torrent123/video.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/downloads/torrent123/video.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       66666,
+				IsHardlink:  false,
+				PrimaryPath: "/downloads/torrent123/video.mkv",
+			},
+		},
+	}
+
+	// qBittorrent indexed by save_path
+	torrentMap := map[string]*models.TorrentInfo{
+		"/downloads/torrent123": {
+			Hash:      "save-path-hash",
+			IsSeeding: true,
+			Ratio:     1.0,
+			SavePath:  "/downloads/torrent123",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 1 {
+		t.Errorf("Expected 1 file enriched, got %d", count)
+	}
+
+	file := files["/downloads/torrent123/video.mkv"]
+	if !file.InQBittorrent {
+		t.Error("File should be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "save-path-hash" {
+		t.Errorf("Expected hash 'save-path-hash', got '%s'", file.TorrentHash)
+	}
+}
+
+// TestEnricher_QBittorrent_SingleFileTorrent tests matching for single-file torrents
+// where content_path points to the file itself, not a directory
+func TestEnricher_QBittorrent_SingleFileTorrent(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// Single file torrent - content_path is the file itself
+	files := map[string]*EnrichedFile{
+		"/downloads/single-video.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/downloads/single-video.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       77777,
+				IsHardlink:  false,
+				PrimaryPath: "/downloads/single-video.mkv",
+			},
+		},
+	}
+
+	// qBittorrent content_path is the file itself for single-file torrents
+	torrentMap := map[string]*models.TorrentInfo{
+		"/downloads/single-video.mkv": {
+			Hash:      "single-file-hash",
+			IsSeeding: true,
+			Ratio:     2.0,
+			SavePath:  "/downloads",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 1 {
+		t.Errorf("Expected 1 file enriched, got %d", count)
+	}
+
+	file := files["/downloads/single-video.mkv"]
+	if !file.InQBittorrent {
+		t.Error("File should be marked as InQBittorrent")
+	}
+	if file.TorrentHash != "single-file-hash" {
+		t.Errorf("Expected hash 'single-file-hash', got '%s'", file.TorrentHash)
+	}
+}
+
+// TestEnricher_QBittorrent_MultipleFilesInSameTorrent tests that multiple files
+// in the same torrent directory all get enriched with the same torrent info
+func TestEnricher_QBittorrent_MultipleFilesInSameTorrent(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// Multiple files in the same torrent directory
+	files := map[string]*EnrichedFile{
+		"/data/torrents/Movie.2024/Movie.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents/Movie.2024/Movie.mkv",
+				Size:        5 * 1024 * 1024 * 1024,
+				Inode:       10001,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents/Movie.2024/Movie.mkv",
+			},
+		},
+		"/data/torrents/Movie.2024/Sample/sample.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents/Movie.2024/Sample/sample.mkv",
+				Size:        50 * 1024 * 1024,
+				Inode:       10002,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents/Movie.2024/Sample/sample.mkv",
+			},
+		},
+		"/data/torrents/Movie.2024/Subs/english.srt": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents/Movie.2024/Subs/english.srt",
+				Size:        100 * 1024,
+				Inode:       10003,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents/Movie.2024/Subs/english.srt",
+			},
+		},
+	}
+
+	// Single torrent with all these files
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents/Movie.2024": {
+			Hash:      "multi-file-torrent",
+			IsSeeding: true,
+			Ratio:     1.5,
+			Category:  "movies",
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	if count != 3 {
+		t.Errorf("Expected 3 files enriched, got %d", count)
+	}
+
+	// All files should have the same torrent info
+	for path, file := range files {
+		if !file.InQBittorrent {
+			t.Errorf("File %s should be marked as InQBittorrent", path)
+		}
+		if file.TorrentHash != "multi-file-torrent" {
+			t.Errorf("File %s: expected hash 'multi-file-torrent', got '%s'", path, file.TorrentHash)
+		}
+	}
+}
+
+// TestEnricher_QBittorrent_NoFalsePositives tests that similar paths don't cause false matches
+// This validates the fix for the code review comment about preventing false positives
+func TestEnricher_QBittorrent_NoFalsePositives(t *testing.T) {
+	logger := zap.NewNop()
+	enricher := NewEnricher(logger)
+
+	// File in a directory that shares a prefix with the torrent directory
+	// but is NOT contained within it
+	files := map[string]*EnrichedFile{
+		"/data/torrents-backup/Movie.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/torrents-backup/Movie.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       88888,
+				IsHardlink:  false,
+				PrimaryPath: "/data/torrents-backup/Movie.mkv",
+			},
+		},
+		"/data/tor/Movie2.mkv": {
+			FileEntry: &FileEntry{
+				Path:        "/data/tor/Movie2.mkv",
+				Size:        1024 * 1024 * 1024,
+				Inode:       88889,
+				IsHardlink:  false,
+				PrimaryPath: "/data/tor/Movie2.mkv",
+			},
+		},
+	}
+
+	// Torrents in /data/torrents/ should NOT match /data/torrents-backup/ or /data/tor/
+	torrentMap := map[string]*models.TorrentInfo{
+		"/data/torrents": {
+			Hash:      "should-not-match",
+			IsSeeding: true,
+		},
+		"/data/torrents/Movie3": {
+			Hash:      "should-not-match-2",
+			IsSeeding: true,
+		},
+	}
+
+	count := enricher.EnrichWithQBittorrent(context.Background(), files, torrentMap)
+
+	// No files should be enriched due to proper boundary checking
+	if count != 0 {
+		t.Errorf("Expected 0 files enriched (no false positives), got %d", count)
+	}
+
+	for path, file := range files {
+		if file.InQBittorrent {
+			t.Errorf("File %s should NOT be marked as InQBittorrent (false positive)", path)
+		}
+		if file.TorrentHash != "" {
+			t.Errorf("File %s should have empty hash, got '%s'", path, file.TorrentHash)
+		}
+	}
+}
