@@ -1163,13 +1163,13 @@
                 this.loading = true;
                 try {
                     // Try to fetch server state first to check if qBittorrent is enabled
-                    const stateResponse = await fetch('/api/qbittorrent/state');
+                    const stateResponse = await fetch('/api/qbittorrent/server-state');
                     if (stateResponse.ok) {
                         this.enabled = true;
                         this.state = await stateResponse.json();
                         
                         // Also fetch active torrents
-                        const torrentsResponse = await fetch('/api/qbittorrent/active');
+                        const torrentsResponse = await fetch('/api/qbittorrent/active-torrents');
                         if (torrentsResponse.ok) {
                             const data = await torrentsResponse.json();
                             this.activeTorrents = data.items || [];

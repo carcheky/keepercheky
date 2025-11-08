@@ -230,9 +230,9 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/jellystat/dashboard/views-by-type", h.Dashboard.GetJellystatViewsByType)
 
 		// qBittorrent endpoints
-		api.Get("/qbittorrent/transfer", h.QBittorrent.GetTransferInfo)
-		api.Get("/qbittorrent/state", h.QBittorrent.GetServerState)
-		api.Get("/qbittorrent/active", h.QBittorrent.GetActiveTorrents)
+		api.Get("/qbittorrent/transfer-info", h.QBittorrent.GetTransferInfo)
+		api.Get("/qbittorrent/server-state", h.QBittorrent.GetServerState)
+		api.Get("/qbittorrent/active-torrents", h.QBittorrent.GetActiveTorrents)
 		api.Get("/qbittorrent/torrent/:hash/properties", h.QBittorrent.GetTorrentProperties)
 		api.Get("/qbittorrent/torrent/:hash/trackers", h.QBittorrent.GetTorrentTrackers)
 	}
