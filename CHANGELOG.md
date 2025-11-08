@@ -1,3 +1,10 @@
+# [1.0.0-dev.30](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.29...v1.0.0-dev.30) (2025-11-08)
+
+
+### Bug Fixes
+
+* correct qBittorrent API endpoint paths to match expected naming convention ([#89](https://github.com/carcheky/keepercheky/issues/89)) ([bc45add](https://github.com/carcheky/keepercheky/commit/bc45addc2826c9dfb8ae58a048c459e433ea1a1f))
+
 # [1.0.0-dev.29](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.28...v1.0.0-dev.29) (2025-11-08)
 
 
