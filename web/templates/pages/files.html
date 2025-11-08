@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    <!-- Filtros Avanzados - Solo búsqueda (otros filtros incompatibles con paginación del servidor) -->
+    <!-- Filtros Avanzados - Búsqueda y Ordenamiento -->
     <div x-data="{ filtersOpen: false }" 
         class="mb-6">
         
@@ -132,33 +132,81 @@
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
-            <span class="text-dark-text font-medium">Búsqueda</span>
-            <span x-show="filterSearch" 
+            <span class="text-dark-text font-medium">🔍 Búsqueda y Filtros</span>
+            <span x-show="searchQuery || sortBy !== 'file_path' || sortOrder !== 'asc'" 
                 class="px-2 py-0.5 bg-blue-900/40 border border-blue-600/50 text-blue-300 rounded text-xs">
-                activa
+                activos
             </span>
         </button>
         
         <div x-show="filtersOpen" 
             x-transition
-            class="mt-2 bg-dark-surface border border-dark-border rounded-lg p-6">
+            class="mt-2 bg-dark-surface border border-dark-border rounded-lg p-6 space-y-4">
             
+            <!-- Search Input -->
             <div class="flex items-center gap-4">
-                <input type="text" x-model="filterSearch" @input="applyFilters()" 
-                    placeholder="Buscar por título o ruta en la página actual..."
-                    class="flex-1 px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-dark-text mb-2">
+                        🔎 Buscar archivos
+                    </label>
+                    <input type="text" 
+                        x-model="searchQuery" 
+                        @input.debounce.500ms="handleSearchChange()" 
+                        placeholder="Buscar por título, ruta o hash de torrent..."
+                        class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-muted focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                </div>
                 
-                <button @click="clearFilters()"
-                    :class="filterSearch ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
-                    :disabled="!filterSearch"
-                    class="px-4 py-2 text-white rounded-lg transition-colors">
+                <button @click="clearSearch()"
+                    :class="searchQuery ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
+                    :disabled="!searchQuery"
+                    class="px-4 py-2 text-white rounded-lg transition-colors self-end">
                     Limpiar
                 </button>
             </div>
             
-            <div class="mt-3 text-xs text-dark-muted">
-                <p>💡 La búsqueda filtra solo los resultados de la página actual.</p>
-                <p>Usa las pestañas (OK, Atención, Críticos, etc.) para filtrar por categoría.</p>
+            <!-- Sort Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-dark-text mb-2">
+                        📊 Ordenar por
+                    </label>
+                    <select x-model="sortBy" @change="handleSortChange()"
+                        class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="file_path">Ruta del archivo</option>
+                        <option value="title">Título</option>
+                        <option value="size">Tamaño</option>
+                        <option value="type">Tipo (película/serie)</option>
+                        <option value="created_at">Fecha de agregado</option>
+                        <option value="updated_at">Última actualización</option>
+                        <option value="seed_ratio">Ratio de seeds</option>
+                        <option value="torrent_state">Estado del torrent</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-dark-text mb-2">
+                        🔄 Orden
+                    </label>
+                    <select x-model="sortOrder" @change="handleSortChange()"
+                        class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="asc">Ascendente (A → Z, 0 → 9)</option>
+                        <option value="desc">Descendente (Z → A, 9 → 0)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between pt-2 border-t border-dark-border">
+                <div class="text-xs text-dark-muted space-y-1">
+                    <p>💡 La búsqueda filtra todos los resultados (no solo la página actual).</p>
+                    <p>💡 Combina búsqueda con las pestañas (OK, Atención, Críticos, etc.) para filtrar por categoría.</p>
+                </div>
+                
+                <button @click="resetFiltersAndSort()"
+                    :class="(searchQuery || sortBy !== 'file_path' || sortOrder !== 'asc') ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
+                    :disabled="!searchQuery && sortBy === 'file_path' && sortOrder === 'asc'"
+                    class="px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap">
+                    🔄 Restablecer todo
+                </button>
             </div>
         </div>
     </div>
@@ -1708,8 +1756,10 @@ function filesPage() {
             total: 0
         },
         
-        // Search filter property (only client-side filter that works with pagination)
-        filterSearch: '',
+        // Search and sort properties (server-side)
+        searchQuery: '',
+        sortBy: 'file_path',
+        sortOrder: 'asc',
         
         // Selection properties
         selectedFiles: [],
@@ -1780,16 +1830,8 @@ function filesPage() {
         },
 
         get filteredFiles() {
-            // With server-side pagination, files are already filtered by the server
-            // Only apply client-side search filter if it's set
-            if (this.filterSearch) {
-                const search = this.filterSearch.toLowerCase();
-                return this.files.filter(f => {
-                    const title = (f.title || '').toLowerCase();
-                    const path = (f.file_path || '').toLowerCase();
-                    return title.includes(search) || path.includes(search);
-                });
-            }
+            // With server-side pagination and search, files are already filtered by the server
+            // Return files as-is since backend handles all filtering
             return this.files;
         },
         
@@ -2225,12 +2267,31 @@ function filesPage() {
             return '';
         },
 
-        applyFilters() {
-            // Called when search filter changes - no action needed as filteredFiles is computed
+        // Search and sorting handlers
+        handleSearchChange() {
+            // Reset to page 1 when search changes
+            this.currentPage = 1;
+            this.loadFiles();
         },
         
-        clearFilters() {
-            this.filterSearch = '';
+        handleSortChange() {
+            // Reset to page 1 when sort changes
+            this.currentPage = 1;
+            this.loadFiles();
+        },
+        
+        clearSearch() {
+            this.searchQuery = '';
+            this.currentPage = 1;
+            this.loadFiles();
+        },
+        
+        resetFiltersAndSort() {
+            this.searchQuery = '';
+            this.sortBy = 'file_path';
+            this.sortOrder = 'asc';
+            this.currentPage = 1;
+            this.loadFiles();
         },
         
         async loadServiceUrls() {
@@ -2278,6 +2339,19 @@ function filesPage() {
                 // Add tab filter if not on default
                 if (this.selectedTab && this.selectedTab !== '') {
                     params.append('tab', this.selectedTab);
+                }
+                
+                // Add search query if provided
+                if (this.searchQuery && this.searchQuery.trim() !== '') {
+                    params.append('search', this.searchQuery.trim());
+                }
+                
+                // Add sorting parameters
+                if (this.sortBy) {
+                    params.append('sortBy', this.sortBy);
+                }
+                if (this.sortOrder) {
+                    params.append('order', this.sortOrder);
                 }
                 
                 const response = await fetch(`/api/files?${params.toString()}`);
