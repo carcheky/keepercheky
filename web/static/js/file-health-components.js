@@ -806,6 +806,11 @@ function healthStatusBadge(status, severity = 'ok', size = 'md') {
             return getSeverityColor(this.severity);
         },
         
+        get colorClasses() {
+            // Return the badge-specific color classes
+            return this.colors.badge;
+        },
+        
         get sizeClasses() {
             const sizes = {
                 'sm': 'px-2 py-0.5 text-xs',
