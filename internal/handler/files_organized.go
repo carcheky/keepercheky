@@ -278,7 +278,7 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 	// Group files
 	for _, file := range files {
 		isSeries := false
-		
+
 		// Method 1: Check explicit file type first
 		if file.Type == "series" || file.Type == "episode" {
 			isSeries = true
@@ -286,7 +286,7 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 			isSeries = false
 		} else {
 			// Method 2: If type is not set, use intelligent heuristics
-			
+
 			// Check if filename contains episode patterns (S01E01, 1x01, etc.)
 			_, _, hasEpisodePattern := parseSeasonEpisode(file.FilePath)
 			if hasEpisodePattern {
@@ -297,13 +297,13 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 			} else if file.InRadarr {
 				// If it's in Radarr, it's definitely a movie
 				isSeries = false
-			} else if strings.Contains(strings.ToLower(file.FilePath), "/tv/") || 
-			          strings.Contains(strings.ToLower(file.FilePath), "/series/") ||
-			          strings.Contains(strings.ToLower(file.FilePath), "/shows/") {
+			} else if strings.Contains(strings.ToLower(file.FilePath), "/tv/") ||
+				strings.Contains(strings.ToLower(file.FilePath), "/series/") ||
+				strings.Contains(strings.ToLower(file.FilePath), "/shows/") {
 				// Path-based heuristic: common TV show directory names
 				isSeries = true
 			} else if strings.Contains(strings.ToLower(file.FilePath), "/movies/") ||
-			          strings.Contains(strings.ToLower(file.FilePath), "/films/") {
+				strings.Contains(strings.ToLower(file.FilePath), "/films/") {
 				// Path-based heuristic: common movie directory names
 				isSeries = false
 			} else {
@@ -312,7 +312,7 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 				isSeries = false
 			}
 		}
-		
+
 		if isSeries {
 			h.addToSeries(seriesMap, file)
 			seriesCount++
@@ -321,7 +321,7 @@ func (h *FilesHandler) organizeFiles(files []MediaFileInfo) OrganizedFilesRespon
 			movieCount++
 		}
 	}
-	
+
 	h.logger.Info("Organized files by type",
 		zap.Int("total_files", len(files)),
 		zap.Int("files_to_series", seriesCount),
