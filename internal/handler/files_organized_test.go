@@ -3,6 +3,7 @@ package handler
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -96,7 +97,8 @@ func TestExtractSeriesName(t *testing.T) {
 
 func TestOrganizeFiles_TypeDetection(t *testing.T) {
 	// Create a mock logger
-	logger, _ := zap.NewDevelopment()
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err, "failed to create test logger")
 	handler := &FilesHandler{logger: logger}
 
 	tests := []struct {
