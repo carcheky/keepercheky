@@ -207,7 +207,7 @@ En DevTools:
              bg-green-900/40 border-green-600/50 text-green-300 
              px-3 py-1 text-sm">
     <span>✅</span>
-    <span>OK</span>
+    <span>Saludable</span>
 </span>
 ```
 
@@ -231,7 +231,7 @@ En DevTools:
 
 ### Para Desarrollo Futuro
 
-1. ✅ **Eliminar duplicación**: Considerar remover la versión inline en `files.html` y usar solo la externa
+1. ⏳ **Eliminar duplicación**: Antes de remover la versión inline en `files.html`, alinear ambas implementaciones (iconos, labels, getters) para asegurar comportamiento consistente. Luego, usar solo la versión externa (`web/static/js/file-health-components.js`) en todos los templates.
 2. ⏳ **Tests de UI**: Agregar tests automatizados para componentes Alpine.js
 3. ⏳ **Monitoreo**: Agregar logging de estados de salud detectados
 

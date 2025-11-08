@@ -43,6 +43,14 @@ type Media struct {
 **Archivo**: `web/static/js/file-health-components.js` (global)  
 **También**: `web/templates/pages/files.html` (inline, línea 1533)
 
+> ⚠️ **Nota importante:**  
+> Actualmente existen **dos implementaciones** del componente de health badge: una global en `web/static/js/file-health-components.js` y otra inline en `web/templates/pages/files.html` (línea 1533).  
+> - La versión **global** utiliza getters y tiene una lógica de iconos diferente (por ejemplo, `orphan_download` es '⚠️').  
+> - La versión **inline** retorna propiedades directas y usa otros iconos (por ejemplo, `orphan_download` es '📥').  
+>  
+> Esta duplicidad puede causar confusión y comportamientos inconsistentes.  
+> **Se recomienda unificar ambas implementaciones** o, al menos, documentar claramente las diferencias y cuál debe usarse en cada caso.
+
 #### Función Principal
 
 ```javascript
@@ -103,8 +111,8 @@ getFileSeverity(file) {
 - **Condición**: `is_hardlink = true`
 - **Significado**: Torrent original eliminado, solo quedan hardlinks
 - **Acción**: Limpiar hardlink de downloads sin perder archivo en biblioteca
-- **Color**: Azul
-- **Clases**: `bg-blue-900/40 border-blue-600/50 text-blue-300`
+- **Color**: Verde
+- **Clases**: `bg-green-900/40 border-green-600/50 text-green-300`
 
 ### 🔴 Critical (Crítico)
 - **Condición**: `torrent_state = "error"` O `torrent_state = "missingFiles"`
