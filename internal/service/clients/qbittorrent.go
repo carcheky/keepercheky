@@ -806,3 +806,44 @@ func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash str
 
 	return info, nil
 }
+
+// performTorrentAction is a generic helper method for torrent operations
+func (c *QBittorrentClient) performTorrentAction(ctx context.Context, hash, endpoint, action string) error {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{"hashes": hash}).
+		Post(endpoint)
+
+	if err != nil {
+		return fmt.Errorf("failed to %s torrent: %w", action, err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Info(fmt.Sprintf("%s torrent", action), zap.String("hash", hash))
+	return nil
+}
+
+// PauseTorrent pauses a torrent
+func (c *QBittorrentClient) PauseTorrent(ctx context.Context, hash string) error {
+	return c.performTorrentAction(ctx, hash, "/api/v2/torrents/pause", "Paused")
+}
+
+// ResumeTorrent resumes a paused torrent
+func (c *QBittorrentClient) ResumeTorrent(ctx context.Context, hash string) error {
+	return c.performTorrentAction(ctx, hash, "/api/v2/torrents/resume", "Resumed")
+}
+
+// RecheckTorrent rechecks a torrent
+func (c *QBittorrentClient) RecheckTorrent(ctx context.Context, hash string) error {
+	return c.performTorrentAction(ctx, hash, "/api/v2/torrents/recheck", "Rechecked")
+}

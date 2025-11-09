@@ -1,6 +1,10 @@
 package handler
 
 import (
+	"context"
+	"fmt"
+	"sync"
+
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/service/clients"
 	"github.com/carcheky/keepercheky/pkg/logger"
@@ -180,4 +184,108 @@ func (h *QBittorrentHandler) GetTorrentTrackers(c *fiber.Ctx) error {
 		"total":    len(trackers),
 		"trackers": trackers,
 	})
+}
+
+// TorrentBulkActionRequest represents the request body for bulk torrent actions
+type TorrentBulkActionRequest struct {
+	Hashes []string `json:"hashes"` // Array of torrent hashes
+	Action string   `json:"action"` // "pause", "resume", "delete", "recheck"
+}
+
+// getActionFunc returns the appropriate torrent action function based on action type
+func (h *QBittorrentHandler) getActionFunc(action string) (func(context.Context, string) error, error) {
+	switch action {
+	case "pause":
+		return h.client.PauseTorrent, nil
+	case "resume":
+		return h.client.ResumeTorrent, nil
+	case "recheck":
+		return h.client.RecheckTorrent, nil
+	case "delete":
+		return func(ctx context.Context, hash string) error {
+			return h.client.DeleteTorrent(ctx, hash, false)
+		}, nil
+	default:
+		return nil, fmt.Errorf("invalid action: %s", action)
+	}
+}
+
+// executeBulkAction processes torrents concurrently with given action
+func (h *QBittorrentHandler) executeBulkAction(ctx context.Context, hashes []string, action string, actionFunc func(context.Context, string) error) (success, failed int, errors []string) {
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	errors = make([]string, 0, len(hashes))
+
+	for _, hash := range hashes {
+		wg.Add(1)
+		go func(torrentHash string) {
+			defer wg.Done()
+			if err := actionFunc(ctx, torrentHash); err != nil {
+				h.logger.Error("Failed to execute action", "action", action, "hash", torrentHash, "error", err)
+				mu.Lock()
+				failed++
+				errors = append(errors, err.Error())
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				success++
+				mu.Unlock()
+			}
+		}(hash)
+	}
+	wg.Wait()
+	return success, failed, errors
+}
+
+// BulkAction performs batch operations on multiple torrents
+func (h *QBittorrentHandler) BulkAction(c *fiber.Ctx) error {
+	if h.client == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "qBittorrent client not configured"})
+	}
+
+	var req TorrentBulkActionRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body", "error", err)
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if len(req.Hashes) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "No hashes provided"})
+	}
+
+	if req.Action == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Action is required"})
+	}
+
+	actionFunc, err := h.getActionFunc(req.Action)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid action. Allowed: pause, resume, delete, recheck"})
+	}
+
+	h.logger.Info("Executing bulk action on torrents", "action", req.Action, "count", len(req.Hashes))
+
+	successCount, failCount, errors := h.executeBulkAction(c.Context(), req.Hashes, req.Action, actionFunc)
+
+	h.logger.Info("Bulk action completed",
+		"action", req.Action,
+		"total", len(req.Hashes),
+		"success", successCount,
+		"failed", failCount,
+	)
+
+	response := fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Processed %d torrents: %d succeeded, %d failed", len(req.Hashes), successCount, failCount),
+		"stats": fiber.Map{
+			"total":   len(req.Hashes),
+			"success": successCount,
+			"failed":  failCount,
+		},
+	}
+
+	if len(errors) > 0 {
+		response["errors"] = errors
+	}
+
+	return c.JSON(response)
 }

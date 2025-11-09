@@ -39,7 +39,7 @@ help:
 dev:
 	@echo "🚀 Starting development server with hot-reload..."
 	@echo "📁 Creating volume directories..."
-	@mkdir -p volumes/keepercheky-go-modules
+	@# Note: keepercheky-go-modules is managed by Docker, don't create it in host
 	@mkdir -p volumes/radarr-config
 	@mkdir -p volumes/sonarr-config
 	@mkdir -p volumes/jellyfin-config
@@ -149,7 +149,7 @@ lint:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Validate all code (format, vet, test, lint) - RUN BEFORE COMMIT
-validate:
+validate: lint-fix
 	@bash scripts/validate.sh
 
 # Quick validation (format + vet + test) - Fast pre-commit check

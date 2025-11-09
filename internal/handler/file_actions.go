@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"syscall"
 
 	"github.com/carcheky/keepercheky/internal/models"
@@ -727,4 +728,95 @@ func getBoolParam(params map[string]interface{}, key string, defaultValue bool) 
 		}
 	}
 	return defaultValue
+}
+
+// BulkPauseTorrentsRequest represents the request body for bulk pause torrents
+type BulkPauseTorrentsRequest struct {
+	Files []uint `json:"files"` // Array of file IDs
+}
+
+// collectTorrentHashes extracts torrent hashes from media file IDs
+func (h *FileActionsHandler) collectTorrentHashes(fileIDs []uint) []string {
+	hashes := make([]string, 0, len(fileIDs))
+	for _, fileID := range fileIDs {
+		media, err := h.mediaRepo.GetByID(fileID)
+		if err != nil {
+			h.logger.Warn("Failed to get media", zap.Uint("id", fileID), zap.Error(err))
+			continue
+		}
+		if media.TorrentHash != "" {
+			hashes = append(hashes, media.TorrentHash)
+		}
+	}
+	return hashes
+}
+
+// processTorrentsConcurrently executes an action on multiple torrents in parallel
+func (h *FileActionsHandler) processTorrentsConcurrently(ctx context.Context, hashes []string, action func(context.Context, string) error) (success, failed int) {
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	for _, hash := range hashes {
+		wg.Add(1)
+		go func(torrentHash string) {
+			defer wg.Done()
+			if err := action(ctx, torrentHash); err != nil {
+				h.logger.Error("Torrent action failed", zap.String("hash", torrentHash), zap.Error(err))
+				mu.Lock()
+				failed++
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				success++
+				mu.Unlock()
+			}
+		}(hash)
+	}
+	wg.Wait()
+	return success, failed
+}
+
+// BulkPauseTorrents pauses torrents for multiple files
+// POST /api/files/bulk-pause-torrents
+func (h *FileActionsHandler) BulkPauseTorrents(c *fiber.Ctx) error {
+	if h.qbitClient == nil {
+		return c.Status(503).JSON(fiber.Map{"success": false, "error": "qBittorrent client not configured"})
+	}
+
+	var req BulkPauseTorrentsRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body", zap.Error(err))
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Invalid request body"})
+	}
+
+	if len(req.Files) == 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "No files provided"})
+	}
+
+	h.logger.Info("Bulk pause torrents requested", zap.Int("file_count", len(req.Files)))
+
+	hashes := h.collectTorrentHashes(req.Files)
+	if len(hashes) == 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "No torrents found for selected files"})
+	}
+
+	h.logger.Info("Pausing torrents", zap.Int("torrent_count", len(hashes)))
+
+	successCount, failCount := h.processTorrentsConcurrently(c.Context(), hashes, h.qbitClient.PauseTorrent)
+
+	h.logger.Info("Bulk pause torrents completed",
+		zap.Int("total", len(hashes)),
+		zap.Int("success", successCount),
+		zap.Int("failed", failCount),
+	)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Pausados %d torrents correctamente", successCount),
+		"stats": fiber.Map{
+			"total":   len(hashes),
+			"success": successCount,
+			"failed":  failCount,
+		},
+	})
 }

@@ -235,6 +235,10 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/qbittorrent/active-torrents", h.QBittorrent.GetActiveTorrents)
 		api.Get("/qbittorrent/torrent/:hash/properties", h.QBittorrent.GetTorrentProperties)
 		api.Get("/qbittorrent/torrent/:hash/trackers", h.QBittorrent.GetTorrentTrackers)
+		api.Post("/qbittorrent/bulk-action", h.QBittorrent.BulkAction)
+
+		// File bulk actions for torrents
+		api.Post("/files/bulk-pause-torrents", h.FileActions.BulkPauseTorrents)
 	}
 }
 

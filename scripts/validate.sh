@@ -58,7 +58,7 @@ print_info() {
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 print_section "📝 Checking Go code format..."
 
-UNFORMATTED=$(gofmt -s -l . 2>&1 | grep -v '^vendor/' | grep '.go$' || true)
+UNFORMATTED=$(gofmt -s -l . 2>&1 | grep -v '^vendor/' | grep -v '^volumes/' | grep -v '^reference-repos/' | grep '.go$' || true)
 if [ -n "$UNFORMATTED" ]; then
     print_error "The following files need formatting:"
     echo "$UNFORMATTED" | while read -r file; do
@@ -77,10 +77,18 @@ echo ""
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 print_section "🔍 Running go vet..."
 
-if go vet ./... 2>&1; then
-    print_success "Go vet passed"
+# Get packages, excluding volumes/ and reference-repos/
+GO_PACKAGES=$(cd "$(dirname "$0")/.." && find . -name "*.go" -not -path "./volumes/*" -not -path "./reference-repos/*" -not -path "./vendor/*" -exec dirname {} \; | sort -u | sed 's|^\./|./|' | grep -v "^\.$")
+
+if [ -z "$GO_PACKAGES" ]; then
+    print_error "No Go packages found"
 else
-    print_error "Go vet found issues"
+    # shellcheck disable=SC2086
+    if go vet $GO_PACKAGES 2>&1; then
+        print_success "Go vet passed"
+    else
+        print_error "Go vet found issues"
+    fi
 fi
 echo ""
 
@@ -89,22 +97,30 @@ echo ""
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 print_section "🧪 Running tests with coverage and race detector..."
 
-if go test -v -race -coverprofile=coverage.out ./... 2>&1; then
-    # Calculate coverage
-    if [ -f coverage.out ]; then
-        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
-        print_success "Tests passed - Coverage: ${COVERAGE}"
-        
-        # Warn if coverage is low
-        COVERAGE_NUM=$(echo $COVERAGE | sed 's/%//')
-        if (( $(echo "$COVERAGE_NUM < 50" | bc -l) )); then
-            print_warning "Coverage is below 50% - consider adding more tests"
+# Get test packages using Go's module system, excluding volumes/ and reference-repos/
+TEST_PACKAGES=$(go list ./... 2>/dev/null | grep -v '/volumes/' | grep -v '/reference-repos/' | grep -v '/vendor/' || echo "")
+
+if [ -z "$TEST_PACKAGES" ]; then
+    print_warning "No test packages found"
+else
+    # shellcheck disable=SC2086
+    if go test -v -race -coverprofile=coverage.out $TEST_PACKAGES 2>&1; then
+        # Calculate coverage
+        if [ -f coverage.out ]; then
+            COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+            print_success "Tests passed - Coverage: ${COVERAGE}"
+            
+            # Warn if coverage is low (using bash arithmetic, convert to integer)
+            COVERAGE_NUM=$(echo "$COVERAGE" | sed 's/%//' | cut -d. -f1)
+            if [ "$COVERAGE_NUM" -lt 50 ] 2>/dev/null; then
+                print_warning "Coverage is below 50% - consider adding more tests"
+            fi
+        else
+            print_success "Tests passed"
         fi
     else
-        print_success "Tests passed"
+        print_error "Tests failed"
     fi
-else
-    print_error "Tests failed"
 fi
 echo ""
 
@@ -113,7 +129,7 @@ echo ""
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 print_section "🔨 Checking build..."
 
-if go build -o /tmp/keepercheky-test ./cmd/server 2>&1; then
+if CGO_ENABLED=1 go build -o /tmp/keepercheky-test ./cmd/server 2>&1; then
     rm -f /tmp/keepercheky-test
     print_success "Build successful"
 else
@@ -151,19 +167,92 @@ fi
 echo ""
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 6. GOLANGCI-LINT (OPTIONAL)
+# 6. LINTING (golangci-lint in CI, native tools in local)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-print_section "🔎 Running golangci-lint (if installed)..."
+print_section "🔎 Running linter checks..."
 
-if command -v golangci-lint &> /dev/null; then
-    if golangci-lint run ./... 2>&1; then
-        print_success "golangci-lint passed"
+# Check if we're in CI environment (GitHub Actions)
+if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ]; then
+    # In CI: golangci-lint is MANDATORY
+    print_info "🤖 CI environment detected - using golangci-lint"
+    if command -v golangci-lint &> /dev/null; then
+        if golangci-lint run ./... 2>&1; then
+            print_success "golangci-lint passed"
+        else
+            print_error "golangci-lint found issues"
+        fi
     else
-        print_error "golangci-lint found issues"
+        print_error "golangci-lint not found in CI environment!"
+        print_info "💡 Install in CI: https://golangci-lint.run/docs/welcome/install/#github-actions"
     fi
 else
-    print_warning "golangci-lint not installed, skipping..."
-    print_info "💡 Install: brew install golangci-lint (macOS) or see https://golangci-lint.run/usage/install/"
+    # In local: Try golangci-lint, fallback to native Go tools
+    if command -v golangci-lint &> /dev/null; then
+        print_info "✨ Using golangci-lint (recommended)"
+        if golangci-lint run ./... 2>&1; then
+            print_success "golangci-lint passed"
+        else
+            print_error "golangci-lint found issues"
+        fi
+    else
+        print_warning "golangci-lint not installed locally"
+        print_info "🔧 Using native Go tools as fallback:"
+        echo ""
+        
+        # Run basic linting with native tools
+        LINT_ERRORS=0
+        
+        # 1. Check for common issues with go vet (already done, but mention it)
+        print_info "  • go vet: ✓ (already validated)"
+        
+        # 2. Check for shadowed variables
+        print_info "  • Checking for shadowed variables..."
+        if command -v shadow &> /dev/null; then
+            if go vet -vettool=$(which shadow) ./... 2>&1; then
+                echo "    ${CHECK} No shadowed variables"
+            else
+                echo "    ${WARN} Shadowed variables found"
+            fi
+        else
+            echo "    ${INFO} shadow not installed (optional)"
+            echo "    ${INFO} Install: go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest"
+        fi
+        
+        # 3. Check for unused code with staticcheck (if available)
+        print_info "  • Checking for unused code..."
+        if command -v staticcheck &> /dev/null; then
+            if staticcheck ./... 2>&1; then
+                echo "    ${CHECK} No unused code"
+            else
+                echo "    ${WARN} Unused code found"
+                LINT_ERRORS=$((LINT_ERRORS + 1))
+            fi
+        else
+            echo "    ${INFO} staticcheck not installed (optional)"
+            echo "    ${INFO} Install: go install honnef.co/go/tools/cmd/staticcheck@latest"
+        fi
+        
+        # 4. Check for inefficient assignments
+        print_info "  • Checking code with go vet composites..."
+        if go vet -composites ./... 2>&1 | grep -v "no packages" > /dev/null; then
+            echo "    ${WARN} Composite literal issues found"
+        else
+            echo "    ${CHECK} No composite literal issues"
+        fi
+        
+        echo ""
+        if [ $LINT_ERRORS -eq 0 ]; then
+            print_success "Native linting checks passed"
+        else
+            print_warning "Some linting issues found (not critical for local development)"
+        fi
+        
+        echo ""
+        print_info "💡 For complete linting, install golangci-lint:"
+        print_info "   Linux:  curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b \$(go env GOPATH)/bin"
+        print_info "   macOS:  brew install golangci-lint"
+        print_info "   Other:  https://golangci-lint.run/usage/install/"
+    fi
 fi
 echo ""
 
