@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"syscall"
 
 	"github.com/carcheky/keepercheky/internal/models"
@@ -790,18 +791,28 @@ func (h *FileActionsHandler) BulkPauseTorrents(c *fiber.Ctx) error {
 	)
 
 	ctx := c.Context()
-	successCount := 0
-	failCount := 0
+	var successCount, failCount int
+	var mu sync.Mutex
 
-	// Pause each torrent
+	// Pause torrents concurrently
+	var wg sync.WaitGroup
 	for _, hash := range hashes {
-		if err := h.qbitClient.PauseTorrent(ctx, hash); err != nil {
-			h.logger.Error("Failed to pause torrent", zap.String("hash", hash), zap.Error(err))
-			failCount++
-		} else {
-			successCount++
-		}
+		wg.Add(1)
+		go func(torrentHash string) {
+			defer wg.Done()
+			if err := h.qbitClient.PauseTorrent(ctx, torrentHash); err != nil {
+				h.logger.Error("Failed to pause torrent", zap.String("hash", torrentHash), zap.Error(err))
+				mu.Lock()
+				failCount++
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				successCount++
+				mu.Unlock()
+			}
+		}(hash)
 	}
+	wg.Wait()
 
 	h.logger.Info("Bulk pause torrents completed",
 		zap.Int("total", len(hashes)),

@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/service/clients"
@@ -223,59 +225,52 @@ func (h *QBittorrentHandler) BulkAction(c *fiber.Ctx) error {
 		"count", len(req.Hashes),
 	)
 
-	successCount := 0
-	failCount := 0
-	errors := []string{}
+	var successCount, failCount int
+	var mu sync.Mutex
+	errors := make([]string, 0, len(req.Hashes))
 
 	ctx := c.Context()
 
+	// Define action function based on request
+	var actionFunc func(context.Context, string) error
 	switch req.Action {
 	case "pause":
-		for _, hash := range req.Hashes {
-			if err := h.client.PauseTorrent(ctx, hash); err != nil {
-				h.logger.Error("Failed to pause torrent", "hash", hash, "error", err)
-				failCount++
-				errors = append(errors, err.Error())
-			} else {
-				successCount++
-			}
-		}
+		actionFunc = h.client.PauseTorrent
 	case "resume":
-		for _, hash := range req.Hashes {
-			if err := h.client.ResumeTorrent(ctx, hash); err != nil {
-				h.logger.Error("Failed to resume torrent", "hash", hash, "error", err)
-				failCount++
-				errors = append(errors, err.Error())
-			} else {
-				successCount++
-			}
-		}
+		actionFunc = h.client.ResumeTorrent
 	case "recheck":
-		for _, hash := range req.Hashes {
-			if err := h.client.RecheckTorrent(ctx, hash); err != nil {
-				h.logger.Error("Failed to recheck torrent", "hash", hash, "error", err)
-				failCount++
-				errors = append(errors, err.Error())
-			} else {
-				successCount++
-			}
-		}
+		actionFunc = h.client.RecheckTorrent
 	case "delete":
-		for _, hash := range req.Hashes {
+		actionFunc = func(ctx context.Context, hash string) error {
 			// Delete without removing files - files are managed separately
-			if err := h.client.DeleteTorrent(ctx, hash, false); err != nil {
-				h.logger.Error("Failed to delete torrent", "hash", hash, "error", err)
-				failCount++
-				errors = append(errors, err.Error())
-			} else {
-				successCount++
-			}
+			return h.client.DeleteTorrent(ctx, hash, false)
 		}
 	default:
 		return c.Status(400).JSON(fiber.Map{
 			"error": "Invalid action. Allowed: pause, resume, delete, recheck",
 		})
 	}
+
+	// Process torrents concurrently
+	var wg sync.WaitGroup
+	for _, hash := range req.Hashes {
+		wg.Add(1)
+		go func(torrentHash string) {
+			defer wg.Done()
+			if err := actionFunc(ctx, torrentHash); err != nil {
+				h.logger.Error("Failed to execute action", "action", req.Action, "hash", torrentHash, "error", err)
+				mu.Lock()
+				failCount++
+				errors = append(errors, err.Error())
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				successCount++
+				mu.Unlock()
+			}
+		}(hash)
+	}
+	wg.Wait()
 
 	h.logger.Info("Bulk action completed",
 		"action", req.Action,
