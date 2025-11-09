@@ -4,10 +4,10 @@ USE MCP MEMORY SERVER AND SEQUENTIAL THINKING
 
 READ logs/keepercheky-dev.log AFTER CHANGES, VISIT URLS, AND READ logs/keepercheky-dev.log AND INSPECT FILES IF NEEDED
 
-
 ⛔️ ⛔️ ⛔️ CRITICAL RULE - NEVER VIOLATE ⛔️ ⛔️ ⛔️
 
 **YOU MUST NEVER, UNDER ANY CIRCUMSTANCES:**
+
 - never print the log, always read directly logs/keepercheky-dev.log
 - Run `make dev` or `make run` or ANY make command that starts services
 - Run `docker-compose up` or `docker-compose down` or `docker-compose restart` or `docker-compose stop`
@@ -18,6 +18,7 @@ READ logs/keepercheky-dev.log AFTER CHANGES, VISIT URLS, AND READ logs/keeperche
 **ONLY THE USER CAN START, STOP, OR RESTART SERVICES.**
 
 **WHAT YOU CAN DO:**
+
 - Read logs with `cat`, `tail`, `grep`, etc.
 - Execute commands INSIDE running containers (docker exec) for debugging
 - Inspect files and configurations
@@ -158,6 +159,7 @@ keepercheky/
 ```
 
 **Key Rules:**
+
 - ✅ Use `internal/` for application-specific code (not importable by other projects)
 - ✅ Use `pkg/` only for truly reusable, public packages
 - ✅ Keep `cmd/` minimal - only main.go and setup
@@ -167,6 +169,7 @@ keepercheky/
 ### 2. Code Organization Patterns
 
 #### Repository Pattern
+
 ```go
 // internal/repository/media_repo.go
 type MediaRepository struct {
@@ -185,6 +188,7 @@ func (r *MediaRepository) GetAll() ([]models.Media, error) {
 ```
 
 #### Service Layer
+
 ```go
 // internal/service/cleanup_service.go
 type CleanupService struct {
@@ -207,6 +211,7 @@ func NewCleanupService(
 ```
 
 #### Handler Pattern (Fiber)
+
 ```go
 // internal/handler/media_handler.go
 type MediaHandler struct {
@@ -892,13 +897,15 @@ func validatePath(path string) error {
 **ALWAYS** document:
 
 1. **Package-level comments**
+
 ```go
 // Package cleanup provides media cleanup strategies and execution logic.
 // It implements multiple cleanup approaches: time-based, tag-based, and episode-based.
 package cleanup
 ```
 
-2. **Exported function comments**
+1. **Exported function comments**
+
 ```go
 // DeleteMedia removes a media item from all configured services.
 // It respects dry-run mode and checks exclusion tags before deletion.
@@ -908,7 +915,8 @@ func (s *CleanupService) DeleteMedia(ctx context.Context, media *models.Media) e
 }
 ```
 
-3. **Complex logic comments**
+1. **Complex logic comments**
+
 ```go
 // We need to check seeding status before deletion to prevent
 // removing files that are still being seeded in the torrent client.
@@ -991,7 +999,8 @@ func (s *CachedService) GetStats(ctx context.Context) (*Stats, error) {
 
 Use these types strategically to avoid unnecessary builds:
 
-#### Types that TRIGGER releases/builds (use sparingly):
+#### Types that TRIGGER releases/builds (use sparingly)
+
 - **`feat`**: New user-facing feature or significant functionality
   - ✅ New API endpoint
   - ✅ New UI component or page
@@ -1012,7 +1021,8 @@ Use these types strategically to avoid unnecessary builds:
   - ✅ Improve API response time
   - ❌ Code cleanup without measurable impact
 
-#### Types that DO NOT trigger releases (use for maintenance):
+#### Types that DO NOT trigger releases (use for maintenance)
+
 - **`docs`**: Documentation-only changes
   - ✅ Update README.md
   - ✅ Update .env.example
@@ -1067,7 +1077,7 @@ Does it change runtime behavior?
          └─ Code formatting → style
 ```
 
-### Examples - GOOD:
+### Examples - GOOD
 
 ```bash
 # TRIGGERS BUILD (runtime changes)
@@ -1084,7 +1094,7 @@ style(models): format code with gofmt
 ci(release): update semantic-release configuration
 ```
 
-### Examples - BAD (Spanish - DO NOT USE):
+### Examples - BAD (Spanish - DO NOT USE)
 
 ```bash
 ❌ feat(sync): implementar matching inteligente de torrents
@@ -1170,15 +1180,16 @@ require (
 
 When implementing features, refer to:
 
-- **Fiber Framework**: https://docs.gofiber.io/
-- **GORM**: https://gorm.io/docs/
-- **Alpine.js**: https://alpinejs.dev/
-- **Tailwind CSS**: https://tailwindcss.com/docs
-- **Go Best Practices**: https://go.dev/doc/effective_go
+- **Fiber Framework**: <https://docs.gofiber.io/>
+- **GORM**: <https://gorm.io/docs/>
+- **Alpine.js**: <https://alpinejs.dev/>
+- **Tailwind CSS**: <https://tailwindcss.com/docs>
+- **Go Best Practices**: <https://go.dev/doc/effective_go>
 
 ## 🗣️ Communication Guidelines
 
-**REMEMBER**: 
+**REMEMBER**:
+
 - 📢 Always respond to users in **Spanish**
 - 📝 Technical documentation and code comments in **English**
 - 🐛 Issue titles and descriptions in **Spanish**
@@ -1186,6 +1197,7 @@ When implementing features, refer to:
 - 📖 User-facing documentation in **Spanish**
 
 **⚠️ IMPORTANT - GitHub Communication:**
+
 - ✅ **ALL GitHub interactions MUST be in Spanish**
 - ✅ This includes: PR comments, code review comments, issue comments, discussions
 - ✅ When approving/reviewing PRs, write comments in Spanish
