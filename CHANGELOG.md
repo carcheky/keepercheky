@@ -1,12 +1,10 @@
 # [1.0.0-dev.34](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.33...v1.0.0-dev.34) (2025-11-09)
 
-
 ### Features
 
 * **qbittorrent:** implement bulk torrent actions endpoint ([#101](https://github.com/carcheky/keepercheky/issues/101)) ([ec1e699](https://github.com/carcheky/keepercheky/commit/ec1e699a4dcb5965e96afa91faf6fca2d3322283))
 
 # [1.0.0-dev.33](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.32...v1.0.0-dev.33) (2025-11-09)
-
 
 ### Features
 
@@ -14,11 +12,9 @@
 
 # [1.0.0-dev.32](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.31...v1.0.0-dev.32) (2025-11-09)
 
-
 ### Features
 
 * add server-side search and extended sorting for files list view ([#99](https://github.com/carcheky/keepercheky/issues/99)) ([134ed2e](https://github.com/carcheky/keepercheky/commit/134ed2ec5d55f6d3578b57096f927fd097a31acd)), closes [#92](https://github.com/carcheky/keepercheky/issues/92) [#92](https://github.com/carcheky/keepercheky/issues/92)
-
 
 ### BREAKING CHANGES
 
@@ -26,16 +22,15 @@
 
 * docs: fix markdown formatting in SEARCH_AND_SORT_IMPROVEMENTS.md
 
-- Add blank lines around lists (MD032)
-- Add blank lines around headings (MD022)
-- Add blank lines around code fences (MD031)
-- Specify language for code blocks (MD040)
-- Replace emphasis with proper heading (MD036)
+* Add blank lines around lists (MD032)
+* Add blank lines around headings (MD022)
+* Add blank lines around code fences (MD031)
+* Specify language for code blocks (MD040)
+* Replace emphasis with proper heading (MD036)
 
 Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.31](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.30...v1.0.0-dev.31) (2025-11-08)
-
 
 ### Bug Fixes
 
@@ -43,13 +38,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.30](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.29...v1.0.0-dev.30) (2025-11-08)
 
-
 ### Bug Fixes
 
 * correct qBittorrent API endpoint paths to match expected naming convention ([#89](https://github.com/carcheky/keepercheky/issues/89)) ([bc45add](https://github.com/carcheky/keepercheky/commit/bc45addc2826c9dfb8ae58a048c459e433ea1a1f))
 
 # [1.0.0-dev.29](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.28...v1.0.0-dev.29) (2025-11-08)
-
 
 ### Bug Fixes
 
@@ -57,13 +50,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.28](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.27...v1.0.0-dev.28) (2025-11-03)
 
-
 ### Features
 
 * completar funcionalidad External URL para links directos a servicios ([#86](https://github.com/carcheky/keepercheky/issues/86)) ([6a6d3e6](https://github.com/carcheky/keepercheky/commit/6a6d3e64e4d4c4f7e23d334250b0f44c5127fc0e))
 
 # [1.0.0-dev.27](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.26...v1.0.0-dev.27) (2025-11-02)
-
 
 ### Features
 
@@ -71,13 +62,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.26](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.25...v1.0.0-dev.26) (2025-11-02)
 
-
 ### Features
 
 * **dashboard:** add Chart.js visualizations and enhanced statistics API ([#82](https://github.com/carcheky/keepercheky/issues/82)) ([00ed18a](https://github.com/carcheky/keepercheky/commit/00ed18a278c436f584394dc188787ce5eaf84be7))
 
 # [1.0.0-dev.25](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.24...v1.0.0-dev.25) (2025-11-02)
-
 
 ### Bug Fixes
 
@@ -85,13 +74,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.24](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.23...v1.0.0-dev.24) (2025-11-01)
 
-
 ### Bug Fixes
 
 * correct HTML structure in organized view (series and movies sections) ([#79](https://github.com/carcheky/keepercheky/issues/79)) ([cf5e2fa](https://github.com/carcheky/keepercheky/commit/cf5e2fa78a77a634e0283331bec3b9a383c77352))
 
 # [1.0.0-dev.23](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2025-11-01)
-
 
 ### Features
 
@@ -99,13 +86,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.22](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.21...v1.0.0-dev.22) (2025-10-31)
 
-
 ### Features
 
 * add hierarchical organized view for files with series/seasons and multi-version support ([#73](https://github.com/carcheky/keepercheky/issues/73)) ([86af73c](https://github.com/carcheky/keepercheky/commit/86af73ccc61c3fb0f440d147f469096f812136e7))
 
 # [1.0.0-dev.21](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2025-10-31)
-
 
 ### Bug Fixes
 
@@ -113,13 +98,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.20](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2025-10-31)
 
-
 ### Bug Fixes
 
 * cambiar FileInode de uint64 a int64 para compatibilidad con SQLite ([#69](https://github.com/carcheky/keepercheky/issues/69)) ([424f3c0](https://github.com/carcheky/keepercheky/commit/424f3c0036bdf343d206f5887c786e79e3199b4a))
 
 # [1.0.0-dev.19](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2025-10-31)
-
 
 ### Bug Fixes
 
@@ -127,13 +110,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.18](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2025-10-31)
 
-
 ### Bug Fixes
 
 * mejorar tarjetas de archivos - compactar diseño y agregar tooltips informativos ([#63](https://github.com/carcheky/keepercheky/issues/63)) ([63b2a6c](https://github.com/carcheky/keepercheky/commit/63b2a6c3259a9c15a9ec1b48dc3aad373038b93d))
 
 # [1.0.0-dev.17](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2025-10-30)
-
 
 ### Bug Fixes
 
@@ -141,13 +122,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.16](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2025-10-30)
 
-
 ### Performance Improvements
 
 * implement server-side pagination for files API to fix slow loading in large libraries ([#56](https://github.com/carcheky/keepercheky/issues/56)) ([1362479](https://github.com/carcheky/keepercheky/commit/1362479fbfe0300ff256134f1038a50e414b38be))
 
 # [1.0.0-dev.15](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2025-10-30)
-
 
 ### Features
 
@@ -155,13 +134,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.14](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2025-10-30)
 
-
 ### Features
 
 * integrate Jellystat API endpoints and dashboard widgets ([#53](https://github.com/carcheky/keepercheky/issues/53)) ([fb00545](https://github.com/carcheky/keepercheky/commit/fb00545c0c469ccc2f8ea20daa042d48a32f9f9d))
 
 # [1.0.0-dev.13](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2025-10-30)
-
 
 ### Features
 
@@ -169,13 +146,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.12](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2025-10-30)
 
-
 ### Features
 
 * extend qBittorrent integration with transfer stats, server state, and enhanced torrent data ([#51](https://github.com/carcheky/keepercheky/issues/51)) ([cabb61d](https://github.com/carcheky/keepercheky/commit/cabb61da11eb031037c29a35a4970e962311a648))
 
 # [1.0.0-dev.11](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2025-10-30)
-
 
 ### Features
 
@@ -183,13 +158,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.10](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2025-10-30)
 
-
 ### Features
 
 * add Sonarr queue, history, calendar, and quality profiles endpoints ([#49](https://github.com/carcheky/keepercheky/issues/49)) ([ed10dc1](https://github.com/carcheky/keepercheky/commit/ed10dc12bbe923b285b9f19449762c96b337300a))
 
 # [1.0.0-dev.9](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2025-10-30)
-
 
 ### Features
 
@@ -197,13 +170,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.8](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2025-10-30)
 
-
 ### Features
 
 * **files:** crear componentes Alpine.js reutilizables para health cards y filtros ([#33](https://github.com/carcheky/keepercheky/issues/33)) ([eb8f099](https://github.com/carcheky/keepercheky/commit/eb8f099bc25d194e5988c54df32c4a8a4ad6de03))
 
 # [1.0.0-dev.7](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2025-10-30)
-
 
 ### Features
 
@@ -211,20 +182,17 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.6](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2025-10-30)
 
-
 ### Bug Fixes
 
 * organize settings into two-tab layout with interactive services overview and data-driven Alpine.js components ([#31](https://github.com/carcheky/keepercheky/issues/31)) ([177b72b](https://github.com/carcheky/keepercheky/commit/177b72b9a39eab6dd159b56bff25183066eec2af))
 
 # [1.0.0-dev.5](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2025-10-29)
 
-
 ### Features
 
 * **files:** implement file action handlers for storage health management ([#16](https://github.com/carcheky/keepercheky/issues/16)) ([b2e6ed3](https://github.com/carcheky/keepercheky/commit/b2e6ed330c91f651b9ef442fb363b2111ae31c36))
 
 # [1.0.0-dev.4](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2025-10-29)
-
 
 ### Bug Fixes
 
@@ -233,7 +201,6 @@ Fixes Codacy Static Code Analysis check
 * **files:** implement missing Alpine.js components for health dashboard ([#21](https://github.com/carcheky/keepercheky/issues/21)) ([22fcc51](https://github.com/carcheky/keepercheky/commit/22fcc51))
 * **files:** improve serviceStatusIndicator component logic ([0fee93f](https://github.com/carcheky/keepercheky/commit/0fee93f088f1f7c3e8ec54d75c9496cdb427bcc0))
 * **files:** use this.details consistently in serviceStatusIndicator ([6186bc5](https://github.com/carcheky/keepercheky/commit/6186bc50b4265b777bea6a4efd16eb08a4920e2d))
-
 
 ### Features
 
@@ -245,9 +212,7 @@ Fixes Codacy Static Code Analysis check
 * **files:** restore SSE-based sync with real-time progress updates ([20982fc](https://github.com/carcheky/keepercheky/commit/20982fc30042c88ff71a8809fa51ec21935eb09e))
 * Implement missing serviceStatusIndicator Alpine.js component ([#26](https://github.com/carcheky/keepercheky/issues/26)) ([d2382fa](https://github.com/carcheky/keepercheky/commit/d2382fad6344e16d1c7132d8958bef000fa36f33))
 
-
 # [1.0.0-dev.3](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2025-10-29)
-
 
 ### Bug Fixes
 
@@ -255,13 +220,11 @@ Fixes Codacy Static Code Analysis check
 
 # [1.0.0-dev.2](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2025-10-29)
 
-
 ### Features
 
 * **docker:** consolidate Dockerfile and add development build support ([a4e0ff5](https://github.com/carcheky/keepercheky/commit/a4e0ff50f8b0864c1efac74c3c6043ed3312ce40))
 
 # 1.0.0-dev.1 (2025-10-28)
-
 
 ### Bug Fixes
 

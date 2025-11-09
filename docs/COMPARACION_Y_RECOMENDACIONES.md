@@ -360,6 +360,6 @@ Usa este checklist para decidir:
 
 ---
 
-**¿Preguntas o necesitas más detalles sobre alguna propuesta?** 
+**¿Preguntas o necesitas más detalles sobre alguna propuesta?**
 
 Estoy aquí para ayudarte a elegir y comenzar el desarrollo. 🚀

@@ -1,23 +1,12 @@
 # KeeperCheky Development Guide
 
-
-
-
 > **Estado Actual**: v1.0.0-dev.17 - Desarrollo activo con la mayoría de features implementadas
 
 ## 🚀 Quick Start
 
-
-
-
 ## ✅ What's Implemented
 
-
-
-
 ### Backend Services (Go)
-
-
 
 - ✅ **Core Application** - Fiber v2 web server con hot-reload
 - ✅ **Database** - GORM v2 con SQLite/PostgreSQL
@@ -25,8 +14,6 @@
 - ✅ **Logging** - Structured logging con niveles configurables
 
 ### Service Integrations
-
-
 
 - ✅ **Radarr** - System info, queue, history, calendar, quality profiles
 - ✅ **Sonarr** - System info, queue, history, calendar, quality profiles
@@ -38,8 +25,6 @@
 
 ### Frontend (Alpine.js + Tailwind)
 
-
-
 - ✅ **Dashboard** - Real-time stats, service health, activity timeline
 - ✅ **Files/Health** - Storage health analysis, orphan detection, bulk actions
 - ✅ **Media** - Library browser, filters, bulk delete, detailed views
@@ -48,8 +33,6 @@
 - 🚧 **Logs** - Template ready, real-time streaming pending
 
 ### API Endpoints
-
-
 
 - ✅ `/api/media` - Media CRUD operations
 - ✅ `/api/files` - File operations and health analysis
@@ -61,8 +44,6 @@
 
 ### Features
 
-
-
 - ✅ Dry-run mode (safe testing)
 - ✅ Exclusion tags
 - ✅ File health analysis
@@ -72,11 +53,7 @@
 - 🚧 Scheduled cleanups (in progress)
 - 🚧 Leaving Soon collections (in progress)
 
-
 ### Prerequisites
-
-
-
 
 - Docker 28.5+ installed
 - Docker Compose V2
@@ -84,9 +61,6 @@
 - ~500MB disk space
 
 ### First-Time Setup
-
-
-
 
 1. **Clone the repository**
    ```bash
@@ -110,13 +84,7 @@
 
 ## 🛠️ Development Workflow
 
-
-
-
 ### Using Hot-Reload (Recommended)
-
-
-
 
 The development environment uses [Air](https://github.com/cosmtrek/air) for automatic hot-reload:
 
@@ -147,9 +115,6 @@ make dev
 
 ### Using Docker Compose Watch (Docker 28+)
 
-
-
-
 Docker 28+ includes a `watch` feature that syncs file changes:
 
 ```bash
@@ -168,9 +133,6 @@ make dev-watch
 - `go.mod/go.sum` → Triggers rebuild
 
 ### Useful Commands
-
-
-
 
 ```bash
 # View logs
@@ -211,9 +173,6 @@ make clean
 ```
 
 ## 📁 Project Structure
-
-
-
 
 ```
 keepercheky/
@@ -266,13 +225,7 @@ keepercheky/
 
 ## 🔧 Configuration
 
-
-
-
 ### Environment Variables
-
-
-
 
 The application uses environment variables with the prefix `KEEPERCHEKY_`:
 
@@ -302,9 +255,6 @@ KEEPERCHEKY_DATABASE_PATH=./data/dev.db
 ```
 
 ### Configuration File
-
-
-
 
 Alternatively, create `config/config.yaml`:
 
@@ -345,13 +295,7 @@ clients:
 
 ## 🧪 Testing
 
-
-
-
 ### Running Tests
-
-
-
 
 ```bash
 # All tests
@@ -374,9 +318,6 @@ go test -v ./internal/service/...
 ```
 
 ### Writing Tests
-
-
-
 
 Follow the standard Go testing conventions:
 
@@ -407,13 +348,7 @@ func TestMediaRepository_GetAll(t *testing.T) {
 
 ## 🎨 Frontend Development
 
-
-
-
 ### Alpine.js Components
-
-
-
 
 Create reactive components in templates:
 
@@ -444,9 +379,6 @@ function mediaList() {
 
 ### Tailwind CSS
 
-
-
-
 Use Tailwind utility classes directly in templates:
 
 ```html
@@ -457,13 +389,7 @@ Use Tailwind utility classes directly in templates:
 
 ## 🐛 Debugging
 
-
-
-
 ### VS Code Debugging
-
-
-
 
 1. Install the Go extension for VS Code
 2. Set breakpoints in your code
@@ -471,9 +397,6 @@ Use Tailwind utility classes directly in templates:
 4. Or use the "Launch Package" configuration
 
 ### Docker Debugging
-
-
-
 
 ```bash
 # View container logs
@@ -496,9 +419,6 @@ go run ./cmd/server
 ```
 
 ### Common Issues
-
-
-
 
 **Port already in use:**
 ```bash
@@ -528,9 +448,6 @@ make dev
 
 ## 📚 Additional Resources
 
-
-
-
 - [Fiber Documentation](https://docs.gofiber.io/)
 - [GORM Documentation](https://gorm.io/docs/)
 - [Alpine.js Documentation](https://alpinejs.dev/)
@@ -538,9 +455,6 @@ make dev
 - [Air Documentation](https://github.com/cosmtrek/air)
 
 ## 🤝 Contributing
-
-
-
 
 1. Create a new branch: `git checkout -b feature/my-feature`
 2. Make your changes
@@ -551,9 +465,6 @@ make dev
 7. Create Pull Request
 
 ## 📝 Coding Guidelines
-
-
-
 
 See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for detailed coding standards.
 

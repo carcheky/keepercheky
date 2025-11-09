@@ -138,7 +138,7 @@ Si después de este fix los badges TODAVÍA aparecen vacíos o sin información 
 
 ### Causa 1: Base de Datos Vacía o Desactualizada
 **Síntoma**: No hay archivos o archivos sin metadata
-**Solución**: 
+**Solución**:
 1. Ir a `/files`
 2. Click en botón "Sincronizar"
 3. Esperar que complete (sigue progreso en pantalla)
@@ -215,7 +215,7 @@ En DevTools:
 
 1. **c3c7d87**: `fix(frontend): add colorClasses getter to healthStatusBadge component`
    - Agregado getter faltante
-   
+
 2. **b7093c6**: `docs: add comprehensive health badges system documentation`
    - Documentación completa del sistema
 

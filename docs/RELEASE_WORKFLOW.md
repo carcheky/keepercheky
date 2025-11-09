@@ -119,7 +119,6 @@ El workflow se activa en:
 
 **Nota:** Este workflow es complementario a `release.yml`. En flujo normal, las imágenes se construyen vía `release.yml`.
 
-
 ## 🏷️ Estrategia de Tags
 
 ### Rama `develop` (pre-release)

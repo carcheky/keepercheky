@@ -428,7 +428,7 @@ localStorage.setItem('filter_presets', JSON.stringify(presets));
 
 ### Backend
 
-1. **Queries eficientes**: 
+1. **Queries eficientes**:
    - Uso de GORM para queries optimizadas
    - Índices en campos filtrados (added_date, excluded, type)
    - Paginación para evitar cargar todo en memoria
