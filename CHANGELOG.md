@@ -1,3 +1,10 @@
+# [1.0.0-dev.34](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.33...v1.0.0-dev.34) (2025-11-09)
+
+
+### Features
+
+* **qbittorrent:** implement bulk torrent actions endpoint ([#101](https://github.com/carcheky/keepercheky/issues/101)) ([ec1e699](https://github.com/carcheky/keepercheky/commit/ec1e699a4dcb5965e96afa91faf6fca2d3322283))
+
 # [1.0.0-dev.33](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.32...v1.0.0-dev.33) (2025-11-09)
 
 
