@@ -149,7 +149,9 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	perPage := c.QueryInt("perPage", 25)
 	tab := c.Query("tab", "")
-	mediaType := c.Query("type", "") // "series" or "movie"
+	typeFilter := c.Query("type", "")       // "movie", "series"
+	search := c.Query("search", "")         // Search query
+	serviceFilter := c.Query("service", "") // Filter by service
 
 	// Validate parameters
 	if page < 1 {
@@ -174,6 +176,63 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 			is_seeding, seed_ratio, excluded
 		`)
 
+	// Apply search filter (minimum 3 characters for performance)
+	if search != "" && len(strings.TrimSpace(search)) >= 3 {
+		searchPattern := "%" + search + "%"
+
+		// Use case-insensitive search
+		dialectName := h.mediaRepo.GetDB().Dialector.Name()
+		if dialectName == "postgres" {
+			query = query.Where(
+				"title ILIKE ? OR file_path ILIKE ? OR torrent_hash ILIKE ?",
+				searchPattern, searchPattern, searchPattern,
+			)
+		} else {
+			query = query.Where(
+				"title LIKE ? OR file_path LIKE ? OR torrent_hash LIKE ?",
+				searchPattern, searchPattern, searchPattern,
+			)
+		}
+	}
+
+	// Apply type filter
+	if typeFilter != "" {
+		switch typeFilter {
+		case "movie":
+			query = query.Where("type = ?", "movie")
+		case "series":
+			// Include both series and episode types for series filter
+			query = query.Where("type IN (?)", []string{"series", "episode"})
+		default:
+			h.logger.Warn("Invalid typeFilter value provided",
+				zap.String("typeFilter", typeFilter),
+			)
+			// No filter applied for invalid value
+		}
+	}
+
+	// Apply service filter
+	if serviceFilter != "" {
+		switch serviceFilter {
+		case "qbittorrent":
+			query = query.Where("in_q_bittorrent = ?", true)
+		case "radarr":
+			query = query.Where("in_radarr = ?", true)
+		case "sonarr":
+			query = query.Where("in_sonarr = ?", true)
+		case "jellyfin":
+			query = query.Where("in_jellyfin = ?", true)
+		case "orphan":
+			query = query.Where("in_q_bittorrent = ? AND in_radarr = ? AND in_sonarr = ? AND in_jellyfin = ?",
+				true, false, false, false)
+		default:
+			h.logger.Warn("Invalid serviceFilter value provided",
+				zap.String("serviceFilter", serviceFilter),
+			)
+			// No filter applied for invalid value
+		}
+	}
+
 	// Apply tab filtering (same as regular files API)
 	switch tab {
 	case "attention":
@@ -190,13 +249,6 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 		query = query.Where("in_jellyfin = ? AND (in_radarr = ? OR in_sonarr = ?)",
 			true, true, true).
 			Where("(torrent_state IS NULL OR torrent_state NOT IN (?, ?))", "error", "missingFiles")
-	}
-
-	// Apply media type filter
-	if mediaType == "series" {
-		query = query.Where("type = ?", "series")
-	} else if mediaType == "movie" {
-		query = query.Where("type = ?", "movie")
 	}
 
 	// Get all matching files (we'll organize them in memory)
@@ -255,7 +307,7 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 		zap.Int("returned_series", len(response.Series)),
 		zap.Int("returned_movies", len(response.Movies)),
 		zap.String("tab", tab),
-		zap.String("type_filter", mediaType),
+		zap.String("type_filter", typeFilter),
 	)
 
 	return c.JSON(fiber.Map{

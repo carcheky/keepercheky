@@ -17,6 +17,31 @@
 
 ---
 
+## 🔗 CRITICAL: PR and Issue Linking
+
+**⚠️ WHEN CREATING A PR FROM AN ASSIGNED ISSUE:**
+
+**ALWAYS start PR description with:**
+```markdown
+Closes #[ISSUE_NUMBER]
+```
+
+**Why:** This automatically links and closes the issue when PR is merged.
+
+**Supported keywords:** `Closes`, `Fixes`, `Resolves` (with or without `:`)
+
+**Example:**
+```markdown
+Closes #42
+
+## Summary
+Implemented feature X...
+```
+
+**⚠️ NEVER create a PR without linking it to its issue!**
+
+---
+
 ## 📂 Project Structure
 
 ```txt

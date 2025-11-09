@@ -122,28 +122,11 @@
         </div>
     </div>
 
-    <!-- Filtros Avanzados - Búsqueda y Ordenamiento -->
-    <div x-data="{ filtersOpen: false }" 
-        class="mb-6">
-        
-        <button @click="filtersOpen = !filtersOpen"
-            class="flex items-center gap-2 px-4 py-2 bg-dark-surface border border-dark-border rounded-lg hover:bg-slate-700/50 transition-colors">
-            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-90': filtersOpen }" 
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-            <span class="text-dark-text font-medium">🔍 Búsqueda y Filtros</span>
-            <span x-show="searchQuery || sortBy !== 'file_path' || sortOrder !== 'asc'" 
-                class="px-2 py-0.5 bg-blue-900/40 border border-blue-600/50 text-blue-300 rounded text-xs">
-                activos
-            </span>
-        </button>
-        
-        <div x-show="filtersOpen" 
-            x-transition
-            class="mt-2 bg-dark-surface border border-dark-border rounded-lg p-6 space-y-4">
+    <!-- Filtros Avanzados - Búsqueda, Filtros y Ordenamiento -->
+    <div class="mb-6">
+        <div class="bg-dark-surface border border-dark-border rounded-lg p-6 space-y-4">
             
-            <!-- Search Input -->
+            <!-- Search Input - Always Visible -->
             <div class="flex items-center gap-4">
                 <div class="flex-1">
                     <label class="block text-sm font-medium text-dark-text mb-2">
@@ -152,7 +135,7 @@
                     <input type="text" 
                         x-model="searchQuery" 
                         @input.debounce.300ms="handleSearchChange()" 
-                        placeholder="Buscar por título, ruta o hash de torrent..."
+                        placeholder="Buscar por título, ruta o hash de torrent (mínimo 3 caracteres)..."
                         aria-label="Buscar archivos"
                         aria-describedby="search-help"
                         class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-muted focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -162,8 +145,40 @@
                     :class="searchQuery ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
                     :disabled="!searchQuery"
                     class="px-4 py-2 text-white rounded-lg transition-colors self-end">
-                    Limpiar búsqueda
+                    Limpiar
                 </button>
+            </div>
+            
+            <!-- Type and Service Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-dark-text mb-2">
+                        🎬 Filtrar por tipo
+                    </label>
+                    <select x-model="filterType" @change="handleFilterChange()"
+                        aria-label="Filtrar por tipo de contenido"
+                        class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="">Todos (películas y series)</option>
+                        <option value="movie">Solo películas</option>
+                        <option value="series">Solo series</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-dark-text mb-2">
+                        🔧 Filtrar por servicio
+                    </label>
+                    <select x-model="filterService" @change="handleFilterChange()"
+                        aria-label="Filtrar por servicio"
+                        class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="">Todos los servicios</option>
+                        <option value="qbittorrent">Solo en qBittorrent</option>
+                        <option value="radarr">Solo en Radarr</option>
+                        <option value="sonarr">Solo en Sonarr</option>
+                        <option value="jellyfin">Solo en Jellyfin</option>
+                        <option value="orphan">Huérfanos (sin gestionar)</option>
+                    </select>
+                </div>
             </div>
             
             <!-- Sort Controls -->
@@ -199,17 +214,28 @@
                 </div>
             </div>
             
+            <!-- Filter Status and Reset -->
             <div class="flex items-center justify-between pt-2 border-t border-dark-border">
-                <div id="search-help" class="text-xs text-dark-muted space-y-1">
-                    <p>💡 La búsqueda filtra todos los resultados (no solo la página actual).</p>
-                    <p>💡 Combina búsqueda con las pestañas (OK, Atención, Críticos, etc.) para filtrar por categoría.</p>
+                <div class="flex items-center gap-3">
+                    <span x-show="hasActiveFilters" class="text-sm text-blue-400 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        <span x-text="activeFilterCount"></span> filtro(s) activo(s)
+                    </span>
+                    <div id="search-help" class="text-xs text-dark-muted">
+                        💡 Combina filtros con las pestañas para búsqueda avanzada
+                    </div>
                 </div>
                 
                 <button @click="resetFiltersAndSort()"
-                    :class="(searchQuery || sortBy !== 'file_path' || sortOrder !== 'asc') ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
-                    :disabled="!searchQuery && sortBy === 'file_path' && sortOrder === 'asc'"
-                    class="px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap">
-                    🔄 Restablecer todo
+                    :class="hasActiveFilters ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
+                    :disabled="!hasActiveFilters"
+                    class="px-4 py-2 text-white rounded-lg transition-colors whitespace-nowrap flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Limpiar filtros</span>
                 </button>
             </div>
         </div>
@@ -315,20 +341,104 @@
         </div>
     </div>
 
-    <!-- Paginación Info -->
-    <div x-show="viewMode === 'list' && totalCount > 0" class="flex items-center justify-between mb-4 px-2">
-        <div class="text-sm text-dark-muted">
-            Mostrando <span x-text="paginationStart"></span> - <span x-text="paginationEnd"></span> de <span x-text="totalCount"></span> archivo(s)
-        </div>
-        <div class="flex items-center gap-2">
-            <label class="text-sm text-dark-muted">Por página:</label>
-            <select x-model.number="itemsPerPage"
-                class="px-3 py-1 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
+    <!-- Paginación Mejorada -->
+    <div x-show="viewMode === 'list' && totalCount > 0" class="mb-6">
+        <div class="bg-dark-surface border border-dark-border rounded-lg p-4">
+            <!-- Info y Items Per Page -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-sm text-dark-muted">
+                    Mostrando <span class="font-medium text-dark-text" x-text="paginationStart"></span> - 
+                    <span class="font-medium text-dark-text" x-text="paginationEnd"></span> de 
+                    <span class="font-medium text-dark-text" x-text="totalCount"></span> archivo(s)
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-dark-muted">Mostrar:</label>
+                    <select x-model.number="itemsPerPage"
+                        class="px-3 py-1.5 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span class="text-sm text-dark-muted">por página</span>
+                </div>
+            </div>
+            
+            <!-- Controles de Paginación -->
+            <div class="flex items-center justify-center gap-1">
+                <!-- Primera Página -->
+                <button @click="currentPage = 1" 
+                    :disabled="currentPage === 1"
+                    :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'"
+                    class="px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm transition-colors disabled:opacity-50"
+                    aria-label="Primera página">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                
+                <!-- Página Anterior -->
+                <button @click="currentPage = Math.max(1, currentPage - 1)" 
+                    :disabled="currentPage === 1"
+                    :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'"
+                    class="px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm transition-colors disabled:opacity-50"
+                    aria-label="Página anterior">
+                    Anterior
+                </button>
+                
+                <!-- Páginas Numeradas -->
+                <div class="flex items-center gap-1 mx-2">
+                    <template x-for="page in visiblePages" :key="page">
+                        <template x-if="page !== '...'">
+                            <button
+                                @click="currentPage = page"
+                                :class="page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-dark-bg text-dark-text border-dark-border hover:bg-slate-700'"
+                                class="px-3 py-2 border rounded-lg text-sm font-medium transition-colors min-w-[40px]"
+                                :aria-label="'Página ' + page"
+                                :aria-current="page === currentPage ? 'page' : null">
+                                <span x-text="page"></span>
+                            </button>
+                        </template>
+                        <span x-if="page === '...'" class="px-2 text-dark-muted">...</span>
+                    </template>
+                </div>
+                
+                <!-- Página Siguiente -->
+                <button @click="currentPage = Math.min(totalPages, currentPage + 1)" 
+                    :disabled="currentPage === totalPages"
+                    :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'"
+                    class="px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm transition-colors disabled:opacity-50"
+                    aria-label="Página siguiente">
+                    Siguiente
+                </button>
+                
+                <!-- Última Página -->
+                <button @click="currentPage = totalPages" 
+                    :disabled="currentPage === totalPages"
+                    :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700'"
+                    class="px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text text-sm transition-colors disabled:opacity-50"
+                    aria-label="Última página">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Quick Jump (opcional, solo si hay muchas páginas) -->
+            <div x-show="totalPages > 10" class="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-dark-border">
+                <label class="text-sm text-dark-muted">Ir a página:</label>
+                <input type="number" 
+                    x-model.number="jumpToPage" 
+                    @keyup.enter="goToPage(jumpToPage)"
+                    :min="1" 
+                    :max="totalPages"
+                    placeholder="Nº"
+                    class="w-20 px-2 py-1 bg-dark-bg border border-dark-border rounded text-dark-text text-sm text-center focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <button @click="goToPage(jumpToPage)"
+                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors">
+                    Ir
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1765,6 +1875,13 @@ function filesPage() {
         sortBy: 'file_path',
         sortOrder: 'asc',
         
+        // Filter properties (server-side)
+        filterType: '',      // '', 'movie', 'series'
+        filterService: '',   // '', 'qbittorrent', 'radarr', 'sonarr', 'jellyfin', 'orphan'
+        
+        // Quick jump to page
+        jumpToPage: 1,
+        
         // Selection properties
         selectedFiles: [],
 
@@ -2271,6 +2388,24 @@ function filesPage() {
             return '';
         },
 
+        // Computed properties for filter state
+        get hasActiveFilters() {
+            return this.searchQuery.trim() !== '' || 
+                   this.filterType !== '' || 
+                   this.filterService !== '' ||
+                   this.sortBy !== 'file_path' || 
+                   this.sortOrder !== 'asc';
+        },
+        
+        get activeFilterCount() {
+            let count = 0;
+            if (this.searchQuery.trim() !== '') count++;
+            if (this.filterType !== '') count++;
+            if (this.filterService !== '') count++;
+            if (this.sortBy !== 'file_path' || this.sortOrder !== 'asc') count++;
+            return count;
+        },
+        
         // Search and sorting handlers
         handleSearchChange() {
             // Reset to page 1 when search changes
@@ -2284,6 +2419,12 @@ function filesPage() {
             this.loadFiles();
         },
         
+        handleFilterChange() {
+            // Reset to page 1 when filters change
+            this.currentPage = 1;
+            this.loadFiles();
+        },
+        
         clearSearch() {
             this.searchQuery = '';
             this.currentPage = 1;
@@ -2292,10 +2433,23 @@ function filesPage() {
         
         resetFiltersAndSort() {
             this.searchQuery = '';
+            this.filterType = '';
+            this.filterService = '';
             this.sortBy = 'file_path';
             this.sortOrder = 'asc';
             this.currentPage = 1;
             this.loadFiles();
+        },
+        
+        goToPage(pageNum) {
+            const page = parseInt(pageNum);
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+                this.jumpToPage = page;
+            } else {
+                // Always sync jumpToPage to currentPage if invalid
+                this.jumpToPage = this.currentPage;
+            }
         },
         
         async loadServiceUrls() {
@@ -2345,9 +2499,19 @@ function filesPage() {
                     params.append('tab', this.selectedTab);
                 }
                 
-                // Add search query if provided
-                if (this.searchQuery && this.searchQuery.trim() !== '') {
+                // Add search query if provided (minimum 3 characters)
+                if (this.searchQuery && this.searchQuery.trim().length >= 3) {
                     params.append('search', this.searchQuery.trim());
+                }
+                
+                // Add type filter if provided
+                if (this.filterType && this.filterType !== '') {
+                    params.append('type', this.filterType);
+                }
+                
+                // Add service filter if provided
+                if (this.filterService && this.filterService !== '') {
+                    params.append('service', this.filterService);
                 }
                 
                 // Add sorting parameters
