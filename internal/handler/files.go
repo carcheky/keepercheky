@@ -728,11 +728,19 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 			is_seeding, seed_ratio, excluded
 		`)
 
-	// Apply search filter if provided
-	if search != "" {
+	// Apply search filter if provided (minimum 3 characters for performance)
+	if search != "" && len(strings.TrimSpace(search)) >= 3 {
 		searchPattern := "%" + search + "%"
+		
+		// Use case-insensitive search: ILIKE for PostgreSQL, LIKE for SQLite
+		dialectName := h.mediaRepo.GetDB().Dialector.Name()
+		likeOperator := "LIKE"
+		if dialectName == "postgres" {
+			likeOperator = "ILIKE"
+		}
+		
 		query = query.Where(
-			"title LIKE ? OR file_path LIKE ? OR torrent_hash LIKE ?",
+			fmt.Sprintf("title %s ? OR file_path %s ? OR torrent_hash %s ?", likeOperator, likeOperator, likeOperator),
 			searchPattern, searchPattern, searchPattern,
 		)
 	}

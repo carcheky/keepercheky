@@ -151,8 +151,10 @@
                     </label>
                     <input type="text" 
                         x-model="searchQuery" 
-                        @input.debounce.500ms="handleSearchChange()" 
+                        @input.debounce.300ms="handleSearchChange()" 
                         placeholder="Buscar por título, ruta o hash de torrent..."
+                        aria-label="Buscar archivos"
+                        aria-describedby="search-help"
                         class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-muted focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 </div>
                 
@@ -160,7 +162,7 @@
                     :class="searchQuery ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-800 cursor-not-allowed opacity-50'"
                     :disabled="!searchQuery"
                     class="px-4 py-2 text-white rounded-lg transition-colors self-end">
-                    Limpiar
+                    Limpiar búsqueda
                 </button>
             </div>
             
@@ -171,6 +173,7 @@
                         📊 Ordenar por
                     </label>
                     <select x-model="sortBy" @change="handleSortChange()"
+                        aria-label="Ordenar archivos por"
                         class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         <option value="file_path">Ruta del archivo</option>
                         <option value="title">Título</option>
@@ -188,6 +191,7 @@
                         🔄 Orden
                     </label>
                     <select x-model="sortOrder" @change="handleSortChange()"
+                        aria-label="Dirección de ordenamiento"
                         class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         <option value="asc">Ascendente (A → Z, 0 → 9)</option>
                         <option value="desc">Descendente (Z → A, 9 → 0)</option>
@@ -196,7 +200,7 @@
             </div>
             
             <div class="flex items-center justify-between pt-2 border-t border-dark-border">
-                <div class="text-xs text-dark-muted space-y-1">
+                <div id="search-help" class="text-xs text-dark-muted space-y-1">
                     <p>💡 La búsqueda filtra todos los resultados (no solo la página actual).</p>
                     <p>💡 Combina búsqueda con las pestañas (OK, Atención, Críticos, etc.) para filtrar por categoría.</p>
                 </div>
