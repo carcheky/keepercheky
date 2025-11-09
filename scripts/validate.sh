@@ -108,9 +108,9 @@ else
             COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
             print_success "Tests passed - Coverage: ${COVERAGE}"
             
-            # Warn if coverage is low
-            COVERAGE_NUM=$(echo $COVERAGE | sed 's/%//')
-            if (( $(echo "$COVERAGE_NUM < 50" | bc -l) )); then
+            # Warn if coverage is low (using bash arithmetic, convert to integer)
+            COVERAGE_NUM=$(echo $COVERAGE | sed 's/%//' | cut -d. -f1)
+            if [ "$COVERAGE_NUM" -lt 50 ] 2>/dev/null; then
                 print_warning "Coverage is below 50% - consider adding more tests"
             fi
         else
