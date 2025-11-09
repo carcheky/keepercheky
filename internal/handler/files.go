@@ -734,15 +734,19 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		
 		// Use case-insensitive search: ILIKE for PostgreSQL, LIKE for SQLite
 		dialectName := h.mediaRepo.GetDB().Dialector.Name()
-		likeOperator := "LIKE"
 		if dialectName == "postgres" {
-			likeOperator = "ILIKE"
+			// PostgreSQL: use ILIKE for case-insensitive search
+			query = query.Where(
+				"title ILIKE ? OR file_path ILIKE ? OR torrent_hash ILIKE ?",
+				searchPattern, searchPattern, searchPattern,
+			)
+		} else {
+			// SQLite: LIKE is already case-insensitive by default
+			query = query.Where(
+				"title LIKE ? OR file_path LIKE ? OR torrent_hash LIKE ?",
+				searchPattern, searchPattern, searchPattern,
+			)
 		}
-		
-		query = query.Where(
-			fmt.Sprintf("title %s ? OR file_path %s ? OR torrent_hash %s ?", likeOperator, likeOperator, likeOperator),
-			searchPattern, searchPattern, searchPattern,
-		)
 	}
 
 	// Apply tab filtering
