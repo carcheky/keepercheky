@@ -318,8 +318,8 @@ Se implementó exitosamente un **sistema de progreso en tiempo real** que:
 
 ## 📞 Contacto
 
-- **Issue relacionado**: #[número]
-- **Pull Request**: #[número]
+- **Issue relacionado**: #94
+- **Pull Request**: #102
 - **Implementado por**: GitHub Copilot Agent
 - **Revisado por**: [Pendiente]
 - **Fecha**: 2025-11-09

@@ -349,5 +349,5 @@ make validate-quick
 ---
 
 **Implementación completada el**: 2025-11-09  
-**Issue relacionado**: #[número del issue]  
-**Pull Request**: #[número del PR]
+**Issue relacionado**: #94  
+**Pull Request**: #102
