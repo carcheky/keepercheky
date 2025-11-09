@@ -1,18 +1,33 @@
 # KeeperCheky Development Guide
 
+
+
+
 > **Estado Actual**: v1.0.0-dev.17 - Desarrollo activo con la mayoría de features implementadas
 
 ## 🚀 Quick Start
 
+
+
+
 ## ✅ What's Implemented
 
+
+
+
 ### Backend Services (Go)
+
+
+
 - ✅ **Core Application** - Fiber v2 web server con hot-reload
 - ✅ **Database** - GORM v2 con SQLite/PostgreSQL
 - ✅ **Configuration** - Sistema de config con Viper (YAML + env vars)
 - ✅ **Logging** - Structured logging con niveles configurables
 
 ### Service Integrations
+
+
+
 - ✅ **Radarr** - System info, queue, history, calendar, quality profiles
 - ✅ **Sonarr** - System info, queue, history, calendar, quality profiles
 - ✅ **Jellyfin** - Stats, sessions, recently added, activity
@@ -22,6 +37,9 @@
 - ✅ **qBittorrent** - Transfer info, server state, active torrents, torrent properties
 
 ### Frontend (Alpine.js + Tailwind)
+
+
+
 - ✅ **Dashboard** - Real-time stats, service health, activity timeline
 - ✅ **Files/Health** - Storage health analysis, orphan detection, bulk actions
 - ✅ **Media** - Library browser, filters, bulk delete, detailed views
@@ -30,6 +48,9 @@
 - 🚧 **Logs** - Template ready, real-time streaming pending
 
 ### API Endpoints
+
+
+
 - ✅ `/api/media` - Media CRUD operations
 - ✅ `/api/files` - File operations and health analysis
 - ✅ `/api/stats` - Dashboard statistics
@@ -39,6 +60,9 @@
 - ✅ `/health` - Application health check
 
 ### Features
+
+
+
 - ✅ Dry-run mode (safe testing)
 - ✅ Exclusion tags
 - ✅ File health analysis
@@ -51,12 +75,18 @@
 
 ### Prerequisites
 
+
+
+
 - Docker 28.5+ installed
 - Docker Compose V2
 - 2GB RAM available
 - ~500MB disk space
 
 ### First-Time Setup
+
+
+
 
 1. **Clone the repository**
    ```bash
@@ -80,26 +110,53 @@
 
 ## 🛠️ Development Workflow
 
+
+
+
 ### Using Hot-Reload (Recommended)
+
+
+
 
 The development environment uses [Air](https://github.com/cosmtrek/air) for automatic hot-reload:
 
 ```bash
 # Start with hot-reload
+
+
+
 make dev
 
 # The server will automatically restart when you edit:
+
+
+
 # - Go files (*.go)
+
+
+
 # - Templates (*.html)
+
+
+
 # - Config files (*.yaml)
+
+
+
 ```
 
 ### Using Docker Compose Watch (Docker 28+)
+
+
+
 
 Docker 28+ includes a `watch` feature that syncs file changes:
 
 ```bash
 # Start with compose watch
+
+
+
 make dev-watch
 ```
 
@@ -112,27 +169,51 @@ make dev-watch
 
 ### Useful Commands
 
+
+
+
 ```bash
 # View logs
+
+
+
 make logs
 
 # Open shell in container
+
+
+
 make shell
 
 # Run tests
+
+
+
 make test
 
 # Format code
+
+
+
 make fmt
 
 # Stop server
+
+
+
 make stop
 
 # Clean everything
+
+
+
 make clean
 ```
 
 ## 📁 Project Structure
+
+
+
 
 ```
 keepercheky/
@@ -185,27 +266,45 @@ keepercheky/
 
 ## 🔧 Configuration
 
+
+
+
 ### Environment Variables
+
+
+
 
 The application uses environment variables with the prefix `KEEPERCHEKY_`:
 
 ```bash
 # App
+
+
+
 KEEPERCHEKY_APP_ENVIRONMENT=development
 KEEPERCHEKY_APP_LOG_LEVEL=debug
 KEEPERCHEKY_APP_DRY_RUN=true
 KEEPERCHEKY_APP_LEAVING_SOON_DAYS=7
 
 # Server
+
+
+
 KEEPERCHEKY_SERVER_PORT=8000
 KEEPERCHEKY_SERVER_HOST=0.0.0.0
 
 # Database
+
+
+
 KEEPERCHEKY_DATABASE_TYPE=sqlite
 KEEPERCHEKY_DATABASE_PATH=./data/dev.db
 ```
 
 ### Configuration File
+
+
+
 
 Alternatively, create `config/config.yaml`:
 
@@ -246,20 +345,38 @@ clients:
 
 ## 🧪 Testing
 
+
+
+
 ### Running Tests
+
+
+
 
 ```bash
 # All tests
+
+
+
 make test
 
 # With coverage
+
+
+
 make test-coverage
 
 # Specific package
+
+
+
 go test -v ./internal/service/...
 ```
 
 ### Writing Tests
+
+
+
 
 Follow the standard Go testing conventions:
 
@@ -290,7 +407,13 @@ func TestMediaRepository_GetAll(t *testing.T) {
 
 ## 🎨 Frontend Development
 
+
+
+
 ### Alpine.js Components
+
+
+
 
 Create reactive components in templates:
 
@@ -321,6 +444,9 @@ function mediaList() {
 
 ### Tailwind CSS
 
+
+
+
 Use Tailwind utility classes directly in templates:
 
 ```html
@@ -331,7 +457,13 @@ Use Tailwind utility classes directly in templates:
 
 ## 🐛 Debugging
 
+
+
+
 ### VS Code Debugging
+
+
+
 
 1. Install the Go extension for VS Code
 2. Set breakpoints in your code
@@ -340,37 +472,64 @@ Use Tailwind utility classes directly in templates:
 
 ### Docker Debugging
 
+
+
+
 ```bash
 # View container logs
+
+
+
 make logs
 
 # Open shell in container
+
+
+
 make shell
 
 # Inside container, you can:
+
+
+
 go run ./cmd/server
 ```
 
 ### Common Issues
 
+
+
+
 **Port already in use:**
 ```bash
 # Find and kill process using port 8000
+
+
+
 lsof -ti:8000 | xargs kill -9
 
 # Or use a different port
+
+
+
 KEEPERCHEKY_SERVER_PORT=8001 make dev
 ```
 
 **Database locked:**
 ```bash
 # Stop all containers and clean
+
+
+
 make clean
 make init
 make dev
 ```
 
 ## 📚 Additional Resources
+
+
+
 
 - [Fiber Documentation](https://docs.gofiber.io/)
 - [GORM Documentation](https://gorm.io/docs/)
@@ -379,6 +538,9 @@ make dev
 - [Air Documentation](https://github.com/cosmtrek/air)
 
 ## 🤝 Contributing
+
+
+
 
 1. Create a new branch: `git checkout -b feature/my-feature`
 2. Make your changes
@@ -389,6 +551,9 @@ make dev
 7. Create Pull Request
 
 ## 📝 Coding Guidelines
+
+
+
 
 See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for detailed coding standards.
 

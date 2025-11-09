@@ -24,9 +24,10 @@ help:
 	@echo "Validation (run before commit):"
 	@echo "  make validate      - 🔍 Full validation (format, vet, test, lint)"
 	@echo "  make validate-quick - ⚡ Quick validation (format, vet, test)"
-	@echo "  make check-and-fix - 🔧 Auto-fix + validate"
+	@echo "  make check-and-fix - 🔧 Auto-fix + validate (Go + Markdown)"
 	@echo "  make lint-check    - Check code format"
 	@echo "  make lint-fix      - Fix code format"
+	@echo "  make markdown-fix  - 📝 Auto-fix Markdown formatting"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean        - Clean build artifacts"
@@ -149,7 +150,7 @@ lint:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Validate all code (format, vet, test, lint) - RUN BEFORE COMMIT
-validate: lint-fix
+validate: lint-fix markdown-fix
 	@bash scripts/validate.sh
 
 # Quick validation (format + vet + test) - Fast pre-commit check
@@ -185,12 +186,17 @@ vet:
 	@echo "✅ Go vet passed"
 
 # Check and fix common issues, then validate
-check-and-fix: lint-fix mod-tidy validate-quick
+check-and-fix: lint-fix mod-tidy markdown-fix validate-quick
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "✅ All fixes applied and validated!"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "👍 Ready to commit"
+
+# Fix Markdown formatting issues
+markdown-fix:
+	@echo "📝 Fixing Markdown formatting..."
+	@./scripts/fix-markdown.sh
 
 # Tidy go modules
 mod-tidy:
