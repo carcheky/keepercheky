@@ -84,7 +84,7 @@ for movie_info in "${downloaded_movies[@]}"; do
     IFS='|' read -r folder_name file_name size <<< "$movie_info"
     filepath="$DOWNLOADS_MOVIES_DIR/$folder_name/$file_name"
     echo "  ✓ Descarga: movies/$folder_name/$file_name ($size MB)"
-    create_file "$filepath" $size
+    create_file "$filepath" "$size"
 done
 
 echo ""
@@ -152,15 +152,15 @@ for series_folder in "${!downloaded_series[@]}"; do
     
     echo "  📁 Serie: tv/$series_folder ($num_episodes episodios)"
     
-    for episode in $(seq 1 $num_episodes); do
+    for episode in $(seq 1 "$num_episodes"); do
         # Extraer nombre de la serie y temporada del nombre de carpeta
         if [[ $series_folder =~ ^(.+)\.S([0-9]+)\. ]]; then
             series_name="${BASH_REMATCH[1]}"
             season_num="${BASH_REMATCH[2]}"
             
-            episode_file="$series_path/${series_name}.S${season_num}E$(printf %02d $episode).1080p.mkv"
+            episode_file="$series_path/${series_name}.S${season_num}E$(printf %02d "$episode").1080p.mkv"
             size=$((RANDOM % 400 + 800))
-            create_file "$episode_file" $size
+            create_file "$episode_file" "$size"
         fi
     done
 done
@@ -182,7 +182,7 @@ for mapping in "${series_mappings[@]}"; do
     IFS='|' read -r download_folder library_name season_num <<< "$mapping"
     
     source_dir="$DOWNLOADS_TV_DIR/$download_folder"
-    target_dir="$TVSHOWS_DIR/$library_name/Season $(printf %02d $season_num)"
+    target_dir="$TVSHOWS_DIR/$library_name/Season $(printf %02d "$season_num")"
     
     mkdir -p "$target_dir"
     
@@ -195,7 +195,7 @@ for mapping in "${series_mappings[@]}"; do
             # Extraer número de episodio del nombre del archivo
             if [[ $(basename "$source_file") =~ E([0-9]+) ]]; then
                 ep_num="${BASH_REMATCH[1]}"
-                target_file="$target_dir/${library_name} - S$(printf %02d $season_num)E${ep_num} - 1080p.mkv"
+                target_file="$target_dir/${library_name} - S$(printf %02d "$season_num")E${ep_num} - 1080p.mkv"
                 create_hardlink "$source_file" "$target_file"
             fi
         fi
@@ -214,15 +214,15 @@ declare -a library_only_series=(
 for series_info in "${library_only_series[@]}"; do
     IFS='|' read -r show_name season_num num_episodes <<< "$series_info"
     
-    season_dir="$TVSHOWS_DIR/$show_name/Season $(printf %02d $season_num)"
+    season_dir="$TVSHOWS_DIR/$show_name/Season $(printf %02d "$season_num")"
     mkdir -p "$season_dir"
     
     echo "  ✓ $show_name - Temporada $season_num ($num_episodes episodios)"
     
-    for episode in $(seq 1 $num_episodes); do
-        episode_file="$season_dir/${show_name} - S$(printf %02d $season_num)E$(printf %02d $episode) - 1080p.mkv"
+    for episode in $(seq 1 "$num_episodes"); do
+        episode_file="$season_dir/${show_name} - S$(printf %02d "$season_num")E$(printf %02d "$episode") - 1080p.mkv"
         size=$((RANDOM % 400 + 800))
-        create_file "$episode_file" $size
+        create_file "$episode_file" "$size"
     done
 done
 

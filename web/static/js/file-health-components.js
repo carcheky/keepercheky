@@ -284,6 +284,11 @@ function fileHealthCard(file, healthReport) {
                         throw new Error(`Acción desconocida: ${action}`);
                 }
                 
+                // Validate endpoint before making request (SSRF protection)
+                if (!endpoint.startsWith('/api/files/')) {
+                    throw new Error('Endpoint inválido');
+                }
+                
                 const response = await fetch(endpoint, { method });
                 
                 if (!response.ok) {
@@ -739,6 +744,11 @@ function bulkActions(initialSelectedFiles = []) {
                     break;
                 default:
                     throw new Error(`Acción desconocida: ${action}`);
+            }
+            
+            // Validate endpoint before making request (SSRF protection)
+            if (!endpoint.startsWith('/api/files/')) {
+                throw new Error('Endpoint inválido');
             }
             
             const response = await fetch(endpoint, { method });
