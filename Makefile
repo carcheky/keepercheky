@@ -149,7 +149,7 @@ lint:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Validate all code (format, vet, test, lint) - RUN BEFORE COMMIT
-validate:
+validate: lint-fix
 	@bash scripts/validate.sh
 
 # Quick validation (format + vet + test) - Fast pre-commit check
