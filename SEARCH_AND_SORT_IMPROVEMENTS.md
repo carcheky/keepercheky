@@ -9,6 +9,7 @@ Se han implementado mejoras significativas en la navegación de la vista de list
 ### 1. Búsqueda del Lado del Servidor (Issue #92.2)
 
 **Backend (`/api/files`):**
+
 - Nuevo parámetro query: `search`
 - Búsqueda en múltiples campos:
   - `title` - Título del archivo
@@ -18,6 +19,7 @@ Se han implementado mejoras significativas en la navegación de la vista de list
 - Compatible con paginación y filtros por tab
 
 **Frontend:**
+
 - Input de búsqueda con debounce de 500ms
 - Indicador visual cuando hay búsqueda activa
 - Búsqueda integrada con el servidor (no solo filtrado de cliente)
@@ -27,6 +29,7 @@ Se han implementado mejoras significativas en la navegación de la vista de list
 ### 2. Ordenamiento Mejorado (Issue #92.4)
 
 **Nuevos Campos de Ordenamiento:**
+
 - `file_path` - Ruta del archivo (por defecto)
 - `title` - Título
 - `size` - Tamaño
@@ -37,13 +40,15 @@ Se han implementado mejoras significativas en la navegación de la vista de list
 - `torrent_state` - ⭐ **NUEVO**: Estado del torrent
 
 **Dirección de Ordenamiento:**
+
 - Ascendente (A → Z, 0 → 9)
 - Descendente (Z → A, 9 → 0)
 
 ### 3. UI/UX Mejorada
 
 **Sección de Filtros Colapsable:**
-```
+
+```text
 🔍 Búsqueda y Filtros [activos]
 └── 🔎 Buscar archivos
     └── Input con placeholder: "Buscar por título, ruta o hash de torrent..."
@@ -56,6 +61,7 @@ Se han implementado mejoras significativas en la navegación de la vista de list
 ```
 
 **Indicadores Visuales:**
+
 - Badge "activos" cuando hay filtros aplicados
 - Indicador de número de resultados encontrados
 - Información contextual sobre funcionamiento
@@ -63,6 +69,7 @@ Se han implementado mejoras significativas en la navegación de la vista de list
 ## 📊 Paginación (Ya Existía)
 
 La paginación avanzada ya estaba implementada:
+
 - ✅ Botones Primera/Última página
 - ✅ Páginas numeradas con ellipsis (...)
 - ✅ Información de rango (Mostrando X - Y de Z)
@@ -127,24 +134,28 @@ resetFiltersAndSort() {
 ## 🎯 Casos de Uso
 
 ### Ejemplo 1: Buscar película específica
+
 1. Click en "🔍 Búsqueda y Filtros"
 2. Escribir título en el input de búsqueda
 3. Esperar 500ms (debounce automático)
 4. Ver resultados filtrados en tiempo real
 
 ### Ejemplo 2: Encontrar archivos grandes
+
 1. Click en "🔍 Búsqueda y Filtros"
 2. Ordenar por: "Tamaño"
 3. Orden: "Descendente"
 4. Ver archivos más grandes primero
 
 ### Ejemplo 3: Ver archivos recientes
+
 1. Click en "🔍 Búsqueda y Filtros"
 2. Ordenar por: "Fecha de agregado"
 3. Orden: "Descendente"
 4. Ver archivos más recientes primero
 
 ### Ejemplo 4: Combinar búsqueda con filtros
+
 1. Click en tab "Atención" (orphan downloads)
 2. Click en "🔍 Búsqueda y Filtros"
 3. Buscar: "1080p"
@@ -160,11 +171,13 @@ resetFiltersAndSort() {
 ## 📝 Notas Técnicas
 
 ### Validación de Seguridad
+
 - Campos de ordenamiento validados en whitelist
 - Protección contra SQL injection con placeholders
 - Validación de parámetros de paginación
 
 ### Compatibilidad
+
 - Compatible con todos los tabs existentes
 - Compatible con vista organizada
 - Compatible con selección masiva
@@ -173,6 +186,7 @@ resetFiltersAndSort() {
 ## 🐛 Testing
 
 ### Tests Ejecutados
+
 ```bash
 go test ./internal/handler/... -v
 ```
@@ -180,6 +194,7 @@ go test ./internal/handler/... -v
 **Resultado:** ✅ Todos los tests pasan
 
 ### Validación Manual Pendiente
+
 - [ ] Verificar búsqueda en diferentes campos
 - [ ] Verificar ordenamiento por cada campo
 - [ ] Verificar combinación búsqueda + tabs
@@ -198,14 +213,16 @@ go test ./internal/handler/... -v
 
 ## 🎨 Capturas de Pantalla
 
-_Pendiente: Agregar screenshots del UI con los cambios_
+**Nota:** Pendiente agregar screenshots del UI con los cambios
 
 ### Antes
+
 - Búsqueda solo en cliente (página actual)
 - Ordenamiento limitado
 - Sin indicadores visuales de filtros activos
 
 ### Después
+
 - ✅ Búsqueda en servidor (todos los resultados)
 - ✅ Ordenamiento extendido (8 opciones)
 - ✅ Indicadores visuales claros
