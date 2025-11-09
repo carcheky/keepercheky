@@ -677,9 +677,9 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	perPage := c.QueryInt("perPage", 25)
 	sortBy := c.Query("sortBy", "file_path")
 	order := c.Query("order", "asc")
-	tab := c.Query("tab", "")           // Filter by tab: healthy, attention, critical, hardlinks, unwatched
-	search := c.Query("search", "")     // Search query for title, path, or hash
-	typeFilter := c.Query("type", "")   // Filter by type: movie, series
+	tab := c.Query("tab", "")               // Filter by tab: healthy, attention, critical, hardlinks, unwatched
+	search := c.Query("search", "")         // Search query for title, path, or hash
+	typeFilter := c.Query("type", "")       // Filter by type: movie, series
 	serviceFilter := c.Query("service", "") // Filter by service: qbittorrent, radarr, sonarr, jellyfin, orphan
 
 	// Validate pagination parameters
