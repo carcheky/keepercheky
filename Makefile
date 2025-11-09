@@ -21,10 +21,18 @@ help:
 	@echo "  make test         - Run all tests"
 	@echo "  make test-coverage - Run tests with coverage"
 	@echo ""
+	@echo "Validation (run before commit):"
+	@echo "  make validate      - 🔍 Full validation (format, vet, test, lint)"
+	@echo "  make validate-quick - ⚡ Quick validation (format, vet, test)"
+	@echo "  make check-and-fix - 🔧 Auto-fix + validate"
+	@echo "  make lint-check    - Check code format"
+	@echo "  make lint-fix      - Fix code format"
+	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make fmt          - Format code"
-	@echo "  make lint         - Run linter"
+	@echo "  make lint         - Run linter (golangci-lint)"
+	@echo "  make install-hooks - Install pre-commit git hook"
 	@echo ""
 
 # Development with hot-reload (Air + Docker Compose Watch)
@@ -121,19 +129,90 @@ test:
 # Run tests with coverage
 test-coverage:
 	@echo "🧪 Running tests with coverage..."
-	@go test -v -coverprofile=coverage.out ./...
+	@go test -v -race -coverprofile=coverage.out ./...
 	@go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report: coverage.html"
+	@echo "📊 Coverage report generated: coverage.html"
+	@go tool cover -func=coverage.out | grep total | awk '{print "📈 Total coverage: " $$3}'
 
 # Format code
 fmt:
 	@echo "✨ Formatting code..."
 	@go fmt ./...
 
-# Run linter
+# Run linter (golangci-lint)
 lint:
 	@echo "🔍 Running linter..."
 	@golangci-lint run ./...
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔍 VALIDATION TARGETS - Run before committing
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Validate all code (format, vet, test, lint) - RUN BEFORE COMMIT
+validate:
+	@bash scripts/validate.sh
+
+# Quick validation (format + vet + test) - Fast pre-commit check
+validate-quick: lint-check vet test
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ Quick validation passed!"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Check code format (without modifying files)
+lint-check:
+	@echo "📝 Checking Go code format..."
+	@OUTPUT=$$(gofmt -s -l .); \
+	if [ -n "$$OUTPUT" ]; then \
+		echo "❌ The following files need formatting:"; \
+		echo "$$OUTPUT"; \
+		echo ""; \
+		echo "💡 Run 'make lint-fix' to fix automatically"; \
+		exit 1; \
+	fi
+	@echo "✅ All files are properly formatted"
+
+# Fix code format automatically
+lint-fix:
+	@echo "🔧 Fixing code format..."
+	@gofmt -s -w .
+	@echo "✅ Format applied successfully"
+
+# Run go vet
+vet:
+	@echo "🔍 Running go vet..."
+	@go vet ./...
+	@echo "✅ Go vet passed"
+
+# Check and fix common issues, then validate
+check-and-fix: lint-fix mod-tidy validate-quick
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ All fixes applied and validated!"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "👍 Ready to commit"
+
+# Tidy go modules
+mod-tidy:
+	@echo "📦 Tidying go modules..."
+	@go mod tidy
+	@echo "✅ Dependencies cleaned"
+
+# Install git hooks (optional)
+install-hooks:
+	@echo "📎 Installing git pre-commit hook..."
+	@mkdir -p .git/hooks
+	@cp scripts/pre-commit.sh .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
+	@echo "✅ Pre-commit hook installed"
+	@echo "   Will run 'make validate' before each commit"
+	@echo "   To skip: git commit --no-verify"
+
+# Uninstall git hooks
+uninstall-hooks:
+	@echo "🗑️  Removing git pre-commit hook..."
+	@rm -f .git/hooks/pre-commit
+	@echo "✅ Hook removed"
 
 # Clean build artifacts
 clean:

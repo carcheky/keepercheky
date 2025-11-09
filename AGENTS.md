@@ -68,6 +68,16 @@ keepercheky/
 
 ## ⚡ Quick Commands
 
+### ✅ Validation (ALWAYS run before commit)
+
+```bash
+make validate          # 🔍 Full validation (MANDATORY before commit)
+make validate-quick    # ⚡ Quick check (format, vet, test)
+make check-and-fix     # 🔧 Auto-fix + validate
+make lint-check        # 📝 Check format only
+make lint-fix          # 🛠️ Fix format automatically
+```
+
 ### Build & Test
 
 ```bash
@@ -249,9 +259,12 @@ chore(deps): update dependencies
 
 | Task | Command | Notes |
 |------|---------|-------|
+| **Validate before commit** | `make validate` | ⚠️ **MANDATORY** before every commit |
+| Quick validation | `make validate-quick` | Format, vet, tests |
+| Auto-fix + validate | `make check-and-fix` | Fix format, then validate |
+| Format code | `make lint-fix` | Auto-fix gofmt issues |
 | Build binary | `go build -o bin/keepercheky ./cmd/server` | Development build |
 | Run tests | `go test ./...` | All tests |
-| Format code | `gofmt -w .` | Before committing |
 | Vet code | `go vet ./...` | Static analysis |
 | Read logs | `cat logs/keepercheky-dev.log` | After changes |
 | Tail logs | `tail -f logs/keepercheky-dev.log` | Real-time |
@@ -342,15 +355,22 @@ go.uber.org/zap                      // Structured logging
 
 ## 🎯 Before Committing - Checklist
 
-- [ ] Code runs (if needed, ask user to test)
-- [ ] Tests pass: `go test ./...`
-- [ ] Code is formatted: `gofmt -w .`
-- [ ] No linter errors: `golangci-lint run` (if available)
+- [ ] **RUN `make validate`** ⚠️ MANDATORY
+- [ ] All validation checks pass (format, vet, tests, build)
 - [ ] No sensitive data in code
 - [ ] Error messages are descriptive
 - [ ] Logs use structured logging
 - [ ] Commit message follows Conventional Commits format
 - [ ] Commit message is in **English**
+
+### Quick Pre-Commit Workflow
+
+```bash
+make check-and-fix    # Auto-fix + validate
+git add .
+git commit -m "feat: my changes"
+git push
+```
 
 ---
 

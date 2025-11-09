@@ -100,6 +100,120 @@ Tested locally with...
 
 > **Language Note**: This document is in English for consistency with code and technical documentation. However, **always communicate with users in Spanish** when responding to issues, pull requests, or user interactions.
 
+## ✅ CRITICAL: Pre-Commit Validation
+
+**⚠️ MANDATORY - RUN BEFORE EVERY COMMIT:**
+
+### Always Validate Before Committing
+
+**YOU MUST run validation checks before committing ANY code changes:**
+
+```bash
+make validate       # Full validation (format, vet, tests, lint)
+```
+
+**This is NOT optional. This is MANDATORY.**
+
+### Validation Commands
+
+| Command | What It Does | When to Use |
+|---------|--------------|-------------|
+| `make validate` | 🔍 Full validation: format, vet, tests, build, mod tidy, lint | **Before EVERY commit** |
+| `make validate-quick` | ⚡ Quick check: format, vet, tests | During development iterations |
+| `make check-and-fix` | 🔧 Auto-fix format + dependencies, then validate | When you have format/dependency issues |
+| `make lint-check` | 📝 Check code format only | Quick format verification |
+| `make lint-fix` | 🛠️ Fix code format automatically | When format check fails |
+
+### Typical Workflow
+
+```bash
+# 1. Make your code changes
+# ... edit files ...
+
+# 2. ALWAYS validate before committing
+make validate
+
+# 3. If validation fails, fix issues:
+#    - Format issues → make lint-fix
+#    - Test failures → fix the tests
+#    - Go vet issues → fix the code
+#    - Dependencies → make mod-tidy
+
+# 4. Or use auto-fix (recommended)
+make check-and-fix
+
+# 5. Commit only after validation passes
+git add .
+git commit -m "feat: my changes"
+git push
+```
+
+### What Gets Validated
+
+1. **📝 Code Format** - All Go files must be formatted with `gofmt -s`
+2. **🔍 Go Vet** - Static analysis to catch common mistakes
+3. **🧪 Tests** - All tests must pass with race detector enabled
+4. **🔨 Build** - Code must compile without errors
+5. **📦 Dependencies** - `go.mod` and `go.sum` must be tidy
+6. **🔎 Linter** - golangci-lint checks (if installed)
+
+### If Validation Fails
+
+**DO NOT:**
+- ❌ Skip validation and commit anyway
+- ❌ Push code that doesn't pass local validation
+- ❌ Rely only on CI to catch errors
+- ❌ Use `git commit --no-verify` unless absolutely necessary
+
+**DO:**
+- ✅ Read the error messages carefully
+- ✅ Run `make check-and-fix` to auto-fix common issues
+- ✅ Fix failing tests before committing
+- ✅ Ask for help if you're stuck
+
+### Optional: Pre-Commit Hook
+
+You can install an automatic pre-commit hook that runs validation:
+
+```bash
+make install-hooks     # Install the hook
+```
+
+This will:
+- ✅ Automatically run `make validate-quick` before each commit
+- ✅ Prevent commits that fail validation
+- ✅ Save CI time by catching issues early
+
+To skip the hook (NOT RECOMMENDED):
+```bash
+git commit --no-verify
+```
+
+To uninstall:
+```bash
+make uninstall-hooks
+```
+
+### Why This Is Critical
+
+- 🚀 **Saves CI time** - Don't waste GitHub Actions minutes on avoidable errors
+- 🐛 **Catches bugs early** - Tests and vet find issues before they reach production
+- 📏 **Maintains code quality** - Consistent formatting makes code review easier
+- ⚡ **Faster reviews** - PRs that pass all checks get merged faster
+- 🎯 **Professional workflow** - This is industry standard practice
+
+### ⛔️ REMEMBER
+
+**If you don't run validation before committing, you WILL:**
+1. Fail CI checks ❌
+2. Block the PR from merging 🚫
+3. Waste time fixing avoidable issues ⏰
+4. Frustrate code reviewers 😤
+
+**Always validate. No exceptions.**
+
+---
+
 ## 🎯 Project Overview
 
 **KeeperCheky** is a modern web-based media library cleanup manager - a complete rewrite of [Janitorr](https://github.com/Schaka/janitorr) with a beautiful UI.
