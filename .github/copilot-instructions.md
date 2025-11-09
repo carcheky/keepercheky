@@ -44,6 +44,7 @@ Closes #[ISSUE_NUMBER]
 ```
 
 **Why this is critical:**
+
 - ✅ Automatically links the PR to the issue
 - ✅ Automatically closes the issue when PR is merged
 - ✅ Maintains traceability between issues and PRs
@@ -91,7 +92,8 @@ Implemented the new feature for media cleanup...
 Tested locally with...
 ```
 
-**⚠️ REMEMBER:** 
+**⚠️ REMEMBER:**
+
 - ALWAYS check the issue number before creating the PR
 - ALWAYS include the linking keyword in the PR description
 - NEVER create a PR without linking it to its issue

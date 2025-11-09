@@ -9,12 +9,14 @@ This document describes the improvements made to the Files list navigation in re
 ### 1. Enhanced Pagination Controls
 
 **Before:**
+
 - Basic "Anterior/Siguiente" buttons
 - Page number displayed without context
 - No way to jump to specific pages
 - Items per page buried in a small dropdown
 
 **After:**
+
 - ✅ Full pagination info: "Mostrando 1-25 de 77 archivos"
 - ✅ First/Last page buttons (⏮️ ⏭️)
 - ✅ Numbered page buttons with ellipsis for large datasets
@@ -23,6 +25,7 @@ This document describes the improvements made to the Files list navigation in re
 - ✅ Better disabled states for navigation buttons
 
 **Code Example:**
+
 ```html
 <!-- New pagination controls -->
 <div class="bg-dark-surface border border-dark-border rounded-lg p-4">
@@ -36,12 +39,12 @@ This document describes the improvements made to the Files list navigation in re
             <option value="100">100</option>
         </select>
     </div>
-    
+
     <!-- Navigation: First | Previous | 1 2 3 ... 8 | Next | Last -->
     <div class="flex items-center justify-center gap-1">
         <!-- Numbered pages with smart ellipsis -->
     </div>
-    
+
     <!-- Quick jump (for large datasets) -->
     <div x-show="totalPages > 10">
         <input type="number" placeholder="Ir a página...">
@@ -53,11 +56,13 @@ This document describes the improvements made to the Files list navigation in re
 ### 2. Always-Visible Search and Filters
 
 **Before:**
+
 - Filters collapsed by default behind a toggle button
 - Search hidden in collapsed section
 - Had to click to reveal filters
 
 **After:**
+
 - ✅ Search box always visible at the top
 - ✅ All filters expanded and immediately accessible
 - ✅ Type filter dropdown (Todos / Solo películas / Solo series)
@@ -66,11 +71,12 @@ This document describes the improvements made to the Files list navigation in re
 - ✅ Clear all filters button
 
 **Code Example:**
+
 ```html
 <!-- Always visible search -->
-<input type="text" 
-    x-model="searchQuery" 
-    @input.debounce.300ms="handleSearchChange()" 
+<input type="text"
+    x-model="searchQuery"
+    @input.debounce.300ms="handleSearchChange()"
     placeholder="Buscar por título, ruta o hash de torrent (mínimo 3 caracteres)...">
 
 <!-- Type filter -->
@@ -94,11 +100,13 @@ This document describes the improvements made to the Files list navigation in re
 ### 3. Backend Filter Support
 
 **New Query Parameters:**
+
 - `type`: Filter by content type (`movie`, `series`)
 - `service`: Filter by service presence (`qbittorrent`, `radarr`, `sonarr`, `jellyfin`, `orphan`)
 - `search`: Text search (minimum 3 characters)
 
 **Code Example:**
+
 ```go
 // Type filter
 if typeFilter != "" {
@@ -125,6 +133,7 @@ if serviceFilter != "" {
 ### 4. Consistent Filtering Across Views
 
 **Both list view and organized view now support:**
+
 - ✅ Search by title, path, or hash
 - ✅ Type filtering (movies, series)
 - ✅ Service filtering
@@ -134,38 +143,47 @@ if serviceFilter != "" {
 ## 🎯 User Experience Improvements
 
 ### Scenario 1: Finding Orphan Downloads
+
 **Before:**
+
 1. Click "Atención" tab → Shows 0 (bug)
 2. Try to search → Must open filters first
 3. Can't filter by service
 4. Manual review of multiple pages
 
 **After:**
+
 1. Click "Atención" tab → Shows correct count
 2. Search box already visible → Type to filter
 3. Select "Huérfanos" from service filter
 4. Navigate with numbered pages or quick jump
 
 ### Scenario 2: Reviewing Large Libraries
+
 **Before:**
+
 - See "Página 1" with no context
 - Click "Siguiente" multiple times
 - No idea how many pages remain
 - Can't jump to end
 
 **After:**
+
 - See "Mostrando 1-25 de 250 archivos"
 - See page numbers: 1 2 3 ... 10
 - Can jump to last page
 - Can increase items per page to 100
 
 ### Scenario 3: Mixed Content Management
+
 **Before:**
+
 - All content mixed together
 - No way to separate movies and series
 - Hard to review specific content types
 
 **After:**
+
 - Filter by "Solo películas" or "Solo series"
 - Combine with service filters
 - Active filter count shows what's applied
@@ -174,6 +192,7 @@ if serviceFilter != "" {
 ## 📊 Technical Details
 
 ### Frontend Changes
+
 - **File:** `web/templates/pages/files.html`
 - **Lines Changed:** ~200 additions/modifications
 - **New Features:**
@@ -185,7 +204,8 @@ if serviceFilter != "" {
   - Improved pagination UI with numbered pages
 
 ### Backend Changes
-- **Files:** 
+
+- **Files:**
   - `internal/handler/files.go` - List view API
   - `internal/handler/files_organized.go` - Organized view API
 - **New Query Parameters:**
@@ -199,6 +219,7 @@ if serviceFilter != "" {
 ## ✅ Testing
 
 All existing tests pass:
+
 ```bash
 $ go test -v ./internal/handler/...
 PASS
@@ -216,18 +237,20 @@ ok      github.com/carcheky/keepercheky/internal/handler    0.092s
 ## 📝 API Examples
 
 ### List View with Filters
-```
+
+```text
 GET /api/files?page=1&perPage=25&type=movie&service=qbittorrent&search=inception
 ```
 
 ### Organized View with Filters
-```
+
+```text
 GET /api/files/organized?page=1&perPage=50&type=series&service=jellyfin&tab=unwatched
 ```
 
 ## 🎨 UI Mockup
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ 🏥 Salud del Almacenamiento                    [Sync] [View]│
 ├─────────────────────────────────────────────────────────────┤
@@ -238,7 +261,7 @@ GET /api/files/organized?page=1&perPage=50&type=series&service=jellyfin&tab=unwa
 │ 🎬 Tipo: [Todos ▼]  🔧 Servicio: [Todos ▼]                 │
 │ 📊 Ordenar: [Ruta ▼]  🔄 Orden: [Asc ▼]                    │
 │                                                              │
-│ 🔵 2 filtros activos           [🔄 Limpiar filtros]        │
+│ �� 2 filtros activos           [🔄 Limpiar filtros]        │
 ├─────────────────────────────────────────────────────────────┤
 │ [OK (45)] [Atención (12)] [Críticos (3)] [Hardlinks (8)]   │
 ├─────────────────────────────────────────────────────────────┤
@@ -256,6 +279,6 @@ GET /api/files/organized?page=1&perPage=50&type=series&service=jellyfin&tab=unwa
 
 ## 📚 Documentation References
 
-- Issue: #92 - 🧭 [P2] Navegación vista lista confusa
-- PR: [TBD]
+- Issue: #92 - 🧭 Navegación vista lista confusa
+- PR: #100
 - Related: #87, #88 (Tab filtering bugs)
