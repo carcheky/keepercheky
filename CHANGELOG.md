@@ -1,3 +1,25 @@
+# [1.0.0-dev.32](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.31...v1.0.0-dev.32) (2025-11-09)
+
+
+### Features
+
+* add server-side search and extended sorting for files list view ([#99](https://github.com/carcheky/keepercheky/issues/99)) ([134ed2e](https://github.com/carcheky/keepercheky/commit/134ed2ec5d55f6d3578b57096f927fd097a31acd)), closes [#92](https://github.com/carcheky/keepercheky/issues/92) [#92](https://github.com/carcheky/keepercheky/issues/92)
+
+
+### BREAKING CHANGES
+
+* Requires Go 1.25.3+ for building
+
+* docs: fix markdown formatting in SEARCH_AND_SORT_IMPROVEMENTS.md
+
+- Add blank lines around lists (MD032)
+- Add blank lines around headings (MD022)
+- Add blank lines around code fences (MD031)
+- Specify language for code blocks (MD040)
+- Replace emphasis with proper heading (MD036)
+
+Fixes Codacy Static Code Analysis check
+
 # [1.0.0-dev.31](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.30...v1.0.0-dev.31) (2025-11-08)
 
 
