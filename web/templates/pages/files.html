@@ -389,15 +389,17 @@
                 <!-- Páginas Numeradas -->
                 <div class="flex items-center gap-1 mx-2">
                     <template x-for="page in visiblePages" :key="page">
-                        <button x-show="page !== '...'" 
-                            @click="currentPage = page"
-                            :class="page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-dark-bg text-dark-text border-dark-border hover:bg-slate-700'"
-                            class="px-3 py-2 border rounded-lg text-sm font-medium transition-colors min-w-[40px]"
-                            :aria-label="'Página ' + page"
-                            :aria-current="page === currentPage ? 'page' : undefined">
-                            <span x-text="page"></span>
-                        </button>
-                        <span x-show="page === '...'" class="px-2 text-dark-muted">...</span>
+                        <template x-if="page !== '...'">
+                            <button
+                                @click="currentPage = page"
+                                :class="page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-dark-bg text-dark-text border-dark-border hover:bg-slate-700'"
+                                class="px-3 py-2 border rounded-lg text-sm font-medium transition-colors min-w-[40px]"
+                                :aria-label="'Página ' + page"
+                                :aria-current="page === currentPage ? 'page' : null">
+                                <span x-text="page"></span>
+                            </button>
+                        </template>
+                        <span x-if="page === '...'" class="px-2 text-dark-muted">...</span>
                     </template>
                 </div>
                 
@@ -2444,6 +2446,9 @@ function filesPage() {
             if (page >= 1 && page <= this.totalPages) {
                 this.currentPage = page;
                 this.jumpToPage = page;
+            } else {
+                // Always sync jumpToPage to currentPage if invalid
+                this.jumpToPage = this.currentPage;
             }
         },
         

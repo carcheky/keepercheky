@@ -203,6 +203,11 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 		case "series":
 			// Include both series and episode types for series filter
 			query = query.Where("type IN (?)", []string{"series", "episode"})
+		default:
+			h.logger.Warn("Invalid typeFilter value provided",
+				zap.String("typeFilter", typeFilter),
+			)
+			// No filter applied for invalid value
 		}
 	}
 
@@ -220,6 +225,11 @@ func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 		case "orphan":
 			query = query.Where("in_q_bittorrent = ? AND in_radarr = ? AND in_sonarr = ? AND in_jellyfin = ?",
 				true, false, false, false)
+		default:
+			h.logger.Warn("Invalid serviceFilter value provided",
+				zap.String("serviceFilter", serviceFilter),
+			)
+			// No filter applied for invalid value
 		}
 	}
 
