@@ -28,6 +28,73 @@ READ logs/keepercheky-dev.log AFTER CHANGES, VISIT URLS, AND READ logs/keeperche
 
 ⛔️ ⛔️ ⛔️ END OF CRITICAL RULE ⛔️ ⛔️ ⛔️
 
+## 🔗 CRITICAL: Pull Request and Issue Linking
+
+**⚠️ THIS IS SUPER IMPORTANT - WHEN CREATING A PULL REQUEST FROM AN ASSIGNED ISSUE:**
+
+### ALWAYS include linking keywords in the PR description
+
+**MANDATORY FORMAT for PR descriptions when working on an issue:**
+
+```markdown
+Closes #[ISSUE_NUMBER]
+
+[Rest of PR description]
+```
+
+**Why this is critical:**
+- ✅ Automatically links the PR to the issue
+- ✅ Automatically closes the issue when PR is merged
+- ✅ Maintains traceability between issues and PRs
+- ❌ Without these keywords, issues won't close automatically
+
+### Supported Linking Keywords
+
+Use ONE of these keywords followed by the issue number:
+
+- `Closes #123`
+- `Fixes #123`
+- `Resolves #123`
+- `Closes: #123` (with colon)
+- `Fixes: #123` (with colon)
+- `Resolves: #123` (with colon)
+
+**Best practice:** Use `Closes #123` as the **first line** of the PR description.
+
+### Multiple Issues
+
+If a PR addresses multiple issues:
+
+```markdown
+Closes #123
+Closes #124
+Fixes #125
+
+[Rest of PR description]
+```
+
+### Example PR Description
+
+```markdown
+Closes #42
+
+## Summary
+Implemented the new feature for media cleanup...
+
+## Changes
+- Added new API endpoint
+- Updated UI components
+- Added tests
+
+## Testing
+Tested locally with...
+```
+
+**⚠️ REMEMBER:** 
+- ALWAYS check the issue number before creating the PR
+- ALWAYS include the linking keyword in the PR description
+- NEVER create a PR without linking it to its issue
+
 > **Language Note**: This document is in English for consistency with code and technical documentation. However, **always communicate with users in Spanish** when responding to issues, pull requests, or user interactions.
 
 ## 🎯 Project Overview
