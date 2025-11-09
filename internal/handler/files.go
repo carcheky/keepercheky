@@ -731,7 +731,7 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	// Apply search filter if provided (minimum 3 characters for performance)
 	if search != "" && len(strings.TrimSpace(search)) >= 3 {
 		searchPattern := "%" + search + "%"
-		
+
 		// Use case-insensitive search: ILIKE for PostgreSQL, LIKE for SQLite
 		dialectName := h.mediaRepo.GetDB().Dialector.Name()
 		if dialectName == "postgres" {
