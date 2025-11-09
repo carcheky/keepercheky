@@ -192,85 +192,79 @@ type TorrentBulkActionRequest struct {
 	Action string   `json:"action"` // "pause", "resume", "delete", "recheck"
 }
 
-// BulkAction performs batch operations on multiple torrents
-func (h *QBittorrentHandler) BulkAction(c *fiber.Ctx) error {
-	if h.client == nil {
-		return c.Status(503).JSON(fiber.Map{
-			"error": "qBittorrent client not configured",
-		})
-	}
-
-	var req TorrentBulkActionRequest
-	if err := c.BodyParser(&req); err != nil {
-		h.logger.Error("Failed to parse request body", "error", err)
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
-	}
-
-	if len(req.Hashes) == 0 {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "No hashes provided",
-		})
-	}
-
-	if req.Action == "" {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Action is required",
-		})
-	}
-
-	h.logger.Info("Executing bulk action on torrents",
-		"action", req.Action,
-		"count", len(req.Hashes),
-	)
-
-	var successCount, failCount int
-	var mu sync.Mutex
-	errors := make([]string, 0, len(req.Hashes))
-
-	ctx := c.Context()
-
-	// Define action function based on request
-	var actionFunc func(context.Context, string) error
-	switch req.Action {
+// getActionFunc returns the appropriate torrent action function based on action type
+func (h *QBittorrentHandler) getActionFunc(action string) (func(context.Context, string) error, error) {
+	switch action {
 	case "pause":
-		actionFunc = h.client.PauseTorrent
+		return h.client.PauseTorrent, nil
 	case "resume":
-		actionFunc = h.client.ResumeTorrent
+		return h.client.ResumeTorrent, nil
 	case "recheck":
-		actionFunc = h.client.RecheckTorrent
+		return h.client.RecheckTorrent, nil
 	case "delete":
-		actionFunc = func(ctx context.Context, hash string) error {
-			// Delete without removing files - files are managed separately
+		return func(ctx context.Context, hash string) error {
 			return h.client.DeleteTorrent(ctx, hash, false)
-		}
+		}, nil
 	default:
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid action. Allowed: pause, resume, delete, recheck",
-		})
+		return nil, fmt.Errorf("invalid action: %s", action)
 	}
+}
 
-	// Process torrents concurrently
+// executeBulkAction processes torrents concurrently with given action
+func (h *QBittorrentHandler) executeBulkAction(ctx context.Context, hashes []string, action string, actionFunc func(context.Context, string) error) (success, failed int, errors []string) {
+	var mu sync.Mutex
 	var wg sync.WaitGroup
-	for _, hash := range req.Hashes {
+	errors = make([]string, 0, len(hashes))
+
+	for _, hash := range hashes {
 		wg.Add(1)
 		go func(torrentHash string) {
 			defer wg.Done()
 			if err := actionFunc(ctx, torrentHash); err != nil {
-				h.logger.Error("Failed to execute action", "action", req.Action, "hash", torrentHash, "error", err)
+				h.logger.Error("Failed to execute action", "action", action, "hash", torrentHash, "error", err)
 				mu.Lock()
-				failCount++
+				failed++
 				errors = append(errors, err.Error())
 				mu.Unlock()
 			} else {
 				mu.Lock()
-				successCount++
+				success++
 				mu.Unlock()
 			}
 		}(hash)
 	}
 	wg.Wait()
+	return success, failed, errors
+}
+
+// BulkAction performs batch operations on multiple torrents
+func (h *QBittorrentHandler) BulkAction(c *fiber.Ctx) error {
+	if h.client == nil {
+		return c.Status(503).JSON(fiber.Map{"error": "qBittorrent client not configured"})
+	}
+
+	var req TorrentBulkActionRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body", "error", err)
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if len(req.Hashes) == 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "No hashes provided"})
+	}
+
+	if req.Action == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Action is required"})
+	}
+
+	actionFunc, err := h.getActionFunc(req.Action)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid action. Allowed: pause, resume, delete, recheck"})
+	}
+
+	h.logger.Info("Executing bulk action on torrents", "action", req.Action, "count", len(req.Hashes))
+
+	successCount, failCount, errors := h.executeBulkAction(c.Context(), req.Hashes, req.Action, actionFunc)
 
 	h.logger.Info("Bulk action completed",
 		"action", req.Action,

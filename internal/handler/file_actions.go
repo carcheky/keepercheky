@@ -735,84 +735,74 @@ type BulkPauseTorrentsRequest struct {
 	Files []uint `json:"files"` // Array of file IDs
 }
 
-// BulkPauseTorrents pauses torrents for multiple files
-// POST /api/files/bulk-pause-torrents
-func (h *FileActionsHandler) BulkPauseTorrents(c *fiber.Ctx) error {
-	if h.qbitClient == nil {
-		return c.Status(503).JSON(fiber.Map{
-			"success": false,
-			"error":   "qBittorrent client not configured",
-		})
-	}
-
-	var req BulkPauseTorrentsRequest
-	if err := c.BodyParser(&req); err != nil {
-		h.logger.Error("Failed to parse request body", zap.Error(err))
-		return c.Status(400).JSON(fiber.Map{
-			"success": false,
-			"error":   "Invalid request body",
-		})
-	}
-
-	if len(req.Files) == 0 {
-		return c.Status(400).JSON(fiber.Map{
-			"success": false,
-			"error":   "No files provided",
-		})
-	}
-
-	h.logger.Info("Bulk pause torrents requested",
-		zap.Int("file_count", len(req.Files)),
-	)
-
-	// Collect torrent hashes from files
-	hashes := []string{}
-	for _, fileID := range req.Files {
+// collectTorrentHashes extracts torrent hashes from media file IDs
+func (h *FileActionsHandler) collectTorrentHashes(fileIDs []uint) []string {
+	hashes := make([]string, 0, len(fileIDs))
+	for _, fileID := range fileIDs {
 		media, err := h.mediaRepo.GetByID(fileID)
 		if err != nil {
 			h.logger.Warn("Failed to get media", zap.Uint("id", fileID), zap.Error(err))
 			continue
 		}
-
 		if media.TorrentHash != "" {
 			hashes = append(hashes, media.TorrentHash)
 		}
 	}
+	return hashes
+}
 
-	if len(hashes) == 0 {
-		return c.Status(400).JSON(fiber.Map{
-			"success": false,
-			"error":   "No torrents found for selected files",
-		})
-	}
-
-	h.logger.Info("Pausing torrents",
-		zap.Int("torrent_count", len(hashes)),
-	)
-
-	ctx := c.Context()
-	var successCount, failCount int
+// processTorrentsConcurrently executes an action on multiple torrents in parallel
+func (h *FileActionsHandler) processTorrentsConcurrently(ctx context.Context, hashes []string, action func(context.Context, string) error) (success, failed int) {
 	var mu sync.Mutex
-
-	// Pause torrents concurrently
 	var wg sync.WaitGroup
+
 	for _, hash := range hashes {
 		wg.Add(1)
 		go func(torrentHash string) {
 			defer wg.Done()
-			if err := h.qbitClient.PauseTorrent(ctx, torrentHash); err != nil {
-				h.logger.Error("Failed to pause torrent", zap.String("hash", torrentHash), zap.Error(err))
+			if err := action(ctx, torrentHash); err != nil {
+				h.logger.Error("Torrent action failed", zap.String("hash", torrentHash), zap.Error(err))
 				mu.Lock()
-				failCount++
+				failed++
 				mu.Unlock()
 			} else {
 				mu.Lock()
-				successCount++
+				success++
 				mu.Unlock()
 			}
 		}(hash)
 	}
 	wg.Wait()
+	return success, failed
+}
+
+// BulkPauseTorrents pauses torrents for multiple files
+// POST /api/files/bulk-pause-torrents
+func (h *FileActionsHandler) BulkPauseTorrents(c *fiber.Ctx) error {
+	if h.qbitClient == nil {
+		return c.Status(503).JSON(fiber.Map{"success": false, "error": "qBittorrent client not configured"})
+	}
+
+	var req BulkPauseTorrentsRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body", zap.Error(err))
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Invalid request body"})
+	}
+
+	if len(req.Files) == 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "No files provided"})
+	}
+
+	h.logger.Info("Bulk pause torrents requested", zap.Int("file_count", len(req.Files)))
+
+	hashes := h.collectTorrentHashes(req.Files)
+	if len(hashes) == 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "No torrents found for selected files"})
+	}
+
+	h.logger.Info("Pausing torrents", zap.Int("torrent_count", len(hashes)))
+
+	successCount, failCount := h.processTorrentsConcurrently(c.Context(), hashes, h.qbitClient.PauseTorrent)
 
 	h.logger.Info("Bulk pause torrents completed",
 		zap.Int("total", len(hashes)),
