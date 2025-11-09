@@ -78,11 +78,12 @@ echo ""
 print_section "🔍 Running go vet..."
 
 # Get packages, excluding volumes/ and reference-repos/
-GO_PACKAGES=$(cd $(dirname $0)/.. && find . -name "*.go" -not -path "./volumes/*" -not -path "./reference-repos/*" -not -path "./vendor/*" -exec dirname {} \; | sort -u | sed 's|^\./|./|' | grep -v "^\.$")
+GO_PACKAGES=$(cd "$(dirname "$0")/.." && find . -name "*.go" -not -path "./volumes/*" -not -path "./reference-repos/*" -not -path "./vendor/*" -exec dirname {} \; | sort -u | sed 's|^\./|./|' | grep -v "^\.$")
 
 if [ -z "$GO_PACKAGES" ]; then
     print_error "No Go packages found"
 else
+    # shellcheck disable=SC2086
     if go vet $GO_PACKAGES 2>&1; then
         print_success "Go vet passed"
     else
@@ -102,6 +103,7 @@ TEST_PACKAGES=$(go list ./... 2>/dev/null | grep -v '/volumes/' | grep -v '/refe
 if [ -z "$TEST_PACKAGES" ]; then
     print_warning "No test packages found"
 else
+    # shellcheck disable=SC2086
     if go test -v -race -coverprofile=coverage.out $TEST_PACKAGES 2>&1; then
         # Calculate coverage
         if [ -f coverage.out ]; then
@@ -109,7 +111,7 @@ else
             print_success "Tests passed - Coverage: ${COVERAGE}"
             
             # Warn if coverage is low (using bash arithmetic, convert to integer)
-            COVERAGE_NUM=$(echo $COVERAGE | sed 's/%//' | cut -d. -f1)
+            COVERAGE_NUM=$(echo "$COVERAGE" | sed 's/%//' | cut -d. -f1)
             if [ "$COVERAGE_NUM" -lt 50 ] 2>/dev/null; then
                 print_warning "Coverage is below 50% - consider adding more tests"
             fi
