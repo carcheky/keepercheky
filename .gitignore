@@ -88,3 +88,7 @@ volumes-dev.zip
 
 # Test 1
 # Test 2
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

@@ -677,7 +677,8 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	perPage := c.QueryInt("perPage", 25)
 	sortBy := c.Query("sortBy", "file_path")
 	order := c.Query("order", "asc")
-	tab := c.Query("tab", "") // Filter by tab: healthy, attention, critical, hardlinks, unwatched
+	tab := c.Query("tab", "")       // Filter by tab: healthy, attention, critical, hardlinks, unwatched
+	search := c.Query("search", "") // Search query for title, path, or hash
 
 	// Validate pagination parameters
 	if page < 1 {
@@ -726,6 +727,27 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 			torrent_hash, torrent_category, torrent_state, torrent_tags,
 			is_seeding, seed_ratio, excluded
 		`)
+
+	// Apply search filter if provided (minimum 3 characters for performance)
+	if search != "" && len(strings.TrimSpace(search)) >= 3 {
+		searchPattern := "%" + search + "%"
+
+		// Use case-insensitive search: ILIKE for PostgreSQL, LIKE for SQLite
+		dialectName := h.mediaRepo.GetDB().Dialector.Name()
+		if dialectName == "postgres" {
+			// PostgreSQL: use ILIKE for case-insensitive search
+			query = query.Where(
+				"title ILIKE ? OR file_path ILIKE ? OR torrent_hash ILIKE ?",
+				searchPattern, searchPattern, searchPattern,
+			)
+		} else {
+			// SQLite: LIKE is already case-insensitive by default
+			query = query.Where(
+				"title LIKE ? OR file_path LIKE ? OR torrent_hash LIKE ?",
+				searchPattern, searchPattern, searchPattern,
+			)
+		}
+	}
 
 	// Apply tab filtering
 	switch tab {
@@ -824,6 +846,7 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 		zap.Int("page", page),
 		zap.Int("perPage", perPage),
 		zap.String("tab", tab),
+		zap.String("search", search),
 		zap.Int64("total", totalCount),
 		zap.Int("returned", len(media)),
 		zap.Duration("total_time", totalElapsed),
