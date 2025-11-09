@@ -677,8 +677,10 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 	perPage := c.QueryInt("perPage", 25)
 	sortBy := c.Query("sortBy", "file_path")
 	order := c.Query("order", "asc")
-	tab := c.Query("tab", "")       // Filter by tab: healthy, attention, critical, hardlinks, unwatched
-	search := c.Query("search", "") // Search query for title, path, or hash
+	tab := c.Query("tab", "")           // Filter by tab: healthy, attention, critical, hardlinks, unwatched
+	search := c.Query("search", "")     // Search query for title, path, or hash
+	typeFilter := c.Query("type", "")   // Filter by type: movie, series
+	serviceFilter := c.Query("service", "") // Filter by service: qbittorrent, radarr, sonarr, jellyfin, orphan
 
 	// Validate pagination parameters
 	if page < 1 {
@@ -746,6 +748,35 @@ func (h *FilesHandler) GetFilesAPI(c *fiber.Ctx) error {
 				"title LIKE ? OR file_path LIKE ? OR torrent_hash LIKE ?",
 				searchPattern, searchPattern, searchPattern,
 			)
+		}
+	}
+
+	// Apply type filter if provided
+	if typeFilter != "" {
+		switch typeFilter {
+		case "movie":
+			query = query.Where("type = ?", "movie")
+		case "series":
+			// Include both series and episode types for series filter
+			query = query.Where("type IN (?)", []string{"series", "episode"})
+		}
+	}
+
+	// Apply service filter if provided
+	if serviceFilter != "" {
+		switch serviceFilter {
+		case "qbittorrent":
+			query = query.Where("in_q_bittorrent = ?", true)
+		case "radarr":
+			query = query.Where("in_radarr = ?", true)
+		case "sonarr":
+			query = query.Where("in_sonarr = ?", true)
+		case "jellyfin":
+			query = query.Where("in_jellyfin = ?", true)
+		case "orphan":
+			// Files in qBittorrent but not managed by any service
+			query = query.Where("in_q_bittorrent = ? AND in_radarr = ? AND in_sonarr = ? AND in_jellyfin = ?",
+				true, false, false, false)
 		}
 	}
 
