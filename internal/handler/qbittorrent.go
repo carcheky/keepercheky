@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/carcheky/keepercheky/internal/config"
 	"github.com/carcheky/keepercheky/internal/service/clients"
 	"github.com/carcheky/keepercheky/pkg/logger"
@@ -180,4 +182,121 @@ func (h *QBittorrentHandler) GetTorrentTrackers(c *fiber.Ctx) error {
 		"total":    len(trackers),
 		"trackers": trackers,
 	})
+}
+
+// TorrentBulkActionRequest represents the request body for bulk torrent actions
+type TorrentBulkActionRequest struct {
+	Hashes []string `json:"hashes"` // Array of torrent hashes
+	Action string   `json:"action"` // "pause", "resume", "delete", "recheck"
+}
+
+// BulkAction performs batch operations on multiple torrents
+func (h *QBittorrentHandler) BulkAction(c *fiber.Ctx) error {
+	if h.client == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"error": "qBittorrent client not configured",
+		})
+	}
+
+	var req TorrentBulkActionRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body", "error", err)
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	if len(req.Hashes) == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "No hashes provided",
+		})
+	}
+
+	if req.Action == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Action is required",
+		})
+	}
+
+	h.logger.Info("Executing bulk action on torrents",
+		"action", req.Action,
+		"count", len(req.Hashes),
+	)
+
+	successCount := 0
+	failCount := 0
+	errors := []string{}
+
+	ctx := c.Context()
+
+	switch req.Action {
+	case "pause":
+		for _, hash := range req.Hashes {
+			if err := h.client.PauseTorrent(ctx, hash); err != nil {
+				h.logger.Error("Failed to pause torrent", "hash", hash, "error", err)
+				failCount++
+				errors = append(errors, err.Error())
+			} else {
+				successCount++
+			}
+		}
+	case "resume":
+		for _, hash := range req.Hashes {
+			if err := h.client.ResumeTorrent(ctx, hash); err != nil {
+				h.logger.Error("Failed to resume torrent", "hash", hash, "error", err)
+				failCount++
+				errors = append(errors, err.Error())
+			} else {
+				successCount++
+			}
+		}
+	case "recheck":
+		for _, hash := range req.Hashes {
+			if err := h.client.RecheckTorrent(ctx, hash); err != nil {
+				h.logger.Error("Failed to recheck torrent", "hash", hash, "error", err)
+				failCount++
+				errors = append(errors, err.Error())
+			} else {
+				successCount++
+			}
+		}
+	case "delete":
+		for _, hash := range req.Hashes {
+			// Delete without removing files - files are managed separately
+			if err := h.client.DeleteTorrent(ctx, hash, false); err != nil {
+				h.logger.Error("Failed to delete torrent", "hash", hash, "error", err)
+				failCount++
+				errors = append(errors, err.Error())
+			} else {
+				successCount++
+			}
+		}
+	default:
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid action. Allowed: pause, resume, delete, recheck",
+		})
+	}
+
+	h.logger.Info("Bulk action completed",
+		"action", req.Action,
+		"total", len(req.Hashes),
+		"success", successCount,
+		"failed", failCount,
+	)
+
+	response := fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Processed %d torrents: %d succeeded, %d failed", len(req.Hashes), successCount, failCount),
+		"stats": fiber.Map{
+			"total":   len(req.Hashes),
+			"success": successCount,
+			"failed":  failCount,
+		},
+	}
+
+	if len(errors) > 0 {
+		response["errors"] = errors
+	}
+
+	return c.JSON(response)
 }

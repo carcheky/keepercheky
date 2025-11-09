@@ -806,3 +806,81 @@ func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash str
 
 	return info, nil
 }
+
+// PauseTorrent pauses a torrent
+func (c *QBittorrentClient) PauseTorrent(ctx context.Context, hash string) error {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{"hashes": hash}).
+		Post("/api/v2/torrents/pause")
+
+	if err != nil {
+		return fmt.Errorf("failed to pause torrent: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Info("Paused torrent", zap.String("hash", hash))
+	return nil
+}
+
+// ResumeTorrent resumes a paused torrent
+func (c *QBittorrentClient) ResumeTorrent(ctx context.Context, hash string) error {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{"hashes": hash}).
+		Post("/api/v2/torrents/resume")
+
+	if err != nil {
+		return fmt.Errorf("failed to resume torrent: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Info("Resumed torrent", zap.String("hash", hash))
+	return nil
+}
+
+// RecheckTorrent rechecks a torrent
+func (c *QBittorrentClient) RecheckTorrent(ctx context.Context, hash string) error {
+	// Ensure logged in
+	if c.cookie == "" {
+		if err := c.login(ctx); err != nil {
+			return fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetFormData(map[string]string{"hashes": hash}).
+		Post("/api/v2/torrents/recheck")
+
+	if err != nil {
+		return fmt.Errorf("failed to recheck torrent: %w", err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("unexpected status code: %d - %s", resp.StatusCode(), resp.String())
+	}
+
+	c.logger.Info("Rechecked torrent", zap.String("hash", hash))
+	return nil
+}

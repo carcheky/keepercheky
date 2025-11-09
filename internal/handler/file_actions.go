@@ -728,3 +728,94 @@ func getBoolParam(params map[string]interface{}, key string, defaultValue bool) 
 	}
 	return defaultValue
 }
+
+// BulkPauseTorrentsRequest represents the request body for bulk pause torrents
+type BulkPauseTorrentsRequest struct {
+	Files []uint `json:"files"` // Array of file IDs
+}
+
+// BulkPauseTorrents pauses torrents for multiple files
+// POST /api/files/bulk-pause-torrents
+func (h *FileActionsHandler) BulkPauseTorrents(c *fiber.Ctx) error {
+	if h.qbitClient == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"success": false,
+			"error":   "qBittorrent client not configured",
+		})
+	}
+
+	var req BulkPauseTorrentsRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body", zap.Error(err))
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"error":   "Invalid request body",
+		})
+	}
+
+	if len(req.Files) == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"error":   "No files provided",
+		})
+	}
+
+	h.logger.Info("Bulk pause torrents requested",
+		zap.Int("file_count", len(req.Files)),
+	)
+
+	// Collect torrent hashes from files
+	hashes := []string{}
+	for _, fileID := range req.Files {
+		media, err := h.mediaRepo.GetByID(fileID)
+		if err != nil {
+			h.logger.Warn("Failed to get media", zap.Uint("id", fileID), zap.Error(err))
+			continue
+		}
+
+		if media.TorrentHash != "" {
+			hashes = append(hashes, media.TorrentHash)
+		}
+	}
+
+	if len(hashes) == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"error":   "No torrents found for selected files",
+		})
+	}
+
+	h.logger.Info("Pausing torrents",
+		zap.Int("torrent_count", len(hashes)),
+	)
+
+	ctx := c.Context()
+	successCount := 0
+	failCount := 0
+
+	// Pause each torrent
+	for _, hash := range hashes {
+		if err := h.qbitClient.PauseTorrent(ctx, hash); err != nil {
+			h.logger.Error("Failed to pause torrent", zap.String("hash", hash), zap.Error(err))
+			failCount++
+		} else {
+			successCount++
+		}
+	}
+
+	h.logger.Info("Bulk pause torrents completed",
+		zap.Int("total", len(hashes)),
+		zap.Int("success", successCount),
+		zap.Int("failed", failCount),
+	)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": fmt.Sprintf("Pausados %d torrents correctamente", successCount),
+		"stats": fiber.Map{
+			"total":   len(hashes),
+			"success": successCount,
+			"failed":  failCount,
+		},
+	})
+}

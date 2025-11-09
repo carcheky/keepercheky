@@ -308,3 +308,102 @@ func TestQBittorrentClient_ErrorHandling(t *testing.T) {
 		assert.Contains(t, err.Error(), "authentication failed")
 	})
 }
+
+func TestQBittorrentClient_PauseTorrent(t *testing.T) {
+	pauseCalled := false
+	// Create test server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			// Set SID cookie
+			http.SetCookie(w, &http.Cookie{
+				Name:  "SID",
+				Value: "test-session-id",
+			})
+			w.WriteHeader(http.StatusOK)
+		case "/api/v2/torrents/pause":
+			pauseCalled = true
+			r.ParseForm()
+			assert.Equal(t, "test-hash-123", r.FormValue("hashes"))
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	logger, _ := zap.NewDevelopment()
+	client := NewQBittorrentClient(server.URL, "admin", "admin", logger)
+
+	ctx := context.Background()
+	err := client.PauseTorrent(ctx, "test-hash-123")
+
+	require.NoError(t, err)
+	assert.True(t, pauseCalled, "Pause endpoint should have been called")
+}
+
+func TestQBittorrentClient_ResumeTorrent(t *testing.T) {
+	resumeCalled := false
+	// Create test server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			// Set SID cookie
+			http.SetCookie(w, &http.Cookie{
+				Name:  "SID",
+				Value: "test-session-id",
+			})
+			w.WriteHeader(http.StatusOK)
+		case "/api/v2/torrents/resume":
+			resumeCalled = true
+			r.ParseForm()
+			assert.Equal(t, "test-hash-456", r.FormValue("hashes"))
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	logger, _ := zap.NewDevelopment()
+	client := NewQBittorrentClient(server.URL, "admin", "admin", logger)
+
+	ctx := context.Background()
+	err := client.ResumeTorrent(ctx, "test-hash-456")
+
+	require.NoError(t, err)
+	assert.True(t, resumeCalled, "Resume endpoint should have been called")
+}
+
+func TestQBittorrentClient_RecheckTorrent(t *testing.T) {
+	recheckCalled := false
+	// Create test server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/v2/auth/login":
+			// Set SID cookie
+			http.SetCookie(w, &http.Cookie{
+				Name:  "SID",
+				Value: "test-session-id",
+			})
+			w.WriteHeader(http.StatusOK)
+		case "/api/v2/torrents/recheck":
+			recheckCalled = true
+			r.ParseForm()
+			assert.Equal(t, "test-hash-789", r.FormValue("hashes"))
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	logger, _ := zap.NewDevelopment()
+	client := NewQBittorrentClient(server.URL, "admin", "admin", logger)
+
+	ctx := context.Background()
+	err := client.RecheckTorrent(ctx, "test-hash-789")
+
+	require.NoError(t, err)
+	assert.True(t, recheckCalled, "Recheck endpoint should have been called")
+}
