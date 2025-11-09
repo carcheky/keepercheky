@@ -127,6 +127,28 @@ Ver [ejemplo completo de configuración](.env.example).
 - **[Guía para agentes IA](AGENTS.md)** - Instrucciones para Copilot
 - **[Documentación técnica](docs/)** - Propuestas y arquitectura
 
+### Workflow de Desarrollo
+
+```bash
+# 1. Clonar y configurar
+git clone https://github.com/carcheky/keepercheky.git
+cd keepercheky
+make init
+
+# 2. Hacer cambios
+# ... editar código ...
+
+# 3. SIEMPRE validar antes de commit
+make validate       # Valida formato, tests, build
+
+# 4. Commit y push
+git add .
+git commit -m "feat: mi cambio"
+git push
+```
+
+**⚠️ IMPORTANTE**: Siempre ejecuta `make validate` antes de cada commit. Ver [guía de validación](AGENTS.md#-validation-always-run-before-commit).
+
 ### Áreas que necesitan ayuda
 
 - 🧪 Tests unitarios y de integración

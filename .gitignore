@@ -86,6 +86,10 @@ config.yaml
 *.sqlite3
 volumes-dev.zip
 
+# Test coverage
+coverage.out
+coverage.html
+
 # Test 1
 # Test 2
 
