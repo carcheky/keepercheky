@@ -1,11 +1,7 @@
 ---
 engines:
   markdownlint:
-    enabled: true
-    exclude_patterns:
-      - "docs/**"
-      - "*.md"
-      - "**/*.md"
+    enabled: false
   
   lizard:
     enabled: true
