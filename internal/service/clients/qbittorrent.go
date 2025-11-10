@@ -78,12 +78,6 @@ type qbBuildInfo struct {
 	Bitness    int    `json:"bitness"`
 }
 
-// qbAppVersion represents app version from qBittorrent API.
-// nolint:unused // Reserved for future use
-type qbAppVersion struct {
-	Version string `json:"version"` // Returns just the version string
-}
-
 // QBittorrentSystemInfo representa toda la información del sistema de qBittorrent
 type QBittorrentSystemInfo struct {
 	Version    string `json:"version"`

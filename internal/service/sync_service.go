@@ -609,25 +609,6 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 	return nil
 }
 
-// updateJellyfinPlayback updates playback information from Jellyfin for a single media item.
-// nolint:unused // Reserved for future use
-func (s *SyncService) updateJellyfinPlayback(ctx context.Context, media *models.Media) error {
-	if media.JellyfinID == nil {
-		return nil
-	}
-
-	playbackInfo, err := s.jellyfinClient.GetPlaybackInfo(ctx, *media.JellyfinID)
-	if err != nil {
-		return fmt.Errorf("failed to get playback info: %w", err)
-	}
-
-	if !playbackInfo.LastPlayed.IsZero() {
-		media.LastWatched = &playbackInfo.LastPlayed
-	}
-
-	return nil
-}
-
 // TestConnection tests connection to a specific service.
 func (s *SyncService) TestConnection(ctx context.Context, service string) error {
 	switch service {
@@ -922,93 +903,6 @@ func (s *SyncService) GetBazarrClient() *clients.BazarrClient {
 	return s.bazarrClient
 }
 
-// cleanupOrphanedMedia removes media from database that no longer exists in any service.
-// nolint:unused // Reserved for future use
-func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map[string]*models.Media) error {
-	s.logger.Info("Starting orphaned media cleanup")
-
-	// Get all media from database
-	allMedia, err := s.mediaRepo.GetAll()
-	if err != nil {
-		return fmt.Errorf("failed to get all media: %w", err)
-	}
-
-	// Build a set of valid IDs from current sync
-	validIDs := make(map[uint]bool)
-	for _, media := range currentMedia {
-		if media.ID > 0 {
-			validIDs[media.ID] = true
-		}
-	}
-
-	// Track which media to delete
-	var toDelete []uint
-
-	for _, media := range allMedia {
-		// Check if media exists in current sync
-		if validIDs[media.ID] {
-			continue
-		}
-
-		// Media not in current sync - check if it still exists in ANY service
-		existsInService := false
-
-		// Check Radarr
-		if media.RadarrID != nil && s.radarrClient != nil {
-			if _, err := s.radarrClient.GetItem(ctx, *media.RadarrID); err == nil {
-				existsInService = true
-			}
-		}
-
-		// Check Sonarr
-		if !existsInService && media.SonarrID != nil && s.sonarrClient != nil {
-			if _, err := s.sonarrClient.GetItem(ctx, *media.SonarrID); err == nil {
-				existsInService = true
-			}
-		}
-
-		// Check Jellyfin
-		if !existsInService && media.JellyfinID != nil && s.jellyfinClient != nil {
-			if _, err := s.jellyfinClient.GetPlaybackInfo(ctx, *media.JellyfinID); err == nil {
-				existsInService = true
-			}
-		}
-
-		// If doesn't exist in any service, mark for deletion
-		if !existsInService {
-			toDelete = append(toDelete, media.ID)
-			s.logger.Info("Found orphaned media",
-				zap.Uint("id", media.ID),
-				zap.String("title", media.Title),
-				zap.Int("radarr_id", ptrIntValue(media.RadarrID)),
-				zap.Int("sonarr_id", ptrIntValue(media.SonarrID)),
-				zap.String("jellyfin_id", ptrStringValue(media.JellyfinID)),
-			)
-		}
-	}
-
-	// Delete orphaned media
-	deletedCount := 0
-	for _, id := range toDelete {
-		if err := s.mediaRepo.Delete(id); err != nil {
-			s.logger.Error("Failed to delete orphaned media",
-				zap.Uint("id", id),
-				zap.Error(err),
-			)
-		} else {
-			deletedCount++
-		}
-	}
-
-	s.logger.Info("Orphaned media cleanup complete",
-		zap.Int("total_checked", len(allMedia)),
-		zap.Int("orphaned_found", len(toDelete)),
-		zap.Int("deleted", deletedCount),
-	)
-
-	return nil
-}
-
 // enrichWithSeedingStatus enriches media with seeding status from qBittorrent.
 // This function only updates the mediaMap in memory, it does NOT save to database.
 // The save happens later in the sync flow.
@@ -1173,23 +1067,6 @@ func (s *SyncService) invalidateAllCaches(ctx context.Context, progressChan chan
 	})
 
 	s.logger.Info("Cache invalidation complete")
-}
-
-// Helper functions for logging pointer values
-// nolint:unused // Reserved for future use
-func ptrIntValue(ptr *int) int {
-	if ptr == nil {
-		return 0
-	}
-	return *ptr
-}
-
-// nolint:unused // Reserved for future use
-func ptrStringValue(ptr *string) string {
-	if ptr == nil {
-		return ""
-	}
-	return *ptr
 }
 
 // normalizeName normalizes a filename for fuzzy matching by:
