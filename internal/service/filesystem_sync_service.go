@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/carcheky/keepercheky/internal/config"
@@ -337,31 +338,100 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 	return media
 }
 
-// getDynamicRootPaths retrieves paths dynamically from qBittorrent and Jellyfin
+// getDynamicRootPaths retrieves paths dynamically from all configured services
 func (s *FilesystemSyncService) getDynamicRootPaths(ctx context.Context) []string {
 	var rootPaths []string
 	pathSet := make(map[string]bool)
 
-	// Get qBittorrent download paths
+	// Helper function to add unique path
+	addPath := func(path, source string) {
+		if path != "" && !pathSet[path] {
+			rootPaths = append(rootPaths, path)
+			pathSet[path] = true
+			s.logger.Info("Added root path from service",
+				zap.String("source", source),
+				zap.String("path", path))
+		}
+	}
+
+	// 1. Get qBittorrent download paths
 	if s.qbittorrentClient != nil {
 		prefs, err := s.qbittorrentClient.GetPreferences(ctx)
 		if err == nil {
-			// Use ExportDirFin (completed downloads) if available, otherwise SavePath
-			completedPath := prefs.ExportDirFin
-			if completedPath == "" {
-				completedPath = prefs.SavePath
+			// Add all qBittorrent paths
+			addPath(prefs.SavePath, "qBittorrent:SavePath")
+			addPath(prefs.TempPath, "qBittorrent:TempPath")
+			addPath(prefs.ExportDir, "qBittorrent:ExportDir")
+			addPath(prefs.ExportDirFin, "qBittorrent:ExportDirFin")
+
+			// Get all torrent content paths (where files actually are)
+			torrents, err := s.qbittorrentClient.GetAllTorrentsMap(ctx)
+			if err == nil {
+				for contentPath := range torrents {
+					// Extract directory from content path
+					dir := filepath.Dir(contentPath)
+					addPath(dir, "qBittorrent:TorrentDir")
+				}
 			}
 
-			if completedPath != "" && !pathSet[completedPath] {
-				rootPaths = append(rootPaths, completedPath)
-				pathSet[completedPath] = true
-				s.logger.Info("Added qBittorrent completed downloads path",
-					zap.String("path", completedPath))
+			// Get category paths if available
+			categories, err := s.qbittorrentClient.GetCategories(ctx)
+			if err == nil {
+				for _, category := range categories {
+					addPath(category.SavePath, "qBittorrent:Category:"+category.Name)
+				}
 			}
 		}
 	}
 
-	// Get Jellyfin library paths
+	// 2. Get Radarr library paths
+	if s.radarrClient != nil {
+		// Get all movies to extract root paths
+		movies, err := s.radarrClient.GetLibrary(ctx)
+		if err == nil {
+			// Collect unique root folders (parent directories of movie folders)
+			radarrRoots := make(map[string]bool)
+			for _, movie := range movies {
+				if movie.FilePath != "" {
+					// Extract grandparent directory (root folder)
+					// Example: /Peliculas/Movie.2024/movie.mkv -> /Peliculas
+					movieDir := filepath.Dir(movie.FilePath)
+					rootDir := filepath.Dir(movieDir)
+					radarrRoots[rootDir] = true
+				}
+			}
+			// Add unique root folders
+			for rootDir := range radarrRoots {
+				addPath(rootDir, "Radarr:RootFolder")
+			}
+		}
+	}
+
+	// 3. Get Sonarr library paths
+	if s.sonarrClient != nil {
+		// Get all series to extract root paths
+		series, err := s.sonarrClient.GetLibrary(ctx)
+		if err == nil {
+			// Collect unique root folders (parent directories of series folders)
+			sonarrRoots := make(map[string]bool)
+			for _, show := range series {
+				if show.FilePath != "" {
+					// Extract grandparent directory (root folder)
+					// Example: /Series/Show.Name/S01/episode.mkv -> /Series
+					episodeDir := filepath.Dir(show.FilePath)
+					seriesDir := filepath.Dir(episodeDir)
+					rootDir := filepath.Dir(seriesDir)
+					sonarrRoots[rootDir] = true
+				}
+			}
+			// Add unique root folders
+			for rootDir := range sonarrRoots {
+				addPath(rootDir, "Sonarr:RootFolder")
+			}
+		}
+	}
+
+	// 4. Get Jellyfin library paths
 	if s.jellyfinClient != nil {
 		// Type assert to access JellyfinClient-specific methods
 		if jfClient, ok := s.jellyfinClient.(*clients.JellyfinClient); ok {
@@ -369,24 +439,24 @@ func (s *FilesystemSyncService) getDynamicRootPaths(ctx context.Context) []strin
 			if err == nil {
 				for _, folder := range folders {
 					for _, location := range folder.Locations {
-						if !pathSet[location] {
-							rootPaths = append(rootPaths, location)
-							pathSet[location] = true
-							s.logger.Info("Added Jellyfin path",
-								zap.String("folder", folder.Name),
-								zap.String("path", location))
-						}
+						addPath(location, "Jellyfin:"+folder.Name)
 					}
 				}
 			}
 		}
 	}
 
-	// Fallback to config if no dynamic paths found
+	// 5. Fallback to config if no dynamic paths found
 	if len(rootPaths) == 0 && len(s.config.Filesystem.RootPaths) > 0 {
 		s.logger.Warn("No dynamic paths found, using config root paths")
-		rootPaths = s.config.Filesystem.RootPaths
+		for _, path := range s.config.Filesystem.RootPaths {
+			addPath(path, "Config")
+		}
 	}
+
+	s.logger.Info("Dynamic root paths collection complete",
+		zap.Int("total_paths", len(rootPaths)),
+		zap.Strings("paths", rootPaths))
 
 	return rootPaths
 }
