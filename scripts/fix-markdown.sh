@@ -23,14 +23,6 @@ fi
 # Ejecutar markdownlint-cli con auto-fix
 echo -e "${BLUE}📝 Ejecutando markdownlint-cli --fix...${NC}"
 
-# Patrones a incluir
-PATTERNS=(
-    "*.md"
-    "docs/**/*.md"
-    ".github/**/*.md"
-    ".vscode/**/*.md"
-)
-
 # Patrones a excluir
 IGNORE_PATTERNS=(
     "node_modules"
@@ -53,7 +45,7 @@ done
 echo -e "${YELLOW}Corrigiendo archivos Markdown...${NC}"
 
 # Usar npx para ejecutar markdownlint-cli sin instalación global
-if npx markdownlint-cli --fix $IGNORE_ARGS '**/*.md' 2>&1; then
+if npx markdownlint-cli --fix "$IGNORE_ARGS" '**/*.md' 2>&1; then
     echo ""
     echo -e "${GREEN}✅ Archivos Markdown corregidos exitosamente${NC}"
     echo -e "${GREEN}📝 Los cambios se han aplicado automáticamente${NC}"
