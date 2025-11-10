@@ -194,7 +194,7 @@ He revisado los ejemplos de AGENTS.md del ecosistema GitHub/OpenAI y he integrad
 
 - **AGENTS.md Oficial**: https://github.com/openai/agents.md
 - **Sitio Web**: https://agents.md
-- **GitHub Copilot Docs**: 
+- **GitHub Copilot Docs**:
   - [Custom Instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot)
   - [Coding Agent Best Practices](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-coding-agent-to-work-on-tasks/get-the-best-results-from-github-copilot-coding-agent)
 

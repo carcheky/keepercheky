@@ -149,7 +149,7 @@ Se han creado **4 propuestas completas** con diferentes stacks tecnológicos:
 
 ## 🏆 Recomendación Principal
 
-### **Propuesta 3: Go + Alpine.js** 
+### **Propuesta 3: Go + Alpine.js**
 
 **Justificación:**
 

@@ -68,7 +68,7 @@ Transformar la pestaña Files en un **Dashboard de Salud del Almacenamiento** qu
 
 2. **Tarjetas de Estado (Cards)**
    Reemplazar las estadísticas actuales por indicadores accionables:
-   
+
    ```
    ✅ Archivos Saludables (123)
       - En biblioteca y siendo compartidos
@@ -96,9 +96,9 @@ Transformar la pestaña Files en un **Dashboard de Salud del Almacenamiento** qu
    ```
 
 3. **Vista por Categorías de Acción** (en vez de tabs)
-   
+
    Tabs actuales → **Categorías accionables**:
-   
+
    - **🟢 Todo OK** (Archivos bien gestionados)
    - **🟡 Necesitan Atención** (Huérfanos, hardlinks, etc.)
    - **🔴 Problemas Críticos** (Torrents muertos, archivos corruptos)
@@ -107,7 +107,7 @@ Transformar la pestaña Files en un **Dashboard de Salud del Almacenamiento** qu
 4. **Cards de Archivo Mejoradas**
 
    En vez de mostrar solo la ruta, mostrar:
-   
+
    ```
    ┌─────────────────────────────────────────────────────┐
    │ 🎬 Inception (2010)                                 │
@@ -131,7 +131,7 @@ Transformar la pestaña Files en un **Dashboard de Salud del Almacenamiento** qu
    ```
 
 5. **Filtros Inteligentes**
-   
+
    Barra de filtros superior con opciones:
    - **Por Problema**: Huérfanos, Sin seeds, Duplicados, Sin ver
    - **Por Servicio**: Solo en qBT, Solo en Jellyfin, En ambos
@@ -139,7 +139,7 @@ Transformar la pestaña Files en un **Dashboard de Salud del Almacenamiento** qu
    - **Por Antigüedad**: > 1 año sin ver, > 6 meses, etc.
 
 6. **Acciones Masivas**
-   
+
    ```
    [✓ Seleccionar todos] [Acciones ▼]
    

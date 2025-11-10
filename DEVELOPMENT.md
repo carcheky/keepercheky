@@ -7,12 +7,14 @@
 ## ✅ What's Implemented
 
 ### Backend Services (Go)
+
 - ✅ **Core Application** - Fiber v2 web server con hot-reload
 - ✅ **Database** - GORM v2 con SQLite/PostgreSQL
 - ✅ **Configuration** - Sistema de config con Viper (YAML + env vars)
 - ✅ **Logging** - Structured logging con niveles configurables
 
 ### Service Integrations
+
 - ✅ **Radarr** - System info, queue, history, calendar, quality profiles
 - ✅ **Sonarr** - System info, queue, history, calendar, quality profiles
 - ✅ **Jellyfin** - Stats, sessions, recently added, activity
@@ -22,6 +24,7 @@
 - ✅ **qBittorrent** - Transfer info, server state, active torrents, torrent properties
 
 ### Frontend (Alpine.js + Tailwind)
+
 - ✅ **Dashboard** - Real-time stats, service health, activity timeline
 - ✅ **Files/Health** - Storage health analysis, orphan detection, bulk actions
 - ✅ **Media** - Library browser, filters, bulk delete, detailed views
@@ -30,6 +33,7 @@
 - 🚧 **Logs** - Template ready, real-time streaming pending
 
 ### API Endpoints
+
 - ✅ `/api/media` - Media CRUD operations
 - ✅ `/api/files` - File operations and health analysis
 - ✅ `/api/stats` - Dashboard statistics
@@ -39,6 +43,7 @@
 - ✅ `/health` - Application health check
 
 ### Features
+
 - ✅ Dry-run mode (safe testing)
 - ✅ Exclusion tags
 - ✅ File health analysis
@@ -47,7 +52,6 @@
 - ✅ Real-time statistics
 - 🚧 Scheduled cleanups (in progress)
 - 🚧 Leaving Soon collections (in progress)
-
 
 ### Prerequisites
 
@@ -86,12 +90,27 @@ The development environment uses [Air](https://github.com/cosmtrek/air) for auto
 
 ```bash
 # Start with hot-reload
+
+
+
 make dev
 
 # The server will automatically restart when you edit:
+
+
+
 # - Go files (*.go)
+
+
+
 # - Templates (*.html)
+
+
+
 # - Config files (*.yaml)
+
+
+
 ```
 
 ### Using Docker Compose Watch (Docker 28+)
@@ -100,6 +119,9 @@ Docker 28+ includes a `watch` feature that syncs file changes:
 
 ```bash
 # Start with compose watch
+
+
+
 make dev-watch
 ```
 
@@ -114,21 +136,39 @@ make dev-watch
 
 ```bash
 # View logs
+
+
+
 make logs
 
 # Open shell in container
+
+
+
 make shell
 
 # Run tests
+
+
+
 make test
 
 # Format code
+
+
+
 make fmt
 
 # Stop server
+
+
+
 make stop
 
 # Clean everything
+
+
+
 make clean
 ```
 
@@ -191,16 +231,25 @@ The application uses environment variables with the prefix `KEEPERCHEKY_`:
 
 ```bash
 # App
+
+
+
 KEEPERCHEKY_APP_ENVIRONMENT=development
 KEEPERCHEKY_APP_LOG_LEVEL=debug
 KEEPERCHEKY_APP_DRY_RUN=true
 KEEPERCHEKY_APP_LEAVING_SOON_DAYS=7
 
 # Server
+
+
+
 KEEPERCHEKY_SERVER_PORT=8000
 KEEPERCHEKY_SERVER_HOST=0.0.0.0
 
 # Database
+
+
+
 KEEPERCHEKY_DATABASE_TYPE=sqlite
 KEEPERCHEKY_DATABASE_PATH=./data/dev.db
 ```
@@ -250,12 +299,21 @@ clients:
 
 ```bash
 # All tests
+
+
+
 make test
 
 # With coverage
+
+
+
 make test-coverage
 
 # Specific package
+
+
+
 go test -v ./internal/service/...
 ```
 
@@ -342,12 +400,21 @@ Use Tailwind utility classes directly in templates:
 
 ```bash
 # View container logs
+
+
+
 make logs
 
 # Open shell in container
+
+
+
 make shell
 
 # Inside container, you can:
+
+
+
 go run ./cmd/server
 ```
 
@@ -356,15 +423,24 @@ go run ./cmd/server
 **Port already in use:**
 ```bash
 # Find and kill process using port 8000
+
+
+
 lsof -ti:8000 | xargs kill -9
 
 # Or use a different port
+
+
+
 KEEPERCHEKY_SERVER_PORT=8001 make dev
 ```
 
 **Database locked:**
 ```bash
 # Stop all containers and clean
+
+
+
 make clean
 make init
 make dev

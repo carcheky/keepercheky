@@ -84,7 +84,6 @@ Documentos técnicos generados durante el desarrollo:
 - **[Agents MD Analysis](AGENTS_MD_ANALYSIS.md)** - Análisis de instrucciones para agentes
 - **[Agents MD Integration Summary](AGENTS_MD_INTEGRATION_SUMMARY.md)** - Resumen de integración de agentes
 
-
 #### Propuesta 1: [TypeScript Full-Stack](propuestas/PROPUESTA_1_STACK_MODERNO.md)
 **Stack:** Next.js 15 + NestJS + PostgreSQL + Redis
 

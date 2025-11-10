@@ -218,7 +218,8 @@ func (s *SyncService) SyncAll(ctx context.Context) error {
 type SyncProgress struct {
 	Step    string `json:"step"`
 	Message string `json:"message"`
-	Status  string `json:"status"` // "processing", "success", "error"
+	Status  string `json:"status"`  // "processing", "success", "error"
+	Percent int    `json:"percent"` // 0-100
 	Data    any    `json:"data,omitempty"`
 }
 
@@ -230,6 +231,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "clear_db",
 		Message: "🗑️  Limpiando base de datos existente...",
 		Status:  "processing",
+		Percent: 5,
 	}
 	s.logger.Info("Sent progress: clear_db")
 
@@ -243,6 +245,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "clear_db_complete",
 		Message: "✅ Base de datos limpiada",
 		Status:  "success",
+		Percent: 10,
 	}
 	s.logger.Info("Sent progress: clear_db_complete")
 
@@ -251,6 +254,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "invalidate_cache",
 		Message: "🔄 Invalidando cachés de servicios...",
 		Status:  "processing",
+		Percent: 15,
 	}
 	s.logger.Info("Sent progress: invalidate_cache")
 
@@ -260,6 +264,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "invalidate_cache_complete",
 		Message: "✅ Cachés invalidados",
 		Status:  "success",
+		Percent: 20,
 	}
 	s.logger.Info("Sent progress: invalidate_cache_complete")
 
@@ -272,6 +277,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 			Step:    "sync_radarr",
 			Message: "🎬 Sincronizando películas desde Radarr...",
 			Status:  "processing",
+			Percent: 25,
 		}
 
 		media, err := s.radarrClient.GetLibrary(ctx)
@@ -281,6 +287,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 				Step:    "sync_radarr_error",
 				Message: fmt.Sprintf("⚠️ Error al sincronizar Radarr: %v", err),
 				Status:  "processing",
+				Percent: 25,
 			}
 		} else {
 			for _, m := range media {
@@ -291,6 +298,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 				Step:    "sync_radarr_complete",
 				Message: fmt.Sprintf("✅ Radarr: %d películas obtenidas", len(media)),
 				Status:  "success",
+				Percent: 35,
 			}
 		}
 	}
@@ -301,6 +309,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 			Step:    "sync_sonarr",
 			Message: "📺 Sincronizando series desde Sonarr...",
 			Status:  "processing",
+			Percent: 40,
 		}
 
 		media, err := s.sonarrClient.GetLibrary(ctx)
@@ -310,6 +319,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 				Step:    "sync_sonarr_error",
 				Message: fmt.Sprintf("⚠️ Error al sincronizar Sonarr: %v", err),
 				Status:  "processing",
+				Percent: 40,
 			}
 		} else {
 			for _, m := range media {
@@ -320,6 +330,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 				Step:    "sync_sonarr_complete",
 				Message: fmt.Sprintf("✅ Sonarr: %d series obtenidas", len(media)),
 				Status:  "success",
+				Percent: 50,
 			}
 		}
 	}
@@ -330,6 +341,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 			Step:    "sync_jellyfin",
 			Message: "🎥 Sincronizando desde Jellyfin...",
 			Status:  "processing",
+			Percent: 55,
 		}
 
 		if err := s.syncJellyfin(ctx, mediaMap, progressChan); err != nil {
@@ -338,12 +350,14 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 				Step:    "sync_jellyfin_error",
 				Message: fmt.Sprintf("⚠️ Error al sincronizar Jellyfin: %v", err),
 				Status:  "processing",
+				Percent: 55,
 			}
 		} else {
 			progressChan <- SyncProgress{
 				Step:    "sync_jellyfin_complete",
 				Message: "✅ Jellyfin sincronizado",
 				Status:  "success",
+				Percent: 65,
 			}
 		}
 	}
@@ -354,6 +368,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 			Step:    "enrich_torrents",
 			Message: "🌱 Enriqueciendo con estado de torrents...",
 			Status:  "processing",
+			Percent: 70,
 		}
 
 		if err := s.enrichWithSeedingStatus(ctx, mediaMap); err != nil {
@@ -362,12 +377,14 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 				Step:    "enrich_torrents_error",
 				Message: fmt.Sprintf("⚠️ Error al obtener estado de torrents: %v", err),
 				Status:  "processing",
+				Percent: 70,
 			}
 		} else {
 			progressChan <- SyncProgress{
 				Step:    "enrich_torrents_complete",
 				Message: "✅ Estado de torrents actualizado",
 				Status:  "success",
+				Percent: 75,
 			}
 		}
 	}
@@ -377,6 +394,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "save_db",
 		Message: fmt.Sprintf("💾 Guardando %d elementos en base de datos...", len(mediaMap)),
 		Status:  "processing",
+		Percent: 80,
 	}
 	s.logger.Info("Sent progress: save_db")
 
@@ -391,10 +409,13 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 
 		// Report progress every interval
 		if itemCount%progressInterval == 0 || itemCount == totalItems {
+			// Progress from 80% to 90% during save
+			saveProgress := 80 + ((itemCount * 10) / totalItems)
 			progressChan <- SyncProgress{
 				Step:    "save_db_progress",
 				Message: fmt.Sprintf("💾 Guardando... %d/%d (%d%%)", itemCount, totalItems, (itemCount*100)/totalItems),
 				Status:  "processing",
+				Percent: saveProgress,
 			}
 		}
 
@@ -414,6 +435,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "save_db_complete",
 		Message: fmt.Sprintf("✅ Guardados: %d elementos (%d errores)", savedCount, errorCount),
 		Status:  "success",
+		Percent: 95,
 	}
 	s.logger.Info("Sent progress: save_db_complete")
 
@@ -428,6 +450,7 @@ func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan
 		Step:    "complete",
 		Message: "✅ Sincronización completada exitosamente",
 		Status:  "success",
+		Percent: 100,
 	}
 
 	return nil
@@ -484,6 +507,7 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 		Step:    "merge_jellyfin",
 		Message: fmt.Sprintf("🔄 Procesando %d items de Jellyfin...", len(jellyfinMedia)),
 		Status:  "processing",
+		Percent: 57,
 	})
 
 	newFromJellyfin := 0
@@ -499,10 +523,13 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 
 		// Report progress every interval
 		if processedCount%progressInterval == 0 || processedCount == totalItems {
+			// Progress from 57% to 65% during Jellyfin merge
+			mergeProgress := 57 + ((processedCount * 8) / totalItems)
 			sendProgress(SyncProgress{
 				Step:    "merge_jellyfin_progress",
 				Message: fmt.Sprintf("🔄 Fusionando datos de Jellyfin... %d/%d (%d%%)", processedCount, totalItems, (processedCount*100)/totalItems),
 				Status:  "processing",
+				Percent: mergeProgress,
 			})
 		}
 
@@ -578,25 +605,6 @@ func (s *SyncService) syncJellyfin(ctx context.Context, mediaMap map[string]*mod
 		zap.Int("skipped", skipped),
 		zap.Int("total_jellyfin_episodes", totalJellyfinEpisodes),
 	)
-
-	return nil
-}
-
-// updateJellyfinPlayback updates playback information from Jellyfin for a single media item.
-// nolint:unused // Reserved for future use
-func (s *SyncService) updateJellyfinPlayback(ctx context.Context, media *models.Media) error {
-	if media.JellyfinID == nil {
-		return nil
-	}
-
-	playbackInfo, err := s.jellyfinClient.GetPlaybackInfo(ctx, *media.JellyfinID)
-	if err != nil {
-		return fmt.Errorf("failed to get playback info: %w", err)
-	}
-
-	if !playbackInfo.LastPlayed.IsZero() {
-		media.LastWatched = &playbackInfo.LastPlayed
-	}
 
 	return nil
 }
@@ -895,93 +903,6 @@ func (s *SyncService) GetBazarrClient() *clients.BazarrClient {
 	return s.bazarrClient
 }
 
-// cleanupOrphanedMedia removes media from database that no longer exists in any service.
-// nolint:unused // Reserved for future use
-func (s *SyncService) cleanupOrphanedMedia(ctx context.Context, currentMedia map[string]*models.Media) error {
-	s.logger.Info("Starting orphaned media cleanup")
-
-	// Get all media from database
-	allMedia, err := s.mediaRepo.GetAll()
-	if err != nil {
-		return fmt.Errorf("failed to get all media: %w", err)
-	}
-
-	// Build a set of valid IDs from current sync
-	validIDs := make(map[uint]bool)
-	for _, media := range currentMedia {
-		if media.ID > 0 {
-			validIDs[media.ID] = true
-		}
-	}
-
-	// Track which media to delete
-	var toDelete []uint
-
-	for _, media := range allMedia {
-		// Check if media exists in current sync
-		if validIDs[media.ID] {
-			continue
-		}
-
-		// Media not in current sync - check if it still exists in ANY service
-		existsInService := false
-
-		// Check Radarr
-		if media.RadarrID != nil && s.radarrClient != nil {
-			if _, err := s.radarrClient.GetItem(ctx, *media.RadarrID); err == nil {
-				existsInService = true
-			}
-		}
-
-		// Check Sonarr
-		if !existsInService && media.SonarrID != nil && s.sonarrClient != nil {
-			if _, err := s.sonarrClient.GetItem(ctx, *media.SonarrID); err == nil {
-				existsInService = true
-			}
-		}
-
-		// Check Jellyfin
-		if !existsInService && media.JellyfinID != nil && s.jellyfinClient != nil {
-			if _, err := s.jellyfinClient.GetPlaybackInfo(ctx, *media.JellyfinID); err == nil {
-				existsInService = true
-			}
-		}
-
-		// If doesn't exist in any service, mark for deletion
-		if !existsInService {
-			toDelete = append(toDelete, media.ID)
-			s.logger.Info("Found orphaned media",
-				zap.Uint("id", media.ID),
-				zap.String("title", media.Title),
-				zap.Int("radarr_id", ptrIntValue(media.RadarrID)),
-				zap.Int("sonarr_id", ptrIntValue(media.SonarrID)),
-				zap.String("jellyfin_id", ptrStringValue(media.JellyfinID)),
-			)
-		}
-	}
-
-	// Delete orphaned media
-	deletedCount := 0
-	for _, id := range toDelete {
-		if err := s.mediaRepo.Delete(id); err != nil {
-			s.logger.Error("Failed to delete orphaned media",
-				zap.Uint("id", id),
-				zap.Error(err),
-			)
-		} else {
-			deletedCount++
-		}
-	}
-
-	s.logger.Info("Orphaned media cleanup complete",
-		zap.Int("total_checked", len(allMedia)),
-		zap.Int("orphaned_found", len(toDelete)),
-		zap.Int("deleted", deletedCount),
-	)
-
-	return nil
-}
-
 // enrichWithSeedingStatus enriches media with seeding status from qBittorrent.
 // This function only updates the mediaMap in memory, it does NOT save to database.
 // The save happens later in the sync flow.
@@ -1116,6 +1037,7 @@ func (s *SyncService) invalidateAllCaches(ctx context.Context, progressChan chan
 			Step:    "invalidate_jellyfin",
 			Message: "🔄 Invalidando caché de Jellyfin...",
 			Status:  "processing",
+			Percent: 16,
 		})
 
 		jellyfinClient, ok := s.jellyfinClient.(*clients.JellyfinClient)
@@ -1129,6 +1051,7 @@ func (s *SyncService) invalidateAllCaches(ctx context.Context, progressChan chan
 					Step:    "invalidate_jellyfin_complete",
 					Message: "✅ Caché de Jellyfin invalidado",
 					Status:  "success",
+					Percent: 18,
 				})
 			}
 		}
@@ -1140,26 +1063,10 @@ func (s *SyncService) invalidateAllCaches(ctx context.Context, progressChan chan
 		Step:    "invalidate_radarr_sonarr",
 		Message: "ℹ️  Radarr y Sonarr: sin caché (Cache-Control headers)",
 		Status:  "info",
+		Percent: 19,
 	})
 
 	s.logger.Info("Cache invalidation complete")
-}
-
-// Helper functions for logging pointer values
-// nolint:unused // Reserved for future use
-func ptrIntValue(ptr *int) int {
-	if ptr == nil {
-		return 0
-	}
-	return *ptr
-}
-
-// nolint:unused // Reserved for future use
-func ptrStringValue(ptr *string) string {
-	if ptr == nil {
-		return ""
-	}
-	return *ptr
 }
 
 // normalizeName normalizes a filename for fuzzy matching by:

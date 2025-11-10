@@ -253,7 +253,7 @@ Basado en el contenido actual de `.github/copilot-instructions.md`, crear un AGE
 
 - **Repositorio oficial AGENTS.md**: https://github.com/openai/agents.md
 - **Sitio web**: https://agents.md
-- **Documentación GitHub Copilot - Custom Instructions**: 
+- **Documentación GitHub Copilot - Custom Instructions**:
   - https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot
   - https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-coding-agent-to-work-on-tasks/get-the-best-results-from-github-copilot-coding-agent
 

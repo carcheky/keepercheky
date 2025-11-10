@@ -24,9 +24,10 @@ help:
 	@echo "Validation (run before commit):"
 	@echo "  make validate      - 🔍 Full validation (format, vet, test, lint)"
 	@echo "  make validate-quick - ⚡ Quick validation (format, vet, test)"
-	@echo "  make check-and-fix - 🔧 Auto-fix + validate"
+	@echo "  make check-and-fix - 🔧 Auto-fix + validate (Go + Markdown)"
 	@echo "  make lint-check    - Check code format"
 	@echo "  make lint-fix      - Fix code format"
+	@echo "  make markdown-fix  - 📝 Auto-fix Markdown formatting"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean        - Clean build artifacts"
@@ -52,13 +53,12 @@ dev:
 	@mkdir -p logs
 	@echo "✅ Volume directories ready"
 	@echo ""
-	@echo "💡 Tip: Run './scripts/create-mock-media.sh' to create test media files"
+	@echo "💡 Tip: Run 'bash scripts/create-mock-media.sh' to create test media files"
 	@echo "📝 Logs: logs/keepercheky-dev.log (auto-rotates at 1000 lines)"
 	@echo ""
-	@chmod +x scripts/log-with-rotation.sh
 	@docker compose up --build --watch > /dev/null 2>&1 &
 	@sleep 5
-	@docker compose logs -f keepercheky 2>&1 | ./scripts/log-with-rotation.sh
+	@docker compose logs -f keepercheky 2>&1 | bash scripts/log-with-rotation.sh
 
 # Development with Docker Compose Watch (Docker 28+)
 dev-watch:
@@ -89,7 +89,7 @@ clean-media:
 	@rm -rf volumes/media-library/downloads
 	@rm -rf volumes/media-library/library
 	@echo "✅ Media library cleaned"
-	@echo "   Run './scripts/create-mock-media.sh' or 'make dev' to recreate it"
+	@echo "   Run 'bash scripts/create-mock-media.sh' or 'make dev' to recreate it"
 
 # Build production binary
 build:
@@ -149,7 +149,7 @@ lint:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Validate all code (format, vet, test, lint) - RUN BEFORE COMMIT
-validate: lint-fix
+validate: lint-fix markdown-fix
 	@bash scripts/validate.sh
 
 # Quick validation (format + vet + test) - Fast pre-commit check
@@ -185,12 +185,17 @@ vet:
 	@echo "✅ Go vet passed"
 
 # Check and fix common issues, then validate
-check-and-fix: lint-fix mod-tidy validate-quick
+check-and-fix: lint-fix mod-tidy markdown-fix validate-quick
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "✅ All fixes applied and validated!"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "👍 Ready to commit"
+
+# Fix Markdown formatting issues
+markdown-fix:
+	@echo "📝 Fixing Markdown formatting..."
+	@bash scripts/fix-markdown.sh
 
 # Tidy go modules
 mod-tidy:
@@ -247,7 +252,7 @@ init:
 	@mkdir -p volumes/media-library/downloads
 	@echo "✅ Development environment initialized"
 	@echo "🎬 Creating mock media library..."
-	@./scripts/create-mock-media.sh
+	@bash scripts/create-mock-media.sh
 	@echo ""
 	@echo "📁 Directory structure:"
 	@echo "  ├── data/              (app data & database)"

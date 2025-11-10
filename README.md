@@ -172,5 +172,3 @@ MIT License - Ver [LICENSE](LICENSE) para detalles
 
 **Estado**: v1.0.0-dev.17 - Desarrollo activo  
 **Documentación**: [docs/README.md](docs/README.md) | **Instalación**: [quickstart/README.md](quickstart/README.md) | **Desarrollo**: [DEVELOPMENT.md](DEVELOPMENT.md)
-
-

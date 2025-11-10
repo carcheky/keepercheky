@@ -38,8 +38,8 @@
 
 **Cambios estructurales:**
 - **Ruta y tamaño en una línea**: Antes ocupaban 2 líneas separadas, ahora están en un flex container horizontal
-- **Badges redundantes eliminados**: 
-  - ❌ Badge "✅ Visto" 
+- **Badges redundantes eliminados**:
+  - ❌ Badge "✅ Visto"
   - ❌ Badge "👁️ Sin reproducir"
   - ✅ Esta información ya está en el tooltip de Jellyfin
 
@@ -124,7 +124,7 @@ Reproducciones: 3 [formato mono]
 - Permite mostrar el ID en el tooltip
 
 **Nota sobre el backend:**
-El enriquecimiento completo de Jellyseerr no está implementado en `pkg/filesystem/enricher.go`. 
+El enriquecimiento completo de Jellyseerr no está implementado en `pkg/filesystem/enricher.go`.
 Los datos que existan en la base de datos se mostrarán correctamente con los nuevos tooltips.
 
 ---
@@ -164,7 +164,7 @@ go build -o /tmp/keepercheky-test ./cmd/server
 1. **Implementar enriquecimiento de Jellyseerr**:
    - Añadir método `EnrichWithJellyseerr` en `pkg/filesystem/enricher.go`
    - Mapear requests de Jellyseerr a archivos del filesystem
-   
+
 2. **Implementar enriquecimiento de Jellystat**:
    - Verificar si existe método de enriquecimiento
    - Asegurar que `jellystat_id` se está poblando correctamente

@@ -1,0 +1,23 @@
+---
+engines:
+  markdownlint:
+    enabled: false
+  
+  lizard:
+    enabled: true
+    exclude_patterns:
+      - "web/static/js/**"
+  
+  shellcheck:
+    enabled: true
+  
+  semgrep:
+    enabled: true
+
+exclude_patterns:
+  - "docs/**"
+  - "reference-repos/**"
+  - "tmp/**"
+  - "volumes/**"
+  - "web/static/js/dashboard-charts.js"
+  - "web/static/js/file-health-components.js"

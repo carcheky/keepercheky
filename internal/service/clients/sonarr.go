@@ -108,20 +108,6 @@ type sonarrSeries struct {
 	} `json:"images"`
 }
 
-// sonarrEpisodeFile represents an episode file from Sonarr API.
-// nolint:unused // Reserved for future use
-type sonarrEpisodeFile struct {
-	ID       int    `json:"id"`
-	SeriesID int    `json:"seriesId"`
-	Path     string `json:"path"`
-	Size     int64  `json:"size"`
-	Quality  struct {
-		Quality struct {
-			Name string `json:"name"`
-		} `json:"quality"`
-	} `json:"quality"`
-}
-
 // sonarrTag represents a tag from Sonarr API.
 type sonarrTag struct {
 	ID    int    `json:"id"`
