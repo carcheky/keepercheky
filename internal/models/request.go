@@ -32,17 +32,17 @@ type Request struct {
 	IsAutoRequest     bool   `json:"is_auto_request"`
 
 	// Media metadata from Jellyseerr
-	TMDBID               int        `json:"tmdb_id" gorm:"index"`
-	TVDBID               *int       `json:"tvdb_id,omitempty" gorm:"index"`
-	IMDBID               string     `json:"imdb_id,omitempty" gorm:"index"`
-	MediaStatus          int        `json:"media_status"` // Status in Jellyseerr media system
-	MediaStatus4K        int        `json:"media_status_4k"`
-	MediaAddedAt         *time.Time `json:"media_added_at,omitempty"`
-	ExternalServiceSlug  string     `json:"external_service_slug,omitempty"`
+	TMDBID              int        `json:"tmdb_id" gorm:"index"`
+	TVDBID              *int       `json:"tvdb_id,omitempty" gorm:"index"`
+	IMDBID              string     `json:"imdb_id,omitempty" gorm:"index"`
+	MediaStatus         int        `json:"media_status"` // Status in Jellyseerr media system
+	MediaStatus4K       int        `json:"media_status_4k"`
+	MediaAddedAt        *time.Time `json:"media_added_at,omitempty"`
+	ExternalServiceSlug string     `json:"external_service_slug,omitempty"`
 
 	// Associated media services
-	RadarrID   *int `json:"radarr_id" gorm:"index"`
-	SonarrID   *int `json:"sonarr_id" gorm:"index"`
+	RadarrID          *int `json:"radarr_id" gorm:"index"`
+	SonarrID          *int `json:"sonarr_id" gorm:"index"`
 	ServiceInstanceID *int `json:"service_instance_id,omitempty"` // Which Radarr/Sonarr instance
 
 	// User information

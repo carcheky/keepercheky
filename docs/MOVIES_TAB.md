@@ -95,7 +95,7 @@ Agregar filtro explícito para `item.Type == "Season"` en `convertToMedia()`.
 
 **Elementos por fila (izquierda a derecha):**
 1. **[ ]** Checkbox para selección múltiple
-2. **Título de la película** 
+2. **Título de la película**
 3. **Año de lanzamiento** (si disponible)
 4. **Tamaño** en formato legible (KB, MB, GB)
 5. **Iconos de servicios:**

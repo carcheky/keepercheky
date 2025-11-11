@@ -55,50 +55,50 @@ type JellyseerrSystemInfo struct {
 
 // JellyseerrRequest represents a complete request from Jellyseerr API with all available fields.
 type JellyseerrRequest struct {
-	ID          int       `json:"id"`
-	Status      int       `json:"status"` // 1=pending, 2=approved, 3=declined, 4=available
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Type        string    `json:"type"` // "movie" or "tv"
-	Is4K        bool      `json:"is4k"`
-	ServerID    *int      `json:"serverId,omitempty"`
-	ProfileID   *int      `json:"profileId,omitempty"`
-	RootFolder  string    `json:"rootFolder,omitempty"`
-	LanguageProfileID *int `json:"languageProfileId,omitempty"`
-	Tags        []int     `json:"tags,omitempty"`
-	IsAutoRequest bool    `json:"isAutoRequest"`
-	
+	ID                int       `json:"id"`
+	Status            int       `json:"status"` // 1=pending, 2=approved, 3=declined, 4=available
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
+	Type              string    `json:"type"` // "movie" or "tv"
+	Is4K              bool      `json:"is4k"`
+	ServerID          *int      `json:"serverId,omitempty"`
+	ProfileID         *int      `json:"profileId,omitempty"`
+	RootFolder        string    `json:"rootFolder,omitempty"`
+	LanguageProfileID *int      `json:"languageProfileId,omitempty"`
+	Tags              []int     `json:"tags,omitempty"`
+	IsAutoRequest     bool      `json:"isAutoRequest"`
+
 	// Media information
 	Media JellyseerrMedia `json:"media"`
-	
+
 	// User information
-	RequestedBy JellyseerrUser `json:"requestedBy"`
+	RequestedBy JellyseerrUser  `json:"requestedBy"`
 	ModifiedBy  *JellyseerrUser `json:"modifiedBy,omitempty"`
-	
+
 	// Seasons for TV shows
 	Seasons []JellyseerrSeason `json:"seasons,omitempty"`
 }
 
 // JellyseerrMedia represents the media object in a request with complete metadata.
 type JellyseerrMedia struct {
-	ID                    int       `json:"id"`
-	MediaType             string    `json:"mediaType"` // "movie" or "tv"
-	TMDBID                int       `json:"tmdbId"`
-	TVDBID                *int      `json:"tvdbId,omitempty"`
-	IMDBID                string    `json:"imdbId,omitempty"`
-	Status                int       `json:"status"`
-	Status4K              int       `json:"status4k"`
-	CreatedAt             time.Time `json:"createdAt"`
-	UpdatedAt             time.Time `json:"updatedAt"`
-	LastSeasonChange      *time.Time `json:"lastSeasonChange,omitempty"`
-	MediaAddedAt          *time.Time `json:"mediaAddedAt,omitempty"`
-	ServiceID             *int      `json:"serviceId,omitempty"`
-	ServiceID4K           *int      `json:"serviceId4k,omitempty"`
-	ExternalServiceID     *int      `json:"externalServiceId,omitempty"`
-	ExternalServiceID4K   *int      `json:"externalServiceId4k,omitempty"`
-	ExternalServiceSlug   string    `json:"externalServiceSlug,omitempty"`
-	RatingKey             string    `json:"ratingKey,omitempty"`
-	RatingKey4K           string    `json:"ratingKey4k,omitempty"`
+	ID                  int        `json:"id"`
+	MediaType           string     `json:"mediaType"` // "movie" or "tv"
+	TMDBID              int        `json:"tmdbId"`
+	TVDBID              *int       `json:"tvdbId,omitempty"`
+	IMDBID              string     `json:"imdbId,omitempty"`
+	Status              int        `json:"status"`
+	Status4K            int        `json:"status4k"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	UpdatedAt           time.Time  `json:"updatedAt"`
+	LastSeasonChange    *time.Time `json:"lastSeasonChange,omitempty"`
+	MediaAddedAt        *time.Time `json:"mediaAddedAt,omitempty"`
+	ServiceID           *int       `json:"serviceId,omitempty"`
+	ServiceID4K         *int       `json:"serviceId4k,omitempty"`
+	ExternalServiceID   *int       `json:"externalServiceId,omitempty"`
+	ExternalServiceID4K *int       `json:"externalServiceId4k,omitempty"`
+	ExternalServiceSlug string     `json:"externalServiceSlug,omitempty"`
+	RatingKey           string     `json:"ratingKey,omitempty"`
+	RatingKey4K         string     `json:"ratingKey4k,omitempty"`
 }
 
 // JellyseerrUser represents user information with complete fields.
@@ -333,14 +333,14 @@ func (c *JellyseerrClient) convertToRequest(req *jellyseerrRequest) *models.Requ
 		Status:      status,
 		RequestedBy: req.RequestedBy.DisplayName,
 		RequestedAt: req.CreatedAt,
-		
+
 		// Request configuration
 		Is4K:              req.Is4K,
 		ProfileID:         req.ProfileID,
 		RootFolder:        req.RootFolder,
 		LanguageProfileID: req.LanguageProfileID,
 		IsAutoRequest:     req.IsAutoRequest,
-		
+
 		// Media metadata
 		TMDBID:              req.Media.TMDBID,
 		TVDBID:              req.Media.TVDBID,
@@ -349,7 +349,7 @@ func (c *JellyseerrClient) convertToRequest(req *jellyseerrRequest) *models.Requ
 		MediaStatus4K:       req.Media.Status4K,
 		MediaAddedAt:        req.Media.MediaAddedAt,
 		ExternalServiceSlug: req.Media.ExternalServiceSlug,
-		
+
 		// User information
 		RequestedByUserID: req.RequestedBy.ID,
 		RequestedByEmail:  req.RequestedBy.Email,

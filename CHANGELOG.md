@@ -1,6 +1,5 @@
 # [1.0.0-dev.36](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.35...v1.0.0-dev.36) (2025-11-11)
 
-
 ### Features
 
 * add movies route and handler, implement movie title extraction from file paths ([8945199](https://github.com/carcheky/keepercheky/commit/894519975dd0ff0b5ca11061554862982d15ff6c))
