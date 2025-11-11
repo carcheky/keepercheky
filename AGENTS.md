@@ -381,6 +381,8 @@ For more detailed guidelines, see:
 - `.github/copilot-instructions.md` - Full project guidelines and philosophy
 - `.vscode/copilot-commit-message-instructions.md` - Detailed commit message rules
 - `docs/` - Additional documentation and analysis
+- `docs/JELLYFIN_API_REFERENCE.md` - Complete Jellyfin API documentation
+- `docs/JELLYSEERR_API_REFERENCE.md` - Complete Jellyseerr API documentation
 
 ---
 

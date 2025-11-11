@@ -1302,6 +1302,7 @@ When implementing features, refer to:
 - **Tailwind CSS**: <https://tailwindcss.com/docs>
 - **Go Best Practices**: <https://go.dev/doc/effective_go>
 - **Jellyfin API**: See `docs/JELLYFIN_API_REFERENCE.md` for comprehensive API documentation
+- **Jellyseerr API**: See `docs/JELLYSEERR_API_REFERENCE.md` for comprehensive API documentation
 
 ### 📺 Jellyfin API Integration
 
@@ -1321,6 +1322,27 @@ This document contains:
 - ⚠️ **ALWAYS filter by `includeItemTypes` parameter** to avoid mixing Movies, Series, Episodes
 - Example: `includeItemTypes=Movie` for movies only
 - Without this filter, API returns all content types mixed together
+
+### 🎯 Jellyseerr API Integration
+
+**ALWAYS consult `docs/JELLYSEERR_API_REFERENCE.md` when working with Jellyseerr integration.**
+
+This document contains:
+- ✅ Authentication with API key headers
+- ✅ Request API endpoint with pagination and filters
+- ✅ Complete request object fields and structure
+- ✅ Media object with TMDB/TVDB IDs and service integration
+- ✅ User object with permissions and metadata
+- ✅ Request and media status codes
+- ✅ Seasons for TV series requests
+- ✅ Integration with Radarr/Sonarr services
+- ✅ Practical examples and best practices
+
+**Critical notes:**
+- ⚠️ **Status codes are numeric**: 1=pending, 2=approved, 3=declined, 4=available
+- ⚠️ **TMDB vs TVDB**: Jellyseerr uses TMDB primarily, but Sonarr uses TVDB
+- ⚠️ **Pagination required**: Use `take` and `skip` parameters for large result sets
+- ⚠️ **API Key in headers**: Use `X-Api-Key` header for authentication
 
 ## 🗣️ Communication Guidelines
 
