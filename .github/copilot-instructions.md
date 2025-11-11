@@ -1322,6 +1322,41 @@ This document contains:
 - Example: `includeItemTypes=Movie` for movies only
 - Without this filter, API returns all content types mixed together
 
+### 📊 Jellystat API Integration
+
+**ALWAYS consult `docs/JELLYSTAT_API_REFERENCE.md` when working with Jellystat integration.**
+
+This document contains:
+- ✅ Complete API endpoint documentation
+- ✅ Authentication with API Keys (x-api-token header)
+- ✅ Statistics endpoints (general statistics, views by type)
+- ✅ Library statistics with playback metrics
+- ✅ User activity tracking
+- ✅ Playback history and active sessions
+- ✅ Most watched items and recently added content
+- ✅ Temporal filters (days parameter)
+- ✅ Complete data structures for all responses
+- ✅ Best practices for error handling and caching
+- ✅ Practical examples for common use cases
+
+**Key endpoints:**
+- `/api/getconfig` - System configuration (public)
+- `/api/statistics?days=N` - General statistics
+- `/api/stats/getViewsByLibraryType?days=N` - Views by library type
+- `/api/stats/getLibraryStats?days=N` - Library statistics
+- `/api/stats/getUserActivity?days=N` - User activity
+- `/api/sessions` - Active playback sessions
+- `/api/history` - Playback history
+- `/api/items/most-watched` - Most watched content
+- `/api/items/recently-added` - Recently added items
+
+**Critical implementation rules:**
+- ⚠️ **ALWAYS use `x-api-token` header** for authentication
+- ⚠️ **ALWAYS handle 404 responses** - Some endpoints may not exist in older versions
+- ⚠️ **ALWAYS use proper retry logic** with exponential backoff
+- ⚠️ **ALWAYS cache statistics data** - They don't change frequently
+- ⚠️ **ALWAYS validate the `days` parameter** - Must be non-negative
+
 ## 🗣️ Communication Guidelines
 
 **REMEMBER**:

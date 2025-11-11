@@ -104,7 +104,7 @@ func TestJellyfinClient_GetActiveSessions(t *testing.T) {
 
 func TestJellyfinClient_GetLibraryStats(t *testing.T) {
 	mockItems := jellyfinItemsResponse{
-		Items: []jellyfinItem{
+		Items: []JellyfinItem{
 			{
 				ID:          "movie1",
 				Name:        "Test Movie",
@@ -172,7 +172,7 @@ func TestJellyfinClient_GetLibraryStats(t *testing.T) {
 func TestJellyfinClient_GetRecentlyAdded(t *testing.T) {
 	now := time.Now()
 	mockResponse := jellyfinItemsResponse{
-		Items: []jellyfinItem{
+		Items: []JellyfinItem{
 			{
 				ID:          "recent1",
 				Name:        "New Movie",
@@ -329,7 +329,7 @@ func TestJellyfinClient_GetRecentlyAdded_DefaultLimit(t *testing.T) {
 		// Should use default limit of 20
 		assert.Equal(t, "20", r.URL.Query().Get("Limit"))
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jellyfinItemsResponse{Items: []jellyfinItem{}, TotalCount: 0})
+		json.NewEncoder(w).Encode(jellyfinItemsResponse{Items: []JellyfinItem{}, TotalCount: 0})
 	})
 	defer server.Close()
 

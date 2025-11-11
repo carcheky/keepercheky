@@ -380,7 +380,26 @@ For more detailed guidelines, see:
 
 - `.github/copilot-instructions.md` - Full project guidelines and philosophy
 - `.vscode/copilot-commit-message-instructions.md` - Detailed commit message rules
+- `docs/JELLYFIN_API_REFERENCE.md` - **Complete Jellyfin API documentation**
+- `docs/JELLYSTAT_API_REFERENCE.md` - **Complete Jellystat API documentation**
 - `docs/` - Additional documentation and analysis
+
+### 📊 Working with Jellystat API
+
+**ALWAYS consult `docs/JELLYSTAT_API_REFERENCE.md` when working with Jellystat.**
+
+Key endpoints:
+- `/api/getconfig` - System configuration
+- `/api/statistics?days=N` - General statistics
+- `/api/stats/getViewsByLibraryType?days=N` - Views by type
+- `/api/stats/getUserActivity?days=N` - User activity
+- `/api/stats/getLibraryStats?days=N` - Library statistics
+
+**Critical rules:**
+- ⚠️ Use `x-api-token` header for authentication
+- ⚠️ Handle 404 responses (some endpoints may not exist in older versions)
+- ⚠️ Cache statistics data (they don't change frequently)
+- ⚠️ Use retry logic with exponential backoff
 
 ---
 
