@@ -1,6 +1,5 @@
 # [1.0.0-dev.35](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.34...v1.0.0-dev.35) (2025-11-10)
 
-
 ### Features
 
 * Add real-time sync progress ([34bffa0](https://github.com/carcheky/keepercheky/commit/34bffa0ac2acf22d458f8d28132a0bfa6f7fd60d))
