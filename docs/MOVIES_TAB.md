@@ -84,26 +84,28 @@ Agregar filtro explícito para `item.Type == "Season"` en `convertToMedia()`.
 - ✅ Popup con metadatos de Jellyfin
 - ✅ Diseño responsive con grid
 
-### Diseño de Tarjetas
+### Diseño de Lista Horizontal
+
+**⚠️ IMPORTANTE:** Cada película es **UNA LÍNEA HORIZONTAL**, no una tarjeta vertical.
 
 **Especificación (según `docs/templates/card.md`):**
 ```
-----------------------------------
 [ ] Título - Año - Tamaño - ICONOS - Carátula
-----------------------------------
 ```
 
-**Implementación Actual:**
-- Checkbox en esquina superior izquierda de la carátula
-- Carátula: `poster_url` de Jellyfin (aspect-ratio 2:3)
-- Título + Año (si disponible)
-- Tamaño en formato legible (KB, MB, GB)
-- Icono Jellyfin (🎞️) con popup de metadatos
+**Elementos por fila (izquierda a derecha):**
+1. **[ ]** Checkbox para selección múltiple
+2. **Título de la película** 
+3. **Año de lanzamiento** (si disponible)
+4. **Tamaño** en formato legible (KB, MB, GB)
+5. **Iconos de servicios:**
+   - 🎞️ Jellyfin (con popup de metadatos)
+   - 🔽 qBittorrent (futuro - estado de torrent)
+   - 📡 Radarr (futuro - información de Radarr)
+   - 📺 Sonarr (futuro - para series)
+6. **Carátula** pequeña de Jellyfin al final
 
-**Iconos Futuros Planificados:**
-- 🔽 qBittorrent (estado de torrent)
-- 📡 Radarr (información de Radarr)
-- 📺 Sonarr (para series)
+**Layout:** Lista vertical donde cada película ocupa una fila horizontal completa.
 
 ## Flujo de Datos
 
