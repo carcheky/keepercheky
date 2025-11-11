@@ -200,6 +200,20 @@ if media.Type != "movie" {
 - Mostrar temporadas y episodios
 - Diseño de tarjetas adaptado para series (con temporadas/episodios)
 
+## Templates de Diseño
+
+La carpeta **`docs/templates/`** contiene las especificaciones de diseño de los elementos de la UI:
+
+- **[card.md](templates/card.md)** - Especificación de diseño de tarjetas para películas
+  - Define la estructura visual: checkbox, título, año, tamaño, iconos, carátula
+  - Será utilizada también para otras vistas (series, episodios, etc.)
+  - Los templates futuros se agregarán aquí siguiendo el mismo patrón
+
+**Propósito:** Mantener especificaciones de diseño separadas del código permite:
+- Cambiar diseños sin tocar el código
+- Documentar la UI antes de implementar
+- Referencia rápida para desarrolladores y diseñadores
+
 ## Referencias
 
 - Especificación de tarjetas: `docs/templates/card.md`
