@@ -339,6 +339,7 @@ func (s *FilesystemSyncService) convertToMedia(ef *filesystem.EnrichedFile) *mod
 }
 
 // getDynamicRootPaths retrieves paths dynamically from all configured services
+// Order: 1. Jellyfin libraries, 2. qBittorrent download paths (from categories)
 func (s *FilesystemSyncService) getDynamicRootPaths(ctx context.Context) []string {
 	var rootPaths []string
 	pathSet := make(map[string]bool)
@@ -354,70 +355,82 @@ func (s *FilesystemSyncService) getDynamicRootPaths(ctx context.Context) []strin
 		}
 	}
 
-	// 1. Get qBittorrent download paths
-	if s.qbittorrentClient != nil {
-		prefs, err := s.qbittorrentClient.GetPreferences(ctx)
-		if err == nil {
-			// Add all qBittorrent paths
-			addPath(prefs.SavePath, "qBittorrent:SavePath")
-			addPath(prefs.TempPath, "qBittorrent:TempPath")
-			addPath(prefs.ExportDir, "qBittorrent:ExportDir")
-			addPath(prefs.ExportDirFin, "qBittorrent:ExportDirFin")
-
-			// Get all torrent content paths (where files actually are)
-			torrents, err := s.qbittorrentClient.GetAllTorrentsMap(ctx)
+	// 1. PRIORITY: Get Jellyfin library paths (where files are organized)
+	if s.jellyfinClient != nil {
+		// Type assert to access GetVirtualFolders (not in StreamingClient interface)
+		if jfClient, ok := s.jellyfinClient.(*clients.JellyfinClient); ok {
+			virtualFolders, err := jfClient.GetVirtualFolders(ctx)
 			if err == nil {
-				for contentPath := range torrents {
-					// Extract directory from content path
-					dir := filepath.Dir(contentPath)
-					addPath(dir, "qBittorrent:TorrentDir")
-				}
-			}
-
-			// Get category paths if available
-			categories, err := s.qbittorrentClient.GetCategories(ctx)
-			if err == nil {
-				for _, category := range categories {
-					addPath(category.SavePath, "qBittorrent:Category:"+category.Name)
+				for _, folder := range virtualFolders {
+					for _, location := range folder.Locations {
+						addPath(location, "Jellyfin:"+folder.Name)
+					}
 				}
 			}
 		}
 	}
 
-	// 2. Get Radarr library paths
+	// 2. Get qBittorrent download paths (category paths: download_path + category)
+	if s.qbittorrentClient != nil {
+		// 2.1. Get category paths (most accurate - download path + category)
+		categories, err := s.qbittorrentClient.GetCategories(ctx)
+		if err == nil {
+			for _, category := range categories {
+				if category.SavePath != "" {
+					addPath(category.SavePath, "qBittorrent:Category:"+category.Name)
+				}
+			}
+		}
+
+		// 2.2. If no categories, fall back to SavePath from torrents
+		if err != nil || len(categories) == 0 {
+			torrents, err := s.qbittorrentClient.GetAllTorrentsMap(ctx)
+			if err == nil {
+				savePaths := make(map[string]bool)
+				for _, torrent := range torrents {
+					if torrent.SavePath != "" {
+						savePaths[torrent.SavePath] = true
+					}
+				}
+				for savePath := range savePaths {
+					addPath(savePath, "qBittorrent:TorrentSavePath")
+				}
+			}
+		}
+
+		// 2.3. Also add main download directories from preferences
+		prefs, err := s.qbittorrentClient.GetPreferences(ctx)
+		if err == nil {
+			addPath(prefs.SavePath, "qBittorrent:SavePath")
+			addPath(prefs.TempPath, "qBittorrent:TempPath")
+		}
+	}
+
+	// 3. Get Radarr root folders (alternative source for movie paths)
 	if s.radarrClient != nil {
-		// Get all movies to extract root paths
 		movies, err := s.radarrClient.GetLibrary(ctx)
 		if err == nil {
-			// Collect unique root folders (parent directories of movie folders)
 			radarrRoots := make(map[string]bool)
 			for _, movie := range movies {
 				if movie.FilePath != "" {
-					// Extract grandparent directory (root folder)
-					// Example: /Peliculas/Movie.2024/movie.mkv -> /Peliculas
 					movieDir := filepath.Dir(movie.FilePath)
 					rootDir := filepath.Dir(movieDir)
 					radarrRoots[rootDir] = true
 				}
 			}
-			// Add unique root folders
 			for rootDir := range radarrRoots {
 				addPath(rootDir, "Radarr:RootFolder")
 			}
 		}
 	}
 
-	// 3. Get Sonarr library paths
+	// 4. Get Sonarr root folders (alternative source for series paths)
 	if s.sonarrClient != nil {
-		// Get all series to extract root paths
 		series, err := s.sonarrClient.GetLibrary(ctx)
 		if err == nil {
-			// Collect unique root folders (parent directories of series folders)
 			sonarrRoots := make(map[string]bool)
 			for _, show := range series {
 				if show.FilePath != "" {
-					// Extract grandparent directory (root folder)
-					// Example: /Series/Show.Name/S01/episode.mkv -> /Series
 					episodeDir := filepath.Dir(show.FilePath)
 					seriesDir := filepath.Dir(episodeDir)
 					rootDir := filepath.Dir(seriesDir)

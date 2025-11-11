@@ -16,13 +16,13 @@
             <div class="flex items-center gap-4">
                 <!-- View Toggle -->
                 <div class="flex items-center gap-2 bg-dark-surface border border-dark-border rounded-lg p-1">
-                    <button @click="viewMode = 'list'" 
-                        :class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-dark-muted hover:text-dark-text'"
+                    <button @click="viewMode = 'movies'" 
+                        :class="viewMode === 'movies' ? 'bg-blue-600 text-white' : 'text-dark-muted hover:text-dark-text'"
                         class="px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
                         </svg>
-                        <span>Lista</span>
+                        <span>Películas</span>
                     </button>
                     <button @click="viewMode = 'organized'" 
                         :class="viewMode === 'organized' ? 'bg-blue-600 text-white' : 'text-dark-muted hover:text-dark-text'"
@@ -31,6 +31,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
                         <span>Organizado</span>
+                    </button>
+                    <button @click="viewMode = 'list'" 
+                        :class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-dark-muted hover:text-dark-text'"
+                        class="px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <span>Lista</span>
                     </button>
                 </div>
                 <div x-show="lastSync" class="text-sm text-dark-muted">
@@ -1038,6 +1046,93 @@
         </div>
     </div>
 
+    <!-- Vista Solo Películas -->
+    <div x-show="viewMode === 'movies'" class="space-y-6">
+        <!-- Loading indicator -->
+        <div x-show="loadingOrganized" class="flex items-center justify-center py-12">
+            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <span class="ml-3 text-dark-text">Cargando películas...</span>
+        </div>
+
+        <!-- Movies Section -->
+        <div x-show="!loadingOrganized && organizedData && organizedData.movies && organizedData.movies.length > 0">
+            <div class="flex items-center gap-3 mb-4">
+                <h2 class="text-2xl font-bold text-dark-text">🎬 Películas</h2>
+                <span class="text-lg text-dark-muted">(<span x-text="organizedData?.movies?.length || 0"></span>)</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <template x-for="movie in organizedData.movies" :key="movie.title">
+                    <div class="bg-dark-surface border border-dark-border rounded-lg shadow-lg overflow-hidden hover:border-slate-600 transition-colors">
+                        <!-- Movie Poster -->
+                        <div class="relative aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900">
+                            <template x-if="movie.poster_url">
+                                <img :src="movie.poster_url" :alt="movie.title"
+                                    class="w-full h-full object-cover"
+                                    @error="$el.src='/static/images/placeholder-movie.svg'">
+                            </template>
+                            <template x-if="!movie.poster_url">
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-24 h-24 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+                                    </svg>
+                                </div>
+                            </template>
+                            
+                            <!-- Quality Badge -->
+                            <div x-show="movie.quality" class="absolute top-2 right-2">
+                                <span class="px-2 py-1 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold rounded"
+                                    x-text="movie.quality"></span>
+                            </div>
+                        </div>
+
+                        <!-- Movie Info -->
+                        <div class="p-4">
+                            <h3 class="font-semibold text-dark-text mb-2 line-clamp-2" x-text="movie.title"></h3>
+                            
+                            <div class="space-y-2 text-sm">
+                                <!-- File size -->
+                                <div x-show="movie.size" class="flex items-center gap-2 text-dark-muted">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span x-text="formatBytes(movie.size)"></span>
+                                </div>
+
+                                <!-- File path -->
+                                <div x-show="movie.file_path" class="flex items-start gap-2 text-dark-muted">
+                                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                                    </svg>
+                                    <span class="text-xs line-clamp-2 break-all" x-text="movie.file_path"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Empty state for movies view -->
+        <div x-show="!loadingOrganized && organizedData && (!organizedData.movies || organizedData.movies.length === 0)" 
+            class="text-center py-16 px-4">
+            <svg class="mx-auto h-16 w-16 text-dark-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-dark-text mb-2">No hay películas</h3>
+            <p class="text-sm text-dark-muted mb-6">No se encontraron películas en la biblioteca.</p>
+            <button @click="syncFiles()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                🔄 Sincronizar archivos
+            </button>
+        </div>
+    </div>
+
     <!-- Lista de Archivos (Vista Lista) -->
     <div x-show="viewMode === 'list'" class="space-y-3">
         <!-- Loading indicator -->
@@ -1870,8 +1965,8 @@ function filesPage() {
         syncProgress: 0, // Progress percentage (0-100)
         loading: false,
         
-        // View mode: 'list' or 'organized'
-        viewMode: 'list',
+        // View mode: 'movies', 'organized' or 'list'
+        viewMode: 'movies',
         
         // Organized view data
         organizedData: null,
@@ -1918,6 +2013,11 @@ function filesPage() {
             
             await this.loadFiles();
             
+            // Load organized data if starting in movies or organized view
+            if (this.viewMode === 'movies' || this.viewMode === 'organized') {
+                await this.loadOrganizedFiles();
+            }
+            
             // Watch for page changes and reload files
             this.$watch('currentPage', () => {
                 if (this.viewMode === 'list') {
@@ -1935,7 +2035,7 @@ function filesPage() {
             
             // Watch for view mode changes
             this.$watch('viewMode', (newMode) => {
-                if (newMode === 'organized' && !this.organizedData) {
+                if ((newMode === 'organized' || newMode === 'movies') && !this.organizedData) {
                     this.loadOrganizedFiles();
                 }
             });
@@ -2654,6 +2754,11 @@ function filesPage() {
                 
                 if (this.selectedTab && this.selectedTab !== '') {
                     params.append('tab', this.selectedTab);
+                }
+                
+                // If in movies-only view, add type=movie filter
+                if (this.viewMode === 'movies') {
+                    params.append('type', 'movie');
                 }
                 
                 const response = await fetch(`/api/files/organized?${params.toString()}`);

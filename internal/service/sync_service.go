@@ -227,6 +227,9 @@ type SyncProgress struct {
 func (s *SyncService) SyncAllWithProgress(ctx context.Context, progressChan chan<- SyncProgress) error {
 	s.logger.Info("🔄 Starting FULL SYNC with progress reporting")
 
+	// Ensure channel is closed when function completes
+	defer close(progressChan)
+
 	progressChan <- SyncProgress{
 		Step:    "clear_db",
 		Message: "🗑️  Limpiando base de datos existente...",

@@ -45,22 +45,32 @@
                             class="border-transparent text-dark-muted hover:border-blue-500 hover:text-dark-text dark:text-dark-muted dark:hover:text-dark-text inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                             Dashboard
                         </a>
+                        <!-- 
                         <a href="/files"
                             class="border-transparent text-dark-muted hover:border-blue-500 hover:text-dark-text dark:text-dark-muted dark:hover:text-dark-text inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                             🗂️ Archivos
                         </a>
+                        -->
+                        <a href="/movies"
+                            class="border-transparent text-dark-muted hover:border-blue-500 hover:text-dark-text dark:text-dark-muted dark:hover:text-dark-text inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
+                            🎬 Películas
+                        </a>
+                        <!-- 
                         <a href="/schedules"
                             class="border-transparent text-dark-muted hover:border-blue-500 hover:text-dark-text dark:text-dark-muted dark:hover:text-dark-text inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                             Schedules
                         </a>
+                        -->
                         <a href="/settings"
                             class="border-transparent text-dark-muted hover:border-blue-500 hover:text-dark-text dark:text-dark-muted dark:hover:text-dark-text inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                             Settings
                         </a>
+                        <!-- 
                         <a href="/logs"
                             class="border-transparent text-dark-muted hover:border-blue-500 hover:text-dark-text dark:text-dark-muted dark:hover:text-dark-text inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                             Logs
                         </a>
+                        -->
                     </div>
                 </div>
             </div>
@@ -68,7 +78,7 @@
     </nav>
 
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {{embed}}
+        {{template "content" .}}
     </main>
 </body>
 

@@ -143,6 +143,39 @@ func extractSeriesName(path string) string {
 	return strings.TrimSpace(name)
 }
 
+// extractMovieTitleFromPath extracts a clean movie title from file path
+func (h *FilesHandler) extractMovieTitleFromPath(path string) string {
+	// For movies, try to get the parent directory name first
+	// Example: /downloads/movies/Fight.Club.1999.1080p/Fight.Club.1999.1080p.mkv
+	// We want "Fight Club 1999" from the directory name
+
+	dir := filepath.Dir(path)
+	dirName := filepath.Base(dir)
+
+	// If the directory is just "movies" or similar generic name, use filename instead
+	lowerDirName := strings.ToLower(dirName)
+	if lowerDirName == "movies" || lowerDirName == "films" || lowerDirName == "peliculas" ||
+		lowerDirName == "downloads" || lowerDirName == "library" {
+		// Use filename instead
+		fileName := filepath.Base(path)
+		ext := filepath.Ext(fileName)
+		dirName = strings.TrimSuffix(fileName, ext)
+	}
+
+	// Clean up the title
+	title := dirName
+	title = strings.ReplaceAll(title, ".", " ")
+	title = strings.ReplaceAll(title, "_", " ")
+
+	// Remove quality tags
+	title = qualityRegex.ReplaceAllString(title, "")
+
+	// Clean up multiple spaces
+	title = spaceRegex.ReplaceAllString(title, " ")
+
+	return strings.TrimSpace(title)
+}
+
 // GetOrganizedFilesAPI returns files organized by series/seasons and movies
 func (h *FilesHandler) GetOrganizedFilesAPI(c *fiber.Ctx) error {
 	// Get pagination parameters
@@ -497,9 +530,11 @@ func (h *FilesHandler) addToSeries(seriesMap map[string]*SeriesInfo, file MediaF
 
 // addToMovies adds a file to the movies map
 func (h *FilesHandler) addToMovies(movieMap map[string]*MovieInfo, file MediaFileInfo) {
+	// Determine movie title with better inference
 	movieTitle := file.Title
 	if movieTitle == "" {
-		movieTitle = h.inferTitleFromPath(file.FilePath)
+		// Extract clean title from path (directory name or filename)
+		movieTitle = h.extractMovieTitleFromPath(file.FilePath)
 	}
 
 	// Get or create movie
@@ -525,11 +560,29 @@ func (h *FilesHandler) addToMovies(movieMap map[string]*MovieInfo, file MediaFil
 		movie := movieMap[movieTitle]
 		movie.TotalSize += file.Size
 
-		// Prioritize Jellyfin version as primary
+		// Update metadata to reflect all sources
+		if file.InJellyfin {
+			movie.Metadata.InJellyfin = true
+			if file.JellyfinID != nil {
+				movie.Metadata.JellyfinID = file.JellyfinID
+			}
+		}
+		if file.InRadarr {
+			movie.Metadata.InRadarr = true
+			if file.RadarrID != nil {
+				movie.Metadata.RadarrID = file.RadarrID
+			}
+		}
+		if file.InQBittorrent {
+			movie.Metadata.InQBittorrent = true
+		}
+
+		// Prioritize Jellyfin version as primary (has poster and metadata)
 		if file.InJellyfin && !movie.PrimaryFile.InJellyfin {
 			// Swap: current primary becomes other version
 			movie.OtherVersions = append(movie.OtherVersions, movie.PrimaryFile)
 			movie.PrimaryFile = file
+			movie.Title = file.Title // Use Jellyfin's title if available
 		} else {
 			movie.OtherVersions = append(movie.OtherVersions, file)
 		}

@@ -148,6 +148,7 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 	// app.Get("/media", h.Media.List) // Removed from navigation - functionality available via API
 	app.Get("/files", h.Files.RenderFilesPage)
 	app.Get("/files-example", h.Files.RenderExamplePage) // Components demo page
+	app.Get("/movies", h.Movies.RenderMoviesPage)        // Movies view
 	app.Get("/schedules", h.Schedule.List)
 	app.Get("/settings", h.Settings.Index)
 	app.Get("/logs", h.Logs.Index)
@@ -162,6 +163,9 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Delete("/media/:id", h.Media.Delete)
 		api.Post("/media/bulk-delete", h.Media.BulkDelete)
 		api.Post("/media/:id/exclude", h.Media.Exclude)
+
+		// Movies
+		api.Get("/movies", h.Movies.GetMovies)
 
 		// Files
 		api.Get("/files", h.Files.GetFilesAPI)

@@ -48,8 +48,8 @@ func (h *SyncHandler) Sync(c *fiber.Ctx) error {
 
 	// Run sync in goroutine
 	go func() {
-		defer close(progressChan)
 		defer cancel() // Cancel context when sync completes
+		// NOTE: Do NOT close progressChan here - the service will close it
 
 		progressChan <- service.SyncProgress{
 			Step:    "init",
@@ -58,16 +58,13 @@ func (h *SyncHandler) Sync(c *fiber.Ctx) error {
 		}
 
 		// Execute sync with progress reporting
+		// The service will close the progressChan when done
 		if err := h.syncService.SyncAllWithProgress(ctx, progressChan); err != nil {
-			progressChan <- service.SyncProgress{
-				Step:    "error",
-				Message: fmt.Sprintf("❌ Error durante sincronización: %v", err),
-				Status:  "error",
-			}
-			return
+			// Error already sent by the service via progressChan
+			h.logger.Error("Sync failed", "error", err)
 		}
 
-		// Completion message is now sent by the service itself
+		// Completion message is sent by the service itself
 	}()
 
 	// Stream progress updates to client

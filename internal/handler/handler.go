@@ -7,6 +7,7 @@ import (
 	"github.com/carcheky/keepercheky/internal/repository"
 	"github.com/carcheky/keepercheky/internal/service"
 	"github.com/carcheky/keepercheky/internal/service/cleanup"
+	"github.com/carcheky/keepercheky/internal/service/clients"
 	"github.com/carcheky/keepercheky/pkg/cache"
 	"github.com/carcheky/keepercheky/pkg/logger"
 	"gorm.io/gorm"
@@ -22,6 +23,7 @@ type Handlers struct {
 	Sync        *SyncHandler
 	Files       *FilesHandler
 	FileActions *FileActionsHandler
+	Movies      *MoviesHandler
 	Radarr      *RadarrHandler
 	Sonarr      *SonarrHandler
 	QBittorrent *QBittorrentHandler
@@ -81,6 +83,13 @@ func NewHandlers(db *gorm.DB, repos *repository.Repositories, logger *logger.Log
 			oldSyncService.GetJellyfinClient(),
 			logger.Desugar(),
 		),
+		Movies: func() *MoviesHandler {
+			jellyfinClient := oldSyncService.GetJellyfinClient()
+			if jfClient, ok := jellyfinClient.(*clients.JellyfinClient); ok {
+				return NewMoviesHandler(cfg, jfClient, logger.Desugar())
+			}
+			return NewMoviesHandler(cfg, nil, logger.Desugar())
+		}(),
 		Radarr:      NewRadarrHandler(cfg, logger),
 		Sonarr:      NewSonarrHandler(cfg, logger),
 		QBittorrent: NewQBittorrentHandler(cfg, logger),

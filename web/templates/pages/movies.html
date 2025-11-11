@@ -1,0 +1,373 @@
+{{template "layouts/main" .}}
+
+{{define "content"}}
+<div x-data="moviesPage()" x-init="init()" class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-dark-text mb-2">🎬 Películas</h1>
+            <p class="text-dark-muted">Películas encontradas en las bibliotecas de Jellyfin</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex items-center gap-4 text-sm">
+            <div class="bg-dark-card px-4 py-2 rounded-lg border border-slate-700">
+                <span class="text-dark-muted">Total:</span>
+                <span class="font-bold text-dark-text ml-2" x-text="movies.length">0</span>
+            </div>
+            <div class="bg-dark-card px-4 py-2 rounded-lg border border-slate-700">
+                <span class="text-dark-muted">Tamaño total:</span>
+                <span class="font-bold text-dark-text ml-2" x-text="totalSizeFormatted">0 GB</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div x-show="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <p class="mt-4 text-dark-muted">Escaneando películas...</p>
+    </div>
+
+    <!-- Error State -->
+    <div x-show="error" class="bg-red-900/20 border border-red-500 rounded-lg p-4">
+        <p class="text-red-400" x-text="error"></p>
+    </div>
+
+    <!-- Library Paths Info -->
+    <div x-show="!loading && libraryPaths.length > 0" class="bg-dark-card rounded-lg p-4 border border-slate-700">
+        <h3 class="text-sm font-semibold text-dark-text mb-2">📁 Rutas de bibliotecas escaneadas:</h3>
+        <ul class="space-y-1">
+            <template x-for="path in libraryPaths" :key="path">
+                <li class="text-sm text-dark-muted font-mono">• <span x-text="path"></span></li>
+            </template>
+        </ul>
+    </div>
+
+    <!-- Search and Filters -->
+    <div x-show="!loading && movies.length > 0" class="bg-dark-card rounded-lg p-4 border border-slate-700">
+        <div class="flex gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+                <input 
+                    type="text" 
+                    x-model="searchQuery"
+                    placeholder="Buscar películas por título..."
+                    class="w-full px-4 py-2 bg-dark-bg border border-slate-600 rounded-lg text-dark-text placeholder-dark-muted focus:outline-none focus:border-blue-500"
+                />
+            </div>
+
+            <!-- Sort -->
+            <select 
+                x-model="sortBy"
+                class="px-4 py-2 bg-dark-bg border border-slate-600 rounded-lg text-dark-text focus:outline-none focus:border-blue-500"
+            >
+                <option value="title">Ordenar por título</option>
+                <option value="size">Ordenar por tamaño</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div x-show="!loading && selectedMovies.length > 0" class="bg-blue-900/20 border border-blue-500 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+            <span class="text-blue-400 font-semibold">
+                <span x-text="selectedMovies.length"></span> película(s) seleccionada(s)
+            </span>
+            <div class="flex gap-2">
+                <button 
+                    @click="deselectAll()"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded transition-colors"
+                >
+                    Deseleccionar todas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movies List (Horizontal Rows) -->
+    <div x-show="!loading && filteredMovies.length > 0" class="bg-dark-card rounded-lg border border-slate-700 overflow-hidden">
+        <template x-for="movie in filteredMovies" :key="movie.path">
+            <div class="flex items-center gap-4 p-3 border-b border-slate-700 last:border-b-0 hover:bg-slate-800/30 transition-colors"
+                 :class="{ 'bg-blue-900/20 border-l-4 border-l-blue-500': isSelected(movie.path) }">
+                
+                <!-- Checkbox -->
+                <div class="flex-shrink-0">
+                    <input 
+                        type="checkbox"
+                        :checked="isSelected(movie.path)"
+                        @change="toggleSelection(movie.path)"
+                        class="w-5 h-5 rounded border-slate-600 bg-slate-700 text-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                    />
+                </div>
+                
+                <!-- Title and Year -->
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-semibold text-dark-text truncate" :title="movie.title">
+                        <span x-text="movie.title"></span>
+                        <template x-if="movie.year > 0">
+                            <span class="text-dark-muted ml-2">(<span x-text="movie.year"></span>)</span>
+                        </template>
+                    </h3>
+                </div>
+                
+                <!-- Size -->
+                <div class="flex-shrink-0 text-sm text-dark-muted">
+                    <span x-text="formatBytes(movie.size)"></span>
+                </div>
+                
+                <!-- Icons -->
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <!-- Jellyfin Icon with Popup -->
+                    <template x-if="movie.jellyfin">
+                        <div class="relative" x-data="{ open: false }">
+                            <button 
+                                @click.stop="open = !open"
+                                @click.outside="open = false"
+                                class="p-1.5 bg-purple-600 hover:bg-purple-700 rounded text-white transition-colors"
+                                title="Ver datos de Jellyfin"
+                            >
+                                🎞️
+                            </button>
+                            
+                            <!-- Jellyfin Metadata Popup -->
+                            <div x-show="open" 
+                                 x-cloak
+                                 x-transition
+                                 class="absolute right-0 bottom-full mb-2 w-72 bg-dark-bg border border-slate-600 rounded-lg shadow-xl p-3 z-10">
+                                <div class="text-xs space-y-2">
+                                    <div class="font-semibold text-purple-400 border-b border-slate-700 pb-2">
+                                        Jellyfin
+                                    </div>
+                                    
+                                    <template x-if="movie.jellyfin.id">
+                                        <div>
+                                            <span class="text-dark-muted">ID:</span>
+                                            <span class="text-dark-text ml-2 font-mono text-xs break-all" x-text="movie.jellyfin.id"></span>
+                                        </div>
+                                    </template>
+                                    
+                                    <template x-if="movie.jellyfin.overview">
+                                        <div>
+                                            <span class="text-dark-muted">Sinopsis:</span>
+                                            <p class="text-dark-text mt-1 text-xs leading-relaxed" x-text="movie.jellyfin.overview"></p>
+                                        </div>
+                                    </template>
+                                    
+                                    <template x-if="movie.jellyfin.community_rating">
+                                        <div>
+                                            <span class="text-dark-muted">Calificación:</span>
+                                            <span class="text-dark-text ml-2">⭐ <span x-text="movie.jellyfin.community_rating"></span>/10</span>
+                                        </div>
+                                    </template>
+                                    
+                                    <template x-if="movie.jellyfin.play_count !== undefined">
+                                        <div>
+                                            <span class="text-dark-muted">Reproducciones:</span>
+                                            <span class="text-dark-text ml-2" x-text="movie.jellyfin.play_count"></span>
+                                        </div>
+                                    </template>
+                                    
+                                    <template x-if="movie.jellyfin.last_played">
+                                        <div>
+                                            <span class="text-dark-muted">Última reproducción:</span>
+                                            <span class="text-dark-text ml-2" x-text="movie.jellyfin.last_played"></span>
+                                        </div>
+                                    </template>
+                                    
+                                    <template x-if="movie.jellyfin.date_added">
+                                        <div>
+                                            <span class="text-dark-muted">Fecha agregada:</span>
+                                            <span class="text-dark-text ml-2" x-text="movie.jellyfin.date_added"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Placeholders for future icons -->
+                    <!-- 🔽 qBittorrent -->
+                    <!-- 📡 Radarr -->
+                </div>
+                
+                <!-- Poster (small) -->
+                <div class="flex-shrink-0">
+                    <template x-if="movie.poster_url">
+                        <img 
+                            :src="movie.poster_url" 
+                            :alt="movie.title"
+                            class="w-10 h-15 object-cover rounded"
+                            @error="$event.target.style.display='none'"
+                        />
+                    </template>
+                    <template x-if="!movie.poster_url">
+                        <div class="w-10 h-15 bg-slate-800 rounded flex items-center justify-center text-2xl">
+                            🎬
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Empty State -->
+    <div x-show="!loading && filteredMovies.length === 0 && movies.length > 0" class="text-center py-12">
+        <p class="text-dark-muted">No se encontraron películas que coincidan con la búsqueda</p>
+    </div>
+
+    <div x-show="!loading && movies.length === 0" class="text-center py-12">
+        <p class="text-dark-muted">No se encontraron películas en las bibliotecas de Jellyfin</p>
+    </div>
+
+    <!-- Movie Details Modal -->
+    <div x-show="selectedMovie" 
+         x-cloak
+         @click.self="selectedMovie = null"
+         class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-dark-card rounded-lg p-6 max-w-2xl w-full border border-slate-700">
+            <template x-if="selectedMovie">
+                <div>
+                    <h2 class="text-xl font-bold text-dark-text mb-4" x-text="selectedMovie.title"></h2>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <span class="text-dark-muted">Ruta:</span>
+                            <p class="text-dark-text font-mono text-xs mt-1 break-all" x-text="selectedMovie.path"></p>
+                        </div>
+                        <div>
+                            <span class="text-dark-muted">Tamaño:</span>
+                            <span class="text-dark-text ml-2" x-text="formatBytes(selectedMovie.size)"></span>
+                        </div>
+                        <div>
+                            <span class="text-dark-muted">Extensión:</span>
+                            <span class="text-dark-text ml-2" x-text="selectedMovie.extension"></span>
+                        </div>
+                        <div>
+                            <span class="text-dark-muted">Directorio:</span>
+                            <p class="text-dark-text font-mono text-xs mt-1 break-all" x-text="selectedMovie.directory"></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex gap-2">
+                        <button 
+                            @click="selectedMovie = null"
+                            class="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded transition-colors"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+<script>
+function moviesPage() {
+    return {
+        movies: [],
+        libraryPaths: [],
+        loading: true,
+        error: null,
+        searchQuery: '',
+        sortBy: 'title',
+        selectedMovie: null,
+        selectedMovies: [], // Array of selected movie paths
+
+        async init() {
+            await this.fetchMovies();
+        },
+
+        async fetchMovies() {
+            this.loading = true;
+            this.error = null;
+
+            try {
+                const response = await fetch('/api/movies');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                this.movies = data.movies || [];
+                this.libraryPaths = data.library_paths || [];
+            } catch (err) {
+                this.error = `Error al cargar películas: ${err.message}`;
+                console.error('Error fetching movies:', err);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        get filteredMovies() {
+            let filtered = this.movies;
+
+            // Apply search filter
+            if (this.searchQuery.trim()) {
+                const query = this.searchQuery.toLowerCase();
+                filtered = filtered.filter(movie => 
+                    movie.title.toLowerCase().includes(query)
+                );
+            }
+
+            // Apply sorting
+            filtered = [...filtered].sort((a, b) => {
+                if (this.sortBy === 'title') {
+                    return a.title.localeCompare(b.title);
+                } else if (this.sortBy === 'size') {
+                    return b.size - a.size;
+                }
+                return 0;
+            });
+
+            return filtered;
+        },
+
+        get totalSizeFormatted() {
+            const totalBytes = this.movies.reduce((sum, movie) => sum + movie.size, 0);
+            return this.formatBytes(totalBytes);
+        },
+
+        formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+
+        viewDetails(movie) {
+            this.selectedMovie = movie;
+        },
+
+        // Selection methods
+        isSelected(path) {
+            return this.selectedMovies.includes(path);
+        },
+
+        toggleSelection(path) {
+            const index = this.selectedMovies.indexOf(path);
+            if (index > -1) {
+                this.selectedMovies.splice(index, 1);
+            } else {
+                this.selectedMovies.push(path);
+            }
+        },
+
+        selectAll() {
+            this.selectedMovies = this.filteredMovies.map(m => m.path);
+        },
+
+        deselectAll() {
+            this.selectedMovies = [];
+        }
+    }
+}
+</script>
+
+<style>
+[x-cloak] {
+    display: none !important;
+}
+</style>
+{{end}}
