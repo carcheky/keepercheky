@@ -1,3 +1,13 @@
+# [1.0.0-dev.36](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.35...v1.0.0-dev.36) (2025-11-11)
+
+
+### Features
+
+* add movies route and handler, implement movie title extraction from file paths ([8945199](https://github.com/carcheky/keepercheky/commit/894519975dd0ff0b5ca11061554862982d15ff6c))
+* Implement movie management features with Jellyfin integration ([0fa9b18](https://github.com/carcheky/keepercheky/commit/0fa9b186b874af43be960ba73749a8a343b61b17))
+* Implementar mejoras en CI/CD, solución a errores de Codacy en Markdown, vista organizada de archivos y propuesta de mejora UX en la pestaña Files ([35f1ec2](https://github.com/carcheky/keepercheky/commit/35f1ec296b580363bc7fe591a4692332cec27b20))
+* **sync:** enhance dynamic root path retrieval from multiple services ([a074663](https://github.com/carcheky/keepercheky/commit/a074663efe68b814f9447b946ef74e3ca722d7a6))
+
 # [1.0.0-dev.35](https://github.com/carcheky/keepercheky/compare/v1.0.0-dev.34...v1.0.0-dev.35) (2025-11-10)
 
 ### Features
