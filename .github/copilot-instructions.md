@@ -1301,6 +1301,26 @@ When implementing features, refer to:
 - **Alpine.js**: <https://alpinejs.dev/>
 - **Tailwind CSS**: <https://tailwindcss.com/docs>
 - **Go Best Practices**: <https://go.dev/doc/effective_go>
+- **Jellyfin API**: See `docs/JELLYFIN_API_REFERENCE.md` for comprehensive API documentation
+
+### 📺 Jellyfin API Integration
+
+**ALWAYS consult `docs/JELLYFIN_API_REFERENCE.md` when working with Jellyfin integration.**
+
+This document contains:
+- ✅ Authentication flow with required headers
+- ✅ Items API endpoint with all parameters
+- ✅ Item types (Movie, Series, Episode, Season)
+- ✅ Available fields for efficient data retrieval
+- ✅ Sorting options and pagination
+- ✅ Image URL format and parameters
+- ✅ Playback state tracking
+- ✅ Practical examples for common queries
+
+**Critical filtering rule:**
+- ⚠️ **ALWAYS filter by `includeItemTypes` parameter** to avoid mixing Movies, Series, Episodes
+- Example: `includeItemTypes=Movie` for movies only
+- Without this filter, API returns all content types mixed together
 
 ## 🗣️ Communication Guidelines
 
