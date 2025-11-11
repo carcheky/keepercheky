@@ -76,6 +76,59 @@ type JellystatLibraryStats struct {
 	TotalMinutes int    `json:"total_minutes"`
 }
 
+// ItemPlaybackStats represents playback statistics for a specific item.
+type ItemPlaybackStats struct {
+	ItemID            string    `json:"item_id"`
+	ItemName          string    `json:"item_name"`
+	ItemType          string    `json:"item_type"`
+	LibraryName       string    `json:"library_name"`
+	PlayCount         int       `json:"play_count"`
+	UniqueUsers       int       `json:"unique_users"`
+	TotalMinutes      int       `json:"total_minutes"`
+	AverageCompletion float64   `json:"average_completion"`
+	DateAdded         time.Time `json:"date_added,omitempty"`
+	DateFirstPlayed   time.Time `json:"date_first_played,omitempty"`
+}
+
+// PlaybackHistory represents a single playback event in the history.
+type PlaybackHistory struct {
+	PlaybackID   string    `json:"playback_id"`
+	UserID       string    `json:"user_id"`
+	UserName     string    `json:"user_name"`
+	ItemID       string    `json:"item_id"`
+	ItemName     string    `json:"item_name"`
+	ItemType     string    `json:"item_type"`
+	PlayedAt     time.Time `json:"played_at"`
+	PlayDuration int       `json:"play_duration"` // in seconds
+	PlayMethod   string    `json:"play_method"`
+	Device       string    `json:"device"`
+}
+
+// ActiveSession represents an active playback session.
+type ActiveSession struct {
+	SessionID      string `json:"session_id"`
+	UserID         string `json:"user_id"`
+	UserName       string `json:"user_name"`
+	Device         string `json:"device"`
+	NowPlayingItem *struct {
+		ItemID   string `json:"item_id"`
+		ItemName string `json:"item_name"`
+		ItemType string `json:"item_type"`
+	} `json:"now_playing_item"`
+	PlaybackPosition int64  `json:"playback_position"` // in ticks
+	PlayMethod       string `json:"play_method"`
+	IsPaused         bool   `json:"is_paused"`
+}
+
+// HistoryParams represents parameters for querying playback history.
+type HistoryParams struct {
+	UserID string
+	ItemID string
+	Days   int
+	Limit  int
+	Offset int
+}
+
 // TestConnection verifies the connection to Jellystat.
 func (c *JellystatClient) TestConnection(ctx context.Context) error {
 	return c.callWithRetry(ctx, func() error {
@@ -307,6 +360,194 @@ func (c *JellystatClient) GetLibraryStats(ctx context.Context, days int) ([]Jell
 	)
 
 	return stats, nil
+}
+
+// GetActiveSessions retrieves currently active playback sessions.
+func (c *JellystatClient) GetActiveSessions(ctx context.Context) ([]ActiveSession, error) {
+	var sessions []ActiveSession
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&sessions).
+			Get("/api/sessions")
+
+		if err != nil {
+			return fmt.Errorf("failed to get active sessions: %w", err)
+		}
+
+		if resp.StatusCode() == 404 {
+			c.logger.Warn("Sessions endpoint not available")
+			return nil
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat active sessions",
+		zap.Int("session_count", len(sessions)),
+	)
+
+	return sessions, nil
+}
+
+// GetPlaybackHistory retrieves playback history with optional filters.
+func (c *JellystatClient) GetPlaybackHistory(ctx context.Context, params HistoryParams) ([]PlaybackHistory, error) {
+	var history []PlaybackHistory
+
+	err := c.callWithRetry(ctx, func() error {
+		req := c.client.R().
+			SetContext(ctx).
+			SetResult(&history)
+
+		// Add query parameters
+		if params.UserID != "" {
+			req.SetQueryParam("user_id", params.UserID)
+		}
+		if params.ItemID != "" {
+			req.SetQueryParam("item_id", params.ItemID)
+		}
+		if params.Days > 0 {
+			req.SetQueryParam("days", fmt.Sprintf("%d", params.Days))
+		}
+		if params.Limit > 0 {
+			req.SetQueryParam("limit", fmt.Sprintf("%d", params.Limit))
+		}
+		if params.Offset > 0 {
+			req.SetQueryParam("offset", fmt.Sprintf("%d", params.Offset))
+		}
+
+		resp, err := req.Get("/api/history")
+
+		if err != nil {
+			return fmt.Errorf("failed to get playback history: %w", err)
+		}
+
+		if resp.StatusCode() == 404 {
+			c.logger.Warn("History endpoint not available")
+			return nil
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat playback history",
+		zap.Int("record_count", len(history)),
+		zap.String("user_id", params.UserID),
+		zap.String("item_id", params.ItemID),
+	)
+
+	return history, nil
+}
+
+// GetMostWatchedItems retrieves the most watched items.
+func (c *JellystatClient) GetMostWatchedItems(ctx context.Context, days, limit int, itemType string) ([]ItemPlaybackStats, error) {
+	var items []ItemPlaybackStats
+
+	err := c.callWithRetry(ctx, func() error {
+		req := c.client.R().
+			SetContext(ctx).
+			SetResult(&items).
+			SetQueryParam("days", fmt.Sprintf("%d", days))
+
+		if limit > 0 {
+			req.SetQueryParam("limit", fmt.Sprintf("%d", limit))
+		}
+		if itemType != "" {
+			req.SetQueryParam("type", itemType)
+		}
+
+		resp, err := req.Get("/api/items/most-watched")
+
+		if err != nil {
+			return fmt.Errorf("failed to get most watched items: %w", err)
+		}
+
+		if resp.StatusCode() == 404 {
+			c.logger.Warn("Most watched items endpoint not available")
+			return nil
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat most watched items",
+		zap.Int("days", days),
+		zap.Int("item_count", len(items)),
+		zap.String("type", itemType),
+	)
+
+	return items, nil
+}
+
+// GetRecentlyAddedItems retrieves recently added items to Jellyfin.
+func (c *JellystatClient) GetRecentlyAddedItems(ctx context.Context, limit int, itemType string) ([]ItemPlaybackStats, error) {
+	var items []ItemPlaybackStats
+
+	err := c.callWithRetry(ctx, func() error {
+		req := c.client.R().
+			SetContext(ctx).
+			SetResult(&items)
+
+		if limit > 0 {
+			req.SetQueryParam("limit", fmt.Sprintf("%d", limit))
+		}
+		if itemType != "" {
+			req.SetQueryParam("type", itemType)
+		}
+
+		resp, err := req.Get("/api/items/recently-added")
+
+		if err != nil {
+			return fmt.Errorf("failed to get recently added items: %w", err)
+		}
+
+		if resp.StatusCode() == 404 {
+			c.logger.Warn("Recently added items endpoint not available")
+			return nil
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.logger.Info("Retrieved Jellystat recently added items",
+		zap.Int("item_count", len(items)),
+		zap.String("type", itemType),
+	)
+
+	return items, nil
 }
 
 // callWithRetry executes a function with retry logic.
