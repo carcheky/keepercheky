@@ -1302,6 +1302,7 @@ When implementing features, refer to:
 - **Tailwind CSS**: <https://tailwindcss.com/docs>
 - **Go Best Practices**: <https://go.dev/doc/effective_go>
 - **Jellyfin API**: See `docs/JELLYFIN_API_REFERENCE.md` for comprehensive API documentation
+- **qBittorrent API**: See `docs/QBITTORRENT_API_REFERENCE.md` for complete Web API documentation
 
 ### 📺 Jellyfin API Integration
 
@@ -1321,6 +1322,26 @@ This document contains:
 - ⚠️ **ALWAYS filter by `includeItemTypes` parameter** to avoid mixing Movies, Series, Episodes
 - Example: `includeItemTypes=Movie` for movies only
 - Without this filter, API returns all content types mixed together
+
+### 🌊 qBittorrent API Integration
+
+**ALWAYS consult `docs/QBITTORRENT_API_REFERENCE.md` when working with qBittorrent integration.**
+
+This document contains:
+- ✅ Cookie-based authentication (SID) flow
+- ✅ Complete list of torrent fields from `/api/v2/torrents/info`
+- ✅ Detailed properties endpoint with all metadata
+- ✅ All torrent states and their meanings (downloading, seeding, paused, etc.)
+- ✅ Files, trackers, and peers endpoints
+- ✅ Transfer info and server state endpoints
+- ✅ Categories and tags management
+- ✅ Practical examples for common operations
+
+**Critical fields for cleanup logic:**
+- ⚠️ **Use `state` field to determine seeding status** (uploading, stalledUP, checkingUP, queuedUP, forcedUP)
+- ⚠️ **Use `ratio` and `seeding_time` for cleanup decisions**
+- ⚠️ **Check `progress` to verify completion** (1.0 = 100% complete)
+- Example: A torrent with `state: "uploading"` and `ratio >= 2.0` may be eligible for cleanup
 
 ## 🗣️ Communication Guidelines
 
