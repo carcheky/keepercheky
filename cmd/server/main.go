@@ -206,6 +206,8 @@ func setupRoutes(app *fiber.App, h *handler.Handlers) {
 		api.Get("/sonarr/history", h.Sonarr.GetHistory)
 		api.Get("/sonarr/calendar", h.Sonarr.GetCalendar)
 		api.Get("/sonarr/quality-profiles", h.Sonarr.GetQualityProfiles)
+		api.Get("/sonarr/series/:seriesId/episodes", h.Sonarr.GetEpisodes)
+		api.Get("/sonarr/series/:seriesId/files", h.Sonarr.GetEpisodeFiles)
 
 		// Bazarr endpoints
 		api.Get("/bazarr/system", h.Bazarr.GetSystemInfo)
