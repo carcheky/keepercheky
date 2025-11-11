@@ -1322,6 +1322,32 @@ This document contains:
 - Example: `includeItemTypes=Movie` for movies only
 - Without this filter, API returns all content types mixed together
 
+### 📺 Sonarr API Integration
+
+**ALWAYS consult `docs/SONARR_API_REFERENCE.md` when working with Sonarr integration.**
+
+This document contains:
+- ✅ Authentication with X-Api-Key header
+- ✅ Series API endpoint with complete field reference
+- ✅ Episodes API with all available metadata
+- ✅ Episode Files API with MediaInfo details
+- ✅ Seasons structure and statistics
+- ✅ Queue, History, Calendar endpoints
+- ✅ Quality Profiles and Tags
+- ✅ System Info API
+- ✅ Practical examples for series/episodes queries
+
+**Critical fields to capture:**
+- **Series**: `tvdbId` (required), `imdbId`, `title`, `overview`, `network`, `airTime`, `status`, `year`, `runtime`, `genres`, `ratings`, `certification`, `seasons[]`, `statistics`
+- **Episodes**: `episodeNumber`, `seasonNumber`, `title`, `airDate`, `overview`, `hasFile`, `monitored`, `tvdbId`
+- **Episode Files**: `path`, `size`, `quality`, `mediaInfo` (codec, resolution, audio, subtitles)
+- **Seasons**: `seasonNumber`, `monitored`, `statistics` (episodeCount, sizeOnDisk, percentOfEpisodes)
+
+**Critical identification rule:**
+- ⚠️ **ALWAYS use `tvdbId` as the primary identifier** for Sonarr series
+- `imdbId` is available but `tvdbId` is required for adding/updating series
+- `tmdbId` is NOT supported in Sonarr API v3
+
 ## 🗣️ Communication Guidelines
 
 **REMEMBER**:

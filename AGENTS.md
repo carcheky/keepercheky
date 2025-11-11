@@ -341,6 +341,38 @@ go.uber.org/zap                      // Structured logging
 
 ---
 
+## 🔌 External Service API References
+
+### Jellyfin API
+
+**Documentation:** `docs/JELLYFIN_API_REFERENCE.md`
+
+- Authentication with `X-Emby-Token` header
+- Items API with `includeItemTypes` filtering (Movie, Series, Episode, Season)
+- Complete field reference: Overview, Genres, MediaStreams, ProviderIds, etc.
+- ⚠️ **ALWAYS filter by `includeItemTypes`** to avoid mixing content types
+
+### Sonarr API
+
+**Documentation:** `docs/SONARR_API_REFERENCE.md`
+
+- Authentication with `X-Api-Key` header
+- Series API with seasons and statistics
+- Episodes API with detailed metadata
+- Episode Files API with MediaInfo (codec, resolution, audio)
+- Queue, History, Calendar endpoints
+- ⚠️ **ALWAYS use `tvdbId` as primary identifier** (not tmdbId)
+
+### Key Differences
+
+| Service | Primary ID | Content Type | Structure |
+|---------|-----------|--------------|-----------|
+| Jellyfin | Item ID (string) | Movies, Series, Episodes, Seasons | Flat with recursive items |
+| Sonarr | Series ID (int) | Series → Seasons → Episodes | Hierarchical |
+| Radarr | Movie ID (int) | Movies | Flat |
+
+---
+
 ## 🗣️ Communication Guidelines
 
 **REMEMBER:**
