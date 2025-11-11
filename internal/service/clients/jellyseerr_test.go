@@ -96,6 +96,8 @@ func TestJellyseerrClient_GetRequests(t *testing.T) {
 		}
 
 		now := time.Now()
+		externalID1 := 100
+		externalID2 := 200
 		response := jellyseerrRequestsResponse{
 			PageInfo: struct {
 				Pages   int `json:"pages"`
@@ -111,19 +113,17 @@ func TestJellyseerrClient_GetRequests(t *testing.T) {
 					CreatedAt: now,
 					UpdatedAt: now,
 					Type:      "movie",
-					RequestedBy: struct {
-						DisplayName string `json:"displayName"`
-					}{
+					RequestedBy: JellyseerrUser{
+						ID:          1,
 						DisplayName: "test-user",
+						Email:       "test@example.com",
+						Username:    "testuser",
 					},
-					Media: struct {
-						TMDBID       int    `json:"tmdbId"`
-						Status       int    `json:"status"`
-						ExternalID   int    `json:"serviceId"`
-						ExternalType string `json:"serviceId4k"`
-					}{
-						TMDBID:     12345,
-						ExternalID: 100,
+					Media: JellyseerrMedia{
+						TMDBID:            12345,
+						MediaType:         "movie",
+						Status:            5,
+						ExternalServiceID: &externalID1,
 					},
 				},
 				{
@@ -132,19 +132,17 @@ func TestJellyseerrClient_GetRequests(t *testing.T) {
 					CreatedAt: now,
 					UpdatedAt: now,
 					Type:      "tv",
-					RequestedBy: struct {
-						DisplayName string `json:"displayName"`
-					}{
+					RequestedBy: JellyseerrUser{
+						ID:          2,
 						DisplayName: "another-user",
+						Email:       "another@example.com",
+						Username:    "anotheruser",
 					},
-					Media: struct {
-						TMDBID       int    `json:"tmdbId"`
-						Status       int    `json:"status"`
-						ExternalID   int    `json:"serviceId"`
-						ExternalType string `json:"serviceId4k"`
-					}{
-						TMDBID:     67890,
-						ExternalID: 200,
+					Media: JellyseerrMedia{
+						TMDBID:            67890,
+						MediaType:         "tv",
+						Status:            2,
+						ExternalServiceID: &externalID2,
 					},
 				},
 			},
@@ -249,25 +247,24 @@ func TestJellyseerrClient_GetRequest(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/api/v1/request/123", r.URL.Path)
 
+		externalID := 500
 		response := jellyseerrRequest{
 			ID:        123,
-			Status:    3, // available
+			Status:    4, // available (status 4, not 3)
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			Type:      "movie",
-			RequestedBy: struct {
-				DisplayName string `json:"displayName"`
-			}{
+			RequestedBy: JellyseerrUser{
+				ID:          3,
 				DisplayName: "specific-user",
+				Email:       "specific@example.com",
+				Username:    "specificuser",
 			},
-			Media: struct {
-				TMDBID       int    `json:"tmdbId"`
-				Status       int    `json:"status"`
-				ExternalID   int    `json:"serviceId"`
-				ExternalType string `json:"serviceId4k"`
-			}{
-				TMDBID:     99999,
-				ExternalID: 500,
+			Media: JellyseerrMedia{
+				TMDBID:            99999,
+				MediaType:         "movie",
+				Status:            5,
+				ExternalServiceID: &externalID,
 			},
 		}
 		w.WriteHeader(http.StatusOK)

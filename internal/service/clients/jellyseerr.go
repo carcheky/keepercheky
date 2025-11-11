@@ -53,27 +53,83 @@ type JellyseerrSystemInfo struct {
 	CommitsBehind   int    `json:"commits_behind"`
 }
 
-// jellyseerrRequest represents a request from Jellyseerr API.
-type jellyseerrRequest struct {
+// JellyseerrRequest represents a complete request from Jellyseerr API with all available fields.
+type JellyseerrRequest struct {
 	ID          int       `json:"id"`
-	Status      int       `json:"status"` // 1=pending, 2=approved, 3=available, 4=denied
+	Status      int       `json:"status"` // 1=pending, 2=approved, 3=declined, 4=available
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	Type        string    `json:"type"` // "movie" or "tv"
-	RequestedBy struct {
-		DisplayName string `json:"displayName"`
-	} `json:"requestedBy"`
-	Media struct {
-		TMDBID       int    `json:"tmdbId"`
-		Status       int    `json:"status"`
-		ExternalID   int    `json:"serviceId"`
-		ExternalType string `json:"serviceId4k"` // Radarr/Sonarr ID
-	} `json:"media"`
-	Seasons []struct {
-		ID     int `json:"id"`
-		Status int `json:"status"`
-	} `json:"seasons,omitempty"`
+	Is4K        bool      `json:"is4k"`
+	ServerID    *int      `json:"serverId,omitempty"`
+	ProfileID   *int      `json:"profileId,omitempty"`
+	RootFolder  string    `json:"rootFolder,omitempty"`
+	LanguageProfileID *int `json:"languageProfileId,omitempty"`
+	Tags        []int     `json:"tags,omitempty"`
+	IsAutoRequest bool    `json:"isAutoRequest"`
+	
+	// Media information
+	Media JellyseerrMedia `json:"media"`
+	
+	// User information
+	RequestedBy JellyseerrUser `json:"requestedBy"`
+	ModifiedBy  *JellyseerrUser `json:"modifiedBy,omitempty"`
+	
+	// Seasons for TV shows
+	Seasons []JellyseerrSeason `json:"seasons,omitempty"`
 }
+
+// JellyseerrMedia represents the media object in a request with complete metadata.
+type JellyseerrMedia struct {
+	ID                    int       `json:"id"`
+	MediaType             string    `json:"mediaType"` // "movie" or "tv"
+	TMDBID                int       `json:"tmdbId"`
+	TVDBID                *int      `json:"tvdbId,omitempty"`
+	IMDBID                string    `json:"imdbId,omitempty"`
+	Status                int       `json:"status"`
+	Status4K              int       `json:"status4k"`
+	CreatedAt             time.Time `json:"createdAt"`
+	UpdatedAt             time.Time `json:"updatedAt"`
+	LastSeasonChange      *time.Time `json:"lastSeasonChange,omitempty"`
+	MediaAddedAt          *time.Time `json:"mediaAddedAt,omitempty"`
+	ServiceID             *int      `json:"serviceId,omitempty"`
+	ServiceID4K           *int      `json:"serviceId4k,omitempty"`
+	ExternalServiceID     *int      `json:"externalServiceId,omitempty"`
+	ExternalServiceID4K   *int      `json:"externalServiceId4k,omitempty"`
+	ExternalServiceSlug   string    `json:"externalServiceSlug,omitempty"`
+	RatingKey             string    `json:"ratingKey,omitempty"`
+	RatingKey4K           string    `json:"ratingKey4k,omitempty"`
+}
+
+// JellyseerrUser represents user information with complete fields.
+type JellyseerrUser struct {
+	ID               int       `json:"id"`
+	Email            string    `json:"email"`
+	Username         string    `json:"username"`
+	PlexToken        string    `json:"plexToken,omitempty"`
+	PlexUsername     string    `json:"plexUsername,omitempty"`
+	JellyfinUsername string    `json:"jellyfinUsername,omitempty"`
+	JellyfinUserID   string    `json:"jellyfinUserId,omitempty"`
+	UserType         int       `json:"userType"` // 1=Plex, 2=Local, 3=Jellyfin
+	Permissions      int       `json:"permissions"`
+	Avatar           string    `json:"avatar,omitempty"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+	RequestCount     int       `json:"requestCount"`
+	DisplayName      string    `json:"displayName"`
+}
+
+// JellyseerrSeason represents a season request for TV shows.
+type JellyseerrSeason struct {
+	ID           int       `json:"id"`
+	SeasonNumber int       `json:"seasonNumber"`
+	Status       int       `json:"status"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+// jellyseerrRequest is the internal type used for API responses (keeping for compatibility)
+type jellyseerrRequest = JellyseerrRequest
 
 // jellyseerrRequestsResponse represents the response from requests endpoint.
 type jellyseerrRequestsResponse struct {
@@ -255,14 +311,14 @@ func (c *JellyseerrClient) DeleteRequest(ctx context.Context, id int) error {
 	})
 }
 
-// convertToRequest converts a Jellyseerr request to internal Request model.
+// convertToRequest converts a Jellyseerr request to internal Request model with all available fields.
 func (c *JellyseerrClient) convertToRequest(req *jellyseerrRequest) *models.Request {
 	// Convert status code to string
 	statusMap := map[int]string{
 		1: "pending",
 		2: "approved",
-		3: "available",
-		4: "denied",
+		3: "declined",
+		4: "available",
 	}
 
 	status := statusMap[req.Status]
@@ -277,16 +333,55 @@ func (c *JellyseerrClient) convertToRequest(req *jellyseerrRequest) *models.Requ
 		Status:      status,
 		RequestedBy: req.RequestedBy.DisplayName,
 		RequestedAt: req.CreatedAt,
+		
+		// Request configuration
+		Is4K:              req.Is4K,
+		ProfileID:         req.ProfileID,
+		RootFolder:        req.RootFolder,
+		LanguageProfileID: req.LanguageProfileID,
+		IsAutoRequest:     req.IsAutoRequest,
+		
+		// Media metadata
+		TMDBID:              req.Media.TMDBID,
+		TVDBID:              req.Media.TVDBID,
+		IMDBID:              req.Media.IMDBID,
+		MediaStatus:         req.Media.Status,
+		MediaStatus4K:       req.Media.Status4K,
+		MediaAddedAt:        req.Media.MediaAddedAt,
+		ExternalServiceSlug: req.Media.ExternalServiceSlug,
+		
+		// User information
+		RequestedByUserID: req.RequestedBy.ID,
+		RequestedByEmail:  req.RequestedBy.Email,
+	}
+
+	// Modified by user if available
+	if req.ModifiedBy != nil {
+		request.ModifiedBy = req.ModifiedBy.DisplayName
+		request.ModifiedByUserID = &req.ModifiedBy.ID
 	}
 
 	// Link to Radarr/Sonarr if available
-	if req.Media.ExternalID > 0 {
+	if req.Media.ExternalServiceID != nil && *req.Media.ExternalServiceID > 0 {
 		if req.Type == "movie" {
-			request.RadarrID = &req.Media.ExternalID
+			request.RadarrID = req.Media.ExternalServiceID
 		} else {
-			request.SonarrID = &req.Media.ExternalID
+			request.SonarrID = req.Media.ExternalServiceID
 		}
 	}
+
+	// Service instance ID
+	if req.Media.ServiceID != nil {
+		request.ServiceInstanceID = req.Media.ServiceID
+	}
+
+	c.logger.Debug("Converted Jellyseerr request to internal model",
+		zap.Int("service_id", request.ServiceID),
+		zap.String("media_type", request.MediaType),
+		zap.String("status", request.Status),
+		zap.Int("tmdb_id", request.TMDBID),
+		zap.Bool("is_4k", request.Is4K),
+	)
 
 	return request
 }
