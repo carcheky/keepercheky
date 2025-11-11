@@ -1302,6 +1302,7 @@ When implementing features, refer to:
 - **Tailwind CSS**: <https://tailwindcss.com/docs>
 - **Go Best Practices**: <https://go.dev/doc/effective_go>
 - **Jellyfin API**: See `docs/JELLYFIN_API_REFERENCE.md` for comprehensive API documentation
+- **Radarr API**: See `docs/RADARR_API_REFERENCE.md` for comprehensive API documentation
 
 ### 📺 Jellyfin API Integration
 
@@ -1321,6 +1322,26 @@ This document contains:
 - ⚠️ **ALWAYS filter by `includeItemTypes` parameter** to avoid mixing Movies, Series, Episodes
 - Example: `includeItemTypes=Movie` for movies only
 - Without this filter, API returns all content types mixed together
+
+### 🎬 Radarr API Integration
+
+**ALWAYS consult `docs/RADARR_API_REFERENCE.md` when working with Radarr integration.**
+
+This document contains:
+- ✅ API Key authentication flow
+- ✅ Complete movie endpoint with ALL available fields
+- ✅ Queue, History, Calendar, and System Info APIs
+- ✅ Quality profiles and tags management
+- ✅ MediaInfo fields (codec, bitrate, HDR, resolution, etc.)
+- ✅ Ratings from multiple services (IMDb, TMDb, Metacritic, Rotten Tomatoes)
+- ✅ Custom formats and quality revision tracking
+- ✅ Practical examples for filtering and searching
+
+**Critical fields to capture:**
+- ⚠️ **ALWAYS capture complete `movieFile` object** with mediaInfo, quality, and custom formats
+- ⚠️ **ALWAYS capture `ratings` object** from all available services
+- ⚠️ **ALWAYS capture `collection` information** if available
+- Example: Full movie object includes 50+ fields - see reference doc for complete structure
 
 ## 🗣️ Communication Guidelines
 

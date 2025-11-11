@@ -341,6 +341,22 @@ go.uber.org/zap                      // Structured logging
 
 ---
 
+## 📖 API Documentation Reference
+
+When working with external service integrations, consult these complete API references:
+
+| Service | Documentation | Key Features |
+|---------|--------------|--------------|
+| **Jellyfin** | `docs/JELLYFIN_API_REFERENCE.md` | Items API, metadata, streams, user data |
+| **Radarr** | `docs/RADARR_API_REFERENCE.md` | Movies, queue, history, mediaInfo, ratings |
+
+**Quick Reference:**
+- Always capture complete metadata objects from these services
+- Use documented field names and structures
+- Refer to examples section for common query patterns
+
+---
+
 ## 🗣️ Communication Guidelines
 
 **REMEMBER:**

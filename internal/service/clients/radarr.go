@@ -87,24 +87,165 @@ type RadarrSystemInfo struct {
 	SqliteVersion  string `json:"sqlite_version"`
 }
 
-// radarrMovie represents a movie from Radarr API.
+// radarrMovie represents a movie from Radarr API with complete metadata.
 type radarrMovie struct {
-	ID         int       `json:"id"`
-	Title      string    `json:"title"`
-	Path       string    `json:"path"`
-	SizeOnDisk int64     `json:"sizeOnDisk"`
-	Added      time.Time `json:"added"`
-	Quality    struct {
-		Quality struct {
-			Name string `json:"name"`
-		} `json:"quality"`
-	} `json:"quality"`
-	Tags    []int `json:"tags"`
-	HasFile bool  `json:"hasFile"`
-	Images  []struct {
-		CoverType string `json:"coverType"`
+	// Basic Info
+	ID            int    `json:"id"`
+	Title         string `json:"title"`
+	OriginalTitle string `json:"originalTitle"`
+	SortTitle     string `json:"sortTitle"`
+	CleanTitle    string `json:"cleanTitle"`
+	Year          int    `json:"year"`
+	SecondaryYear *int   `json:"secondaryYear"`
+
+	// Status and Monitoring
+	Status              string `json:"status"` // tba, announced, inCinemas, released, deleted
+	Overview            string `json:"overview"`
+	Monitored           bool   `json:"monitored"`
+	MinimumAvailability string `json:"minimumAvailability"` // tba, announced, inCinemas, released, preDB
+	IsAvailable         bool   `json:"isAvailable"`
+
+	// Dates
+	InCinemas       *time.Time `json:"inCinemas"`
+	PhysicalRelease *time.Time `json:"physicalRelease"`
+	DigitalRelease  *time.Time `json:"digitalRelease"`
+	Added           time.Time  `json:"added"`
+
+	// File Info
+	Path             string `json:"path"`
+	FolderName       string `json:"folderName"`
+	SizeOnDisk       int64  `json:"sizeOnDisk"`
+	HasFile          bool   `json:"hasFile"`
+	MovieFileID      int    `json:"movieFileId"`
+	QualityProfileID int    `json:"qualityProfileId"`
+
+	// Technical Details
+	Runtime int `json:"runtime"` // minutes
+
+	// External IDs
+	IMDbID    string `json:"imdbId"`
+	TMDbID    int    `json:"tmdbId"`
+	TitleSlug string `json:"titleSlug"`
+
+	// Media Info
+	Website          string   `json:"website"`
+	RemotePoster     string   `json:"remotePoster"`
+	YouTubeTrailerID string   `json:"youTubeTrailerId"`
+	Studio           string   `json:"studio"`
+	Certification    string   `json:"certification"` // G, PG, PG-13, R, NC-17
+	Genres           []string `json:"genres"`
+	Tags             []int    `json:"tags"`
+	Popularity       float64  `json:"popularity"`
+
+	// Images
+	Images []struct {
+		CoverType string `json:"coverType"` // poster, fanart, banner, logo
 		URL       string `json:"url"`
+		RemoteURL string `json:"remoteUrl"`
 	} `json:"images"`
+
+	// Alternate Titles
+	AlternateTitles []struct {
+		SourceType      string `json:"sourceType"`
+		MovieMetadataID int    `json:"movieMetadataId"`
+		Title           string `json:"title"`
+		ID              int    `json:"id"`
+	} `json:"alternateTitles"`
+
+	// Ratings
+	Ratings struct {
+		IMDb *struct {
+			Votes int     `json:"votes"`
+			Value float64 `json:"value"`
+			Type  string  `json:"type"`
+		} `json:"imdb"`
+		TMDb *struct {
+			Votes int     `json:"votes"`
+			Value float64 `json:"value"`
+			Type  string  `json:"type"`
+		} `json:"tmdb"`
+		Metacritic *struct {
+			Votes int    `json:"votes"`
+			Value int    `json:"value"`
+			Type  string `json:"type"`
+		} `json:"metacritic"`
+		RottenTomatoes *struct {
+			Votes int    `json:"votes"`
+			Value int    `json:"value"`
+			Type  string `json:"type"`
+		} `json:"rottenTomatoes"`
+	} `json:"ratings"`
+
+	// Movie File (complete details)
+	MovieFile *struct {
+		MovieID      int       `json:"movieId"`
+		RelativePath string    `json:"relativePath"`
+		Path         string    `json:"path"`
+		Size         int64     `json:"size"`
+		DateAdded    time.Time `json:"dateAdded"`
+		SceneName    string    `json:"sceneName"`
+		IndexerFlags int       `json:"indexerFlags"`
+		Quality      struct {
+			Quality struct {
+				ID         int    `json:"id"`
+				Name       string `json:"name"`
+				Source     string `json:"source"`     // bluray, webdl, webrip, hdtv
+				Resolution int    `json:"resolution"` // 480, 720, 1080, 2160
+				Modifier   string `json:"modifier"`   // remux, brdisk, regional, none
+			} `json:"quality"`
+			Revision struct {
+				Version  int  `json:"version"`
+				Real     int  `json:"real"`
+				IsRepack bool `json:"isRepack"`
+			} `json:"revision"`
+		} `json:"quality"`
+		CustomFormatScore int `json:"customFormatScore"`
+		CustomFormats     []struct {
+			ID   int    `json:"id"`
+			Name string `json:"name"`
+		} `json:"customFormats"`
+		MediaInfo *struct {
+			AudioBitrate          int     `json:"audioBitrate"`
+			AudioChannels         float64 `json:"audioChannels"`
+			AudioCodec            string  `json:"audioCodec"`
+			AudioLanguages        string  `json:"audioLanguages"`
+			AudioStreamCount      int     `json:"audioStreamCount"`
+			VideoBitDepth         int     `json:"videoBitDepth"`
+			VideoBitrate          int     `json:"videoBitrate"`
+			VideoCodec            string  `json:"videoCodec"`
+			VideoFps              float64 `json:"videoFps"`
+			VideoDynamicRange     string  `json:"videoDynamicRange"`     // SDR, HDR
+			VideoDynamicRangeType string  `json:"videoDynamicRangeType"` // HDR10, DolbyVision
+			Resolution            string  `json:"resolution"`
+			RunTime               string  `json:"runTime"`
+			ScanType              string  `json:"scanType"` // Progressive, Interlaced
+			Subtitles             string  `json:"subtitles"`
+		} `json:"mediaInfo"`
+		QualityCutoffNotMet bool `json:"qualityCutoffNotMet"`
+		Languages           []struct {
+			ID   int    `json:"id"`
+			Name string `json:"name"`
+		} `json:"languages"`
+		ReleaseGroup string `json:"releaseGroup"`
+		Edition      string `json:"edition"`
+		ID           int    `json:"id"`
+	} `json:"movieFile"`
+
+	// Collection
+	Collection *struct {
+		Title               string `json:"title"`
+		TMDbID              int    `json:"tmdbId"`
+		Monitored           bool   `json:"monitored"`
+		QualityProfileID    int    `json:"qualityProfileId"`
+		SearchOnAdd         bool   `json:"searchOnAdd"`
+		MinimumAvailability string `json:"minimumAvailability"`
+		Images              []struct {
+			CoverType string `json:"coverType"`
+			URL       string `json:"url"`
+		} `json:"images"`
+		Added time.Time `json:"added"`
+		ID    int       `json:"id"`
+	} `json:"collection"`
 }
 
 // radarrTag represents a tag from Radarr API.
@@ -227,6 +368,115 @@ type radarrQualityProfile struct {
 type RadarrQualityProfile struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+// RadarrMovieMetadata contains complete Radarr movie metadata for public API.
+// This struct exposes all available fields from the Radarr API for use in handlers and UI.
+type RadarrMovieMetadata struct {
+	// Basic Info
+	ID            int    `json:"id"`
+	Title         string `json:"title"`
+	OriginalTitle string `json:"original_title,omitempty"`
+	SortTitle     string `json:"sort_title,omitempty"`
+	Year          int    `json:"year,omitempty"`
+
+	// Status and Monitoring
+	Status              string `json:"status,omitempty"` // tba, announced, inCinemas, released, deleted
+	Overview            string `json:"overview,omitempty"`
+	Monitored           bool   `json:"monitored"`
+	MinimumAvailability string `json:"minimum_availability,omitempty"` // tba, announced, inCinemas, released, preDB
+	IsAvailable         bool   `json:"is_available"`
+
+	// Dates
+	InCinemas       string `json:"in_cinemas,omitempty"`
+	PhysicalRelease string `json:"physical_release,omitempty"`
+	DigitalRelease  string `json:"digital_release,omitempty"`
+	DateAdded       string `json:"date_added,omitempty"`
+
+	// File Info
+	Path       string `json:"path,omitempty"`
+	FolderName string `json:"folder_name,omitempty"`
+	SizeOnDisk int64  `json:"size_on_disk"`
+	HasFile    bool   `json:"has_file"`
+
+	// Technical Details
+	Runtime int `json:"runtime,omitempty"` // minutes
+
+	// External IDs and Links
+	IMDbID           string `json:"imdb_id,omitempty"`
+	TMDbID           int    `json:"tmdb_id,omitempty"`
+	Website          string `json:"website,omitempty"`
+	YouTubeTrailerID string `json:"youtube_trailer_id,omitempty"`
+
+	// Media Info
+	Studio        string   `json:"studio,omitempty"`
+	Certification string   `json:"certification,omitempty"` // G, PG, PG-13, R, NC-17
+	Genres        []string `json:"genres,omitempty"`
+	Tags          []string `json:"tags,omitempty"` // Tag labels (not IDs)
+	Popularity    float64  `json:"popularity,omitempty"`
+
+	// Images
+	PosterURL string   `json:"poster_url,omitempty"`
+	FanartURL string   `json:"fanart_url,omitempty"`
+	BannerURL string   `json:"banner_url,omitempty"`
+	ImageURLs []string `json:"image_urls,omitempty"`
+
+	// Alternate Titles
+	AlternateTitles []string `json:"alternate_titles,omitempty"`
+
+	// Ratings
+	IMDbRating          float64 `json:"imdb_rating,omitempty"`
+	IMDbVotes           int     `json:"imdb_votes,omitempty"`
+	TMDbRating          float64 `json:"tmdb_rating,omitempty"`
+	TMDbVotes           int     `json:"tmdb_votes,omitempty"`
+	MetacriticScore     int     `json:"metacritic_score,omitempty"`
+	RottenTomatoesScore int     `json:"rotten_tomatoes_score,omitempty"`
+
+	// Quality Info
+	QualityName       string `json:"quality_name,omitempty"`
+	QualitySource     string `json:"quality_source,omitempty"`     // bluray, webdl, webrip, hdtv
+	QualityResolution int    `json:"quality_resolution,omitempty"` // 480, 720, 1080, 2160
+	QualityModifier   string `json:"quality_modifier,omitempty"`   // remux, brdisk, regional, none
+	QualityVersion    int    `json:"quality_version,omitempty"`
+	IsRepack          bool   `json:"is_repack"`
+
+	// Custom Formats
+	CustomFormatScore int      `json:"custom_format_score,omitempty"`
+	CustomFormats     []string `json:"custom_formats,omitempty"`
+
+	// Movie File MediaInfo
+	MediaInfo *struct {
+		// Audio
+		AudioCodec       string  `json:"audio_codec,omitempty"`
+		AudioChannels    float64 `json:"audio_channels,omitempty"`
+		AudioBitrate     int     `json:"audio_bitrate,omitempty"`
+		AudioLanguages   string  `json:"audio_languages,omitempty"`
+		AudioStreamCount int     `json:"audio_stream_count,omitempty"`
+
+		// Video
+		VideoCodec            string  `json:"video_codec,omitempty"`
+		VideoBitrate          int     `json:"video_bitrate,omitempty"`
+		VideoFps              float64 `json:"video_fps,omitempty"`
+		VideoBitDepth         int     `json:"video_bit_depth,omitempty"`
+		VideoDynamicRange     string  `json:"video_dynamic_range,omitempty"`      // SDR, HDR
+		VideoDynamicRangeType string  `json:"video_dynamic_range_type,omitempty"` // HDR10, DolbyVision
+		Resolution            string  `json:"resolution,omitempty"`               // 1920x1080, 3840x2160
+		ScanType              string  `json:"scan_type,omitempty"`                // Progressive, Interlaced
+
+		// Other
+		RunTime   string `json:"run_time,omitempty"`
+		Subtitles string `json:"subtitles,omitempty"`
+	} `json:"media_info,omitempty"`
+
+	// Additional File Info
+	SceneName    string   `json:"scene_name,omitempty"`
+	ReleaseGroup string   `json:"release_group,omitempty"`
+	Edition      string   `json:"edition,omitempty"` // Extended, Director's Cut, etc.
+	Languages    []string `json:"languages,omitempty"`
+
+	// Collection
+	CollectionTitle  string `json:"collection_title,omitempty"`
+	CollectionTMDbID int    `json:"collection_tmdb_id,omitempty"`
 }
 
 // TestConnection verifies the connection to Radarr.
@@ -466,6 +716,12 @@ func (c *RadarrClient) GetTags(ctx context.Context) ([]models.Tag, error) {
 
 // convertToMedia converts a Radarr movie to internal Media model.
 func (c *RadarrClient) convertToMedia(movie *radarrMovie) *models.Media {
+	// Determine quality name - check movieFile first, fallback to movie level
+	qualityName := ""
+	if movie.MovieFile != nil {
+		qualityName = movie.MovieFile.Quality.Quality.Name
+	}
+
 	media := &models.Media{
 		Title:     movie.Title,
 		Type:      "movie",
@@ -473,10 +729,10 @@ func (c *RadarrClient) convertToMedia(movie *radarrMovie) *models.Media {
 		Size:      movie.SizeOnDisk,
 		AddedDate: movie.Added,
 		RadarrID:  &movie.ID,
-		Quality:   movie.Quality.Quality.Name,
+		Quality:   qualityName,
 	}
 
-	// Extract poster URL
+	// Extract poster URL and other images
 	for _, image := range movie.Images {
 		if image.CoverType == "poster" {
 			media.PosterURL = image.URL
@@ -493,6 +749,181 @@ func (c *RadarrClient) convertToMedia(movie *radarrMovie) *models.Media {
 	}
 
 	return media
+}
+
+// ConvertToMetadata converts a Radarr movie to complete RadarrMovieMetadata.
+// This function exposes ALL available fields from the Radarr API for use in handlers.
+func (c *RadarrClient) ConvertToMetadata(movie *radarrMovie) *RadarrMovieMetadata {
+	metadata := &RadarrMovieMetadata{
+		ID:                  movie.ID,
+		Title:               movie.Title,
+		OriginalTitle:       movie.OriginalTitle,
+		SortTitle:           movie.SortTitle,
+		Year:                movie.Year,
+		Status:              movie.Status,
+		Overview:            movie.Overview,
+		Monitored:           movie.Monitored,
+		MinimumAvailability: movie.MinimumAvailability,
+		IsAvailable:         movie.IsAvailable,
+		Path:                movie.Path,
+		FolderName:          movie.FolderName,
+		SizeOnDisk:          movie.SizeOnDisk,
+		HasFile:             movie.HasFile,
+		Runtime:             movie.Runtime,
+		IMDbID:              movie.IMDbID,
+		TMDbID:              movie.TMDbID,
+		Website:             movie.Website,
+		YouTubeTrailerID:    movie.YouTubeTrailerID,
+		Studio:              movie.Studio,
+		Certification:       movie.Certification,
+		Genres:              movie.Genres,
+		Popularity:          movie.Popularity,
+	}
+
+	// Format dates
+	if movie.InCinemas != nil && !movie.InCinemas.IsZero() {
+		metadata.InCinemas = movie.InCinemas.Format("2006-01-02")
+	}
+	if movie.PhysicalRelease != nil && !movie.PhysicalRelease.IsZero() {
+		metadata.PhysicalRelease = movie.PhysicalRelease.Format("2006-01-02")
+	}
+	if movie.DigitalRelease != nil && !movie.DigitalRelease.IsZero() {
+		metadata.DigitalRelease = movie.DigitalRelease.Format("2006-01-02")
+	}
+	if !movie.Added.IsZero() {
+		metadata.DateAdded = movie.Added.Format("2006-01-02")
+	}
+
+	// Extract image URLs
+	var imageURLs []string
+	for _, image := range movie.Images {
+		switch image.CoverType {
+		case "poster":
+			metadata.PosterURL = image.URL
+		case "fanart":
+			metadata.FanartURL = image.URL
+		case "banner":
+			metadata.BannerURL = image.URL
+		}
+		if image.URL != "" {
+			imageURLs = append(imageURLs, image.URL)
+		}
+	}
+	metadata.ImageURLs = imageURLs
+
+	// Extract alternate titles
+	if len(movie.AlternateTitles) > 0 {
+		altTitles := make([]string, 0, len(movie.AlternateTitles))
+		for _, alt := range movie.AlternateTitles {
+			if alt.Title != "" {
+				altTitles = append(altTitles, alt.Title)
+			}
+		}
+		metadata.AlternateTitles = altTitles
+	}
+
+	// Extract ratings
+	if movie.Ratings.IMDb != nil {
+		metadata.IMDbRating = movie.Ratings.IMDb.Value
+		metadata.IMDbVotes = movie.Ratings.IMDb.Votes
+	}
+	if movie.Ratings.TMDb != nil {
+		metadata.TMDbRating = movie.Ratings.TMDb.Value
+		metadata.TMDbVotes = movie.Ratings.TMDb.Votes
+	}
+	if movie.Ratings.Metacritic != nil {
+		metadata.MetacriticScore = movie.Ratings.Metacritic.Value
+	}
+	if movie.Ratings.RottenTomatoes != nil {
+		metadata.RottenTomatoesScore = movie.Ratings.RottenTomatoes.Value
+	}
+
+	// Extract quality and file info
+	if movie.MovieFile != nil {
+		metadata.QualityName = movie.MovieFile.Quality.Quality.Name
+		metadata.QualitySource = movie.MovieFile.Quality.Quality.Source
+		metadata.QualityResolution = movie.MovieFile.Quality.Quality.Resolution
+		metadata.QualityModifier = movie.MovieFile.Quality.Quality.Modifier
+		metadata.QualityVersion = movie.MovieFile.Quality.Revision.Version
+		metadata.IsRepack = movie.MovieFile.Quality.Revision.IsRepack
+
+		metadata.CustomFormatScore = movie.MovieFile.CustomFormatScore
+		if len(movie.MovieFile.CustomFormats) > 0 {
+			cfNames := make([]string, 0, len(movie.MovieFile.CustomFormats))
+			for _, cf := range movie.MovieFile.CustomFormats {
+				cfNames = append(cfNames, cf.Name)
+			}
+			metadata.CustomFormats = cfNames
+		}
+
+		metadata.SceneName = movie.MovieFile.SceneName
+		metadata.ReleaseGroup = movie.MovieFile.ReleaseGroup
+		metadata.Edition = movie.MovieFile.Edition
+
+		if len(movie.MovieFile.Languages) > 0 {
+			langs := make([]string, 0, len(movie.MovieFile.Languages))
+			for _, lang := range movie.MovieFile.Languages {
+				langs = append(langs, lang.Name)
+			}
+			metadata.Languages = langs
+		}
+
+		// Extract MediaInfo
+		if movie.MovieFile.MediaInfo != nil {
+			metadata.MediaInfo = &struct {
+				AudioCodec            string  `json:"audio_codec,omitempty"`
+				AudioChannels         float64 `json:"audio_channels,omitempty"`
+				AudioBitrate          int     `json:"audio_bitrate,omitempty"`
+				AudioLanguages        string  `json:"audio_languages,omitempty"`
+				AudioStreamCount      int     `json:"audio_stream_count,omitempty"`
+				VideoCodec            string  `json:"video_codec,omitempty"`
+				VideoBitrate          int     `json:"video_bitrate,omitempty"`
+				VideoFps              float64 `json:"video_fps,omitempty"`
+				VideoBitDepth         int     `json:"video_bit_depth,omitempty"`
+				VideoDynamicRange     string  `json:"video_dynamic_range,omitempty"`
+				VideoDynamicRangeType string  `json:"video_dynamic_range_type,omitempty"`
+				Resolution            string  `json:"resolution,omitempty"`
+				ScanType              string  `json:"scan_type,omitempty"`
+				RunTime               string  `json:"run_time,omitempty"`
+				Subtitles             string  `json:"subtitles,omitempty"`
+			}{
+				AudioCodec:            movie.MovieFile.MediaInfo.AudioCodec,
+				AudioChannels:         movie.MovieFile.MediaInfo.AudioChannels,
+				AudioBitrate:          movie.MovieFile.MediaInfo.AudioBitrate,
+				AudioLanguages:        movie.MovieFile.MediaInfo.AudioLanguages,
+				AudioStreamCount:      movie.MovieFile.MediaInfo.AudioStreamCount,
+				VideoCodec:            movie.MovieFile.MediaInfo.VideoCodec,
+				VideoBitrate:          movie.MovieFile.MediaInfo.VideoBitrate,
+				VideoFps:              movie.MovieFile.MediaInfo.VideoFps,
+				VideoBitDepth:         movie.MovieFile.MediaInfo.VideoBitDepth,
+				VideoDynamicRange:     movie.MovieFile.MediaInfo.VideoDynamicRange,
+				VideoDynamicRangeType: movie.MovieFile.MediaInfo.VideoDynamicRangeType,
+				Resolution:            movie.MovieFile.MediaInfo.Resolution,
+				ScanType:              movie.MovieFile.MediaInfo.ScanType,
+				RunTime:               movie.MovieFile.MediaInfo.RunTime,
+				Subtitles:             movie.MovieFile.MediaInfo.Subtitles,
+			}
+		}
+	}
+
+	// Extract collection info
+	if movie.Collection != nil {
+		metadata.CollectionTitle = movie.Collection.Title
+		metadata.CollectionTMDbID = movie.Collection.TMDbID
+	}
+
+	// Note: Tags are stored as IDs in the movie struct
+	// To get tag labels, we'd need to fetch them separately via GetTags()
+	// For now, we'll store them as formatted strings
+	if len(movie.Tags) > 0 {
+		tagStrings := make([]string, 0, len(movie.Tags))
+		for _, tagID := range movie.Tags {
+			tagStrings = append(tagStrings, fmt.Sprintf("tag_%d", tagID))
+		}
+		metadata.Tags = tagStrings
+	}
+
+	return metadata
 }
 
 // GetQueue retrieves the current download queue from Radarr.
