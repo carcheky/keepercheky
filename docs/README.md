@@ -36,7 +36,7 @@ Gestor moderno de limpieza de bibliotecas multimedia.
 
 ---
 
-##  Inicio Rápido
+## Inicio Rápido
 
 **Desarrolladores:**
 1. Lee **[../.github/copilot-instructions.md](../.github/copilot-instructions.md)**
