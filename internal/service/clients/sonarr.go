@@ -87,13 +87,54 @@ type SonarrSystemInfo struct {
 	SqliteVersion  string `json:"sqlite_version"`
 }
 
-// sonarrSeries represents a TV series from Sonarr API.
+// sonarrSeries represents a TV series from Sonarr API with complete metadata.
 type sonarrSeries struct {
-	ID         int       `json:"id"`
-	Title      string    `json:"title"`
-	Path       string    `json:"path"`
-	Added      time.Time `json:"added"`
-	Tags       []int     `json:"tags"`
+	ID                int       `json:"id"`
+	Title             string    `json:"title"`
+	SortTitle         string    `json:"sortTitle"`
+	Status            string    `json:"status"` // continuing, ended, upcoming
+	Ended             bool      `json:"ended"`
+	Overview          string    `json:"overview"`
+	Network           string    `json:"network"`
+	AirTime           string    `json:"airTime"` // HH:MM format
+	Path              string    `json:"path"`
+	Added             time.Time `json:"added"`
+	Year              int       `json:"year"`
+	Runtime           int       `json:"runtime"` // Minutes per episode
+	TvdbID            int       `json:"tvdbId"`
+	TvRageID          int       `json:"tvRageId"`
+	TvMazeID          int       `json:"tvMazeId"`
+	ImdbID            string    `json:"imdbId"`
+	TitleSlug         string    `json:"titleSlug"`
+	Certification     string    `json:"certification"` // TV-MA, TV-14, etc.
+	Genres            []string  `json:"genres"`
+	Tags              []int     `json:"tags"`
+	QualityProfileID  int       `json:"qualityProfileId"`
+	LanguageProfileID int       `json:"languageProfileId"`
+	SeasonFolder      bool      `json:"seasonFolder"`
+	Monitored         bool      `json:"monitored"`
+	UseSceneNumbering bool      `json:"useSceneNumbering"`
+	OriginalLanguage  string    `json:"originalLanguage"`
+	FirstAired        time.Time `json:"firstAired"`
+	LastAired         time.Time `json:"lastAired"`
+	NextAiring        time.Time `json:"nextAiring"`
+	PreviousAiring    time.Time `json:"previousAiring"`
+	Ratings           struct {
+		Votes int     `json:"votes"`
+		Value float64 `json:"value"`
+	} `json:"ratings"`
+	Seasons []struct {
+		SeasonNumber int  `json:"seasonNumber"`
+		Monitored    bool `json:"monitored"`
+		Statistics   struct {
+			PreviousAiring    time.Time `json:"previousAiring"`
+			EpisodeFileCount  int       `json:"episodeFileCount"`
+			EpisodeCount      int       `json:"episodeCount"`
+			TotalEpisodeCount int       `json:"totalEpisodeCount"`
+			SizeOnDisk        int64     `json:"sizeOnDisk"`
+			PercentOfEpisodes float64   `json:"percentOfEpisodes"`
+		} `json:"statistics"`
+	} `json:"seasons"`
 	Statistics struct {
 		SeasonCount       int     `json:"seasonCount"`
 		EpisodeCount      int     `json:"episodeCount"`
@@ -103,8 +144,9 @@ type sonarrSeries struct {
 		PercentOfEpisodes float64 `json:"percentOfEpisodes"`
 	} `json:"statistics"`
 	Images []struct {
-		CoverType string `json:"coverType"`
+		CoverType string `json:"coverType"` // poster, banner, fanart
 		URL       string `json:"url"`
+		RemoteURL string `json:"remoteUrl"`
 	} `json:"images"`
 }
 
@@ -239,6 +281,112 @@ type sonarrQualityProfile struct {
 type SonarrQualityProfile struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+// sonarrEpisode represents an episode from Sonarr API with complete metadata.
+type sonarrEpisode struct {
+	ID                         int       `json:"id"`
+	SeriesID                   int       `json:"seriesId"`
+	TvdbID                     int       `json:"tvdbId"`
+	EpisodeFileID              int       `json:"episodeFileId"`
+	SeasonNumber               int       `json:"seasonNumber"`
+	EpisodeNumber              int       `json:"episodeNumber"`
+	Title                      string    `json:"title"`
+	AirDate                    string    `json:"airDate"` // YYYY-MM-DD format
+	AirDateUtc                 time.Time `json:"airDateUtc"`
+	Overview                   string    `json:"overview"`
+	HasFile                    bool      `json:"hasFile"`
+	Monitored                  bool      `json:"monitored"`
+	AbsoluteEpisodeNumber      int       `json:"absoluteEpisodeNumber"`
+	SceneAbsoluteEpisodeNumber int       `json:"sceneAbsoluteEpisodeNumber"`
+	SceneEpisodeNumber         int       `json:"sceneEpisodeNumber"`
+	SceneSeasonNumber          int       `json:"sceneSeasonNumber"`
+	UnverifiedSceneNumbering   bool      `json:"unverifiedSceneNumbering"`
+	Grabbed                    bool      `json:"grabbed"`
+}
+
+// SonarrEpisode represents a processed episode for public API.
+type SonarrEpisode struct {
+	ID                    int       `json:"id"`
+	SeriesID              int       `json:"series_id"`
+	TvdbID                int       `json:"tvdb_id"`
+	EpisodeFileID         int       `json:"episode_file_id"`
+	SeasonNumber          int       `json:"season_number"`
+	EpisodeNumber         int       `json:"episode_number"`
+	Title                 string    `json:"title"`
+	AirDate               string    `json:"air_date"`
+	AirDateUtc            time.Time `json:"air_date_utc"`
+	Overview              string    `json:"overview"`
+	HasFile               bool      `json:"has_file"`
+	Monitored             bool      `json:"monitored"`
+	AbsoluteEpisodeNumber int       `json:"absolute_episode_number"`
+	Grabbed               bool      `json:"grabbed"`
+}
+
+// sonarrEpisodeFile represents an episode file from Sonarr API with complete metadata.
+type sonarrEpisodeFile struct {
+	ID           int       `json:"id"`
+	SeriesID     int       `json:"seriesId"`
+	SeasonNumber int       `json:"seasonNumber"`
+	RelativePath string    `json:"relativePath"`
+	Path         string    `json:"path"`
+	Size         int64     `json:"size"`
+	DateAdded    time.Time `json:"dateAdded"`
+	SceneName    string    `json:"sceneName"`
+	ReleaseGroup string    `json:"releaseGroup"`
+	Quality      struct {
+		Quality struct {
+			ID         int    `json:"id"`
+			Name       string `json:"name"`
+			Source     string `json:"source"`
+			Resolution int    `json:"resolution"`
+		} `json:"quality"`
+		Revision struct {
+			Version  int  `json:"version"`
+			Real     int  `json:"real"`
+			IsRepack bool `json:"isRepack"`
+		} `json:"revision"`
+	} `json:"quality"`
+	MediaInfo struct {
+		AudioBitrate     int     `json:"audioBitrate"`
+		AudioChannels    float64 `json:"audioChannels"`
+		AudioCodec       string  `json:"audioCodec"`
+		AudioLanguages   string  `json:"audioLanguages"`
+		AudioStreamCount int     `json:"audioStreamCount"`
+		VideoBitDepth    int     `json:"videoBitDepth"`
+		VideoBitrate     int     `json:"videoBitrate"`
+		VideoCodec       string  `json:"videoCodec"`
+		VideoFps         float64 `json:"videoFps"`
+		Resolution       string  `json:"resolution"`
+		RunTime          string  `json:"runTime"`
+		ScanType         string  `json:"scanType"`
+		Subtitles        string  `json:"subtitles"`
+	} `json:"mediaInfo"`
+	QualityCutoffNotMet  bool `json:"qualityCutoffNotMet"`
+	LanguageCutoffNotMet bool `json:"languageCutoffNotMet"`
+}
+
+// SonarrEpisodeFile represents a processed episode file for public API.
+type SonarrEpisodeFile struct {
+	ID               int       `json:"id"`
+	SeriesID         int       `json:"series_id"`
+	SeasonNumber     int       `json:"season_number"`
+	RelativePath     string    `json:"relative_path"`
+	Path             string    `json:"path"`
+	Size             int64     `json:"size"`
+	DateAdded        time.Time `json:"date_added"`
+	SceneName        string    `json:"scene_name"`
+	ReleaseGroup     string    `json:"release_group"`
+	QualityName      string    `json:"quality_name"`
+	AudioCodec       string    `json:"audio_codec"`
+	AudioChannels    float64   `json:"audio_channels"`
+	VideoCodec       string    `json:"video_codec"`
+	Resolution       string    `json:"resolution"`
+	VideoRange       string    `json:"video_range,omitempty"`
+	RunTime          string    `json:"run_time"`
+	AudioLanguages   string    `json:"audio_languages,omitempty"`
+	Subtitles        string    `json:"subtitles,omitempty"`
+	QualityCutoffMet bool      `json:"quality_cutoff_met"`
 }
 
 // TestConnection verifies the connection to Sonarr.
@@ -724,6 +872,120 @@ func (c *SonarrClient) GetQualityProfiles(ctx context.Context) ([]SonarrQualityP
 
 	c.logger.Info("Retrieved Sonarr quality profiles",
 		zap.Int("total_profiles", len(items)),
+	)
+
+	return items, nil
+}
+
+// GetEpisodes retrieves all episodes for a specific series.
+func (c *SonarrClient) GetEpisodes(ctx context.Context, seriesID int) ([]SonarrEpisode, error) {
+	var episodes []sonarrEpisode
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&episodes).
+			SetQueryParam("seriesId", fmt.Sprintf("%d", seriesID)).
+			Get("/api/v3/episode")
+
+		if err != nil {
+			return fmt.Errorf("failed to get episodes: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to public API model
+	items := make([]SonarrEpisode, 0, len(episodes))
+	for _, ep := range episodes {
+		items = append(items, SonarrEpisode{
+			ID:                    ep.ID,
+			SeriesID:              ep.SeriesID,
+			TvdbID:                ep.TvdbID,
+			EpisodeFileID:         ep.EpisodeFileID,
+			SeasonNumber:          ep.SeasonNumber,
+			EpisodeNumber:         ep.EpisodeNumber,
+			Title:                 ep.Title,
+			AirDate:               ep.AirDate,
+			AirDateUtc:            ep.AirDateUtc,
+			Overview:              ep.Overview,
+			HasFile:               ep.HasFile,
+			Monitored:             ep.Monitored,
+			AbsoluteEpisodeNumber: ep.AbsoluteEpisodeNumber,
+			Grabbed:               ep.Grabbed,
+		})
+	}
+
+	c.logger.Info("Retrieved Sonarr episodes",
+		zap.Int("series_id", seriesID),
+		zap.Int("total_episodes", len(items)),
+	)
+
+	return items, nil
+}
+
+// GetEpisodeFiles retrieves all episode files for a specific series with complete metadata.
+func (c *SonarrClient) GetEpisodeFiles(ctx context.Context, seriesID int) ([]SonarrEpisodeFile, error) {
+	var files []sonarrEpisodeFile
+
+	err := c.callWithRetry(ctx, func() error {
+		resp, err := c.client.R().
+			SetContext(ctx).
+			SetResult(&files).
+			SetQueryParam("seriesId", fmt.Sprintf("%d", seriesID)).
+			Get("/api/v3/episodefile")
+
+		if err != nil {
+			return fmt.Errorf("failed to get episode files: %w", err)
+		}
+
+		if resp.StatusCode() != 200 {
+			return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to public API model
+	items := make([]SonarrEpisodeFile, 0, len(files))
+	for _, file := range files {
+		items = append(items, SonarrEpisodeFile{
+			ID:               file.ID,
+			SeriesID:         file.SeriesID,
+			SeasonNumber:     file.SeasonNumber,
+			RelativePath:     file.RelativePath,
+			Path:             file.Path,
+			Size:             file.Size,
+			DateAdded:        file.DateAdded,
+			SceneName:        file.SceneName,
+			ReleaseGroup:     file.ReleaseGroup,
+			QualityName:      file.Quality.Quality.Name,
+			AudioCodec:       file.MediaInfo.AudioCodec,
+			AudioChannels:    file.MediaInfo.AudioChannels,
+			VideoCodec:       file.MediaInfo.VideoCodec,
+			Resolution:       file.MediaInfo.Resolution,
+			RunTime:          file.MediaInfo.RunTime,
+			AudioLanguages:   file.MediaInfo.AudioLanguages,
+			Subtitles:        file.MediaInfo.Subtitles,
+			QualityCutoffMet: !file.QualityCutoffNotMet,
+		})
+	}
+
+	c.logger.Info("Retrieved Sonarr episode files",
+		zap.Int("series_id", seriesID),
+		zap.Int("total_files", len(items)),
 	)
 
 	return items, nil

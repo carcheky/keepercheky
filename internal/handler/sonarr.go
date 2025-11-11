@@ -170,3 +170,65 @@ func (h *SonarrHandler) GetQualityProfiles(c *fiber.Ctx) error {
 		"profiles": profiles,
 	})
 }
+
+// GetEpisodes retrieves all episodes for a specific series.
+func (h *SonarrHandler) GetEpisodes(c *fiber.Ctx) error {
+	if h.client == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"error": "Sonarr client not configured",
+		})
+	}
+
+	// Get series ID from path parameter
+	seriesID, err := strconv.Atoi(c.Params("seriesId"))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid series ID",
+		})
+	}
+
+	episodes, err := h.client.GetEpisodes(c.Context(), seriesID)
+	if err != nil {
+		h.logger.Error("Failed to get Sonarr episodes", "error", err, "series_id", seriesID)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to retrieve episodes: " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"series_id": seriesID,
+		"total":     len(episodes),
+		"episodes":  episodes,
+	})
+}
+
+// GetEpisodeFiles retrieves all episode files for a specific series with complete metadata.
+func (h *SonarrHandler) GetEpisodeFiles(c *fiber.Ctx) error {
+	if h.client == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"error": "Sonarr client not configured",
+		})
+	}
+
+	// Get series ID from path parameter
+	seriesID, err := strconv.Atoi(c.Params("seriesId"))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid series ID",
+		})
+	}
+
+	files, err := h.client.GetEpisodeFiles(c.Context(), seriesID)
+	if err != nil {
+		h.logger.Error("Failed to get Sonarr episode files", "error", err, "series_id", seriesID)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to retrieve episode files: " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"series_id": seriesID,
+		"total":     len(files),
+		"files":     files,
+	})
+}
