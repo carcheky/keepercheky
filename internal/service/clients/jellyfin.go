@@ -18,6 +18,11 @@ type JellyfinClient struct {
 	logger  *zap.Logger
 }
 
+// GetBaseURL returns the base URL of the Jellyfin server
+func (c *JellyfinClient) GetBaseURL() string {
+	return c.baseURL
+}
+
 // NewJellyfinClient creates a new Jellyfin client.
 func NewJellyfinClient(config ClientConfig, logger *zap.Logger) *JellyfinClient {
 	client := resty.New()
@@ -65,15 +70,52 @@ type JellyfinSystemInfo struct {
 	LocalAddress  string `json:"local_address"`
 }
 
-// jellyfinItem represents a media item from Jellyfin API.
-type jellyfinItem struct {
-	ID          string    `json:"Id"`
-	Name        string    `json:"Name"`
-	Type        string    `json:"Type"` // "Movie", "Series", "Episode", etc.
-	Path        string    `json:"Path"`
-	DateCreated time.Time `json:"DateCreated"`
-	Overview    string    `json:"Overview"`
-	UserData    struct {
+// JellyfinItem represents a media item from Jellyfin API (exported for use in handlers).
+type JellyfinItem struct {
+	ID              string    `json:"Id"`
+	Name            string    `json:"Name"`
+	Type            string    `json:"Type"` // "Movie", "Series", "Episode", etc.
+	Path            string    `json:"Path"`
+	DateCreated     time.Time `json:"DateCreated"`
+	Overview        string    `json:"Overview"`
+	CommunityRating float64   `json:"CommunityRating"` // Calificación 0-10
+	CriticRating    float64   `json:"CriticRating"`    // Calificación de críticos
+	OfficialRating  string    `json:"OfficialRating"`  // Clasificación (PG, R, etc.)
+	ProductionYear  int       `json:"ProductionYear"`  // Año de producción
+	PremiereDate    time.Time `json:"PremiereDate"`    // Fecha de estreno
+	Genres          []string  `json:"Genres"`          // Géneros
+	Studios         []struct {
+		Name string `json:"Name"`
+		ID   string `json:"Id"`
+	} `json:"Studios"` // Estudios de producción
+	People []struct {
+		Name string `json:"Name"`
+		Role string `json:"Role"` // Director, Actor, etc.
+		Type string `json:"Type"` // Actor, Director, Writer, etc.
+		ID   string `json:"Id"`
+	} `json:"People"` // Cast y crew
+	RunTimeTicks int64             `json:"RunTimeTicks"` // Duración en ticks (1 tick = 100 nanosegundos)
+	ProviderIds  map[string]string `json:"ProviderIds"`  // IDs externos (Imdb, Tmdb, etc.)
+	Taglines     []string          `json:"Taglines"`     // Taglines de la película
+	MediaStreams []struct {
+		Type                   string `json:"Type"`              // Video, Audio, Subtitle
+		Codec                  string `json:"Codec"`             // h264, aac, etc.
+		Language               string `json:"Language"`          // eng, spa, etc.
+		DisplayTitle           string `json:"DisplayTitle"`      // Título mostrado
+		Width                  int    `json:"Width,omitempty"`   // Ancho (video)
+		Height                 int    `json:"Height,omitempty"`  // Alto (video)
+		BitRate                int    `json:"BitRate,omitempty"` // Bitrate
+		Channels               int    `json:"Channels,omitempty"`
+		ChannelLayout          string `json:"ChannelLayout,omitempty"`
+		VideoRange             string `json:"VideoRange,omitempty"`      // SDR, HDR
+		VideoRangeType         string `json:"VideoRangeType,omitempty"`  // HDR10, DolbyVision
+		DisplayLanguage        string `json:"DisplayLanguage,omitempty"` // Idioma mostrado
+		Title                  string `json:"Title,omitempty"`           // Título del stream
+		IsDefault              bool   `json:"IsDefault"`                 // Stream por defecto
+		IsForced               bool   `json:"IsForced"`                  // Subtítulo forzado
+		SupportsExternalStream bool   `json:"SupportsExternalStream"`    // Soporte stream externo
+	} `json:"MediaStreams,omitempty"` // Streams de video/audio/subtítulos
+	UserData struct {
 		PlayCount         int       `json:"PlayCount"`
 		IsFavorite        bool      `json:"IsFavorite"`
 		LastPlayedDate    time.Time `json:"LastPlayedDate"`
@@ -91,7 +133,7 @@ type jellyfinItem struct {
 
 // jellyfinItemsResponse represents the response from items endpoint.
 type jellyfinItemsResponse struct {
-	Items      []jellyfinItem `json:"Items"`
+	Items      []JellyfinItem `json:"Items"`
 	TotalCount int            `json:"TotalRecordCount"`
 }
 
@@ -169,9 +211,26 @@ func (c *JellyfinClient) GetSystemInfo(ctx context.Context) (*JellyfinSystemInfo
 
 // GetLibrary retrieves all media items from Jellyfin with pagination for better performance.
 func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error) {
+	items, err := c.GetLibraryItems(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to Media model
+	media := make([]*models.Media, 0, len(items))
+	for i := range items {
+		media = append(media, c.convertToMedia(&items[i]))
+	}
+
+	return media, nil
+}
+
+// GetLibraryItems retrieves all media items from Jellyfin with full metadata, returning raw items.
+// This method is used when you need access to all Jellyfin fields (Overview, CommunityRating, etc.)
+func (c *JellyfinClient) GetLibraryItems(ctx context.Context) ([]JellyfinItem, error) {
 	const pageSize = 500 // Procesar en lotes de 500 items
 
-	var allMedia []*models.Media
+	var allItems []JellyfinItem
 	startIndex := 0
 	totalCount := 0
 
@@ -187,9 +246,9 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 				SetContext(ctx).
 				SetResult(&response).
 				SetQueryParams(map[string]string{
-					"IncludeItemTypes": "Movie,Series,Season,Episode", // Incluir Episodes y Seasons
+					"IncludeItemTypes": "Movie,Series,Season,Episode",
 					"Recursive":        "true",
-					"Fields":           "Path,DateCreated,MediaSources,UserData,ChildCount,RecursiveItemCount,ParentId,SeriesId,SeriesName,SeasonId,SeasonName,IndexNumber,ParentIndexNumber", // Más campos para episodes
+					"Fields":           "Path,DateCreated,MediaSources,MediaStreams,UserData,ChildCount,RecursiveItemCount,ParentId,SeriesId,SeriesName,SeasonId,SeasonName,IndexNumber,ParentIndexNumber,Overview,CommunityRating,CriticRating,OfficialRating,ProductionYear,PremiereDate,Genres,Studios,People,RunTimeTicks,ProviderIds,Taglines", // Todos los campos disponibles
 					"StartIndex":       fmt.Sprintf("%d", startIndex),
 					"Limit":            fmt.Sprintf("%d", pageSize),
 					"EnableImages":     "false", // Acelerar respuesta
@@ -214,19 +273,23 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 		// Guardar total en primera iteración
 		if startIndex == 0 {
 			totalCount = response.TotalCount
-			allMedia = make([]*models.Media, 0, totalCount)
+			allItems = make([]JellyfinItem, 0, totalCount)
 			c.logger.Info("Jellyfin library total items",
 				zap.Int("total", totalCount),
 			)
 		}
 
-		// Convertir items de esta página
+		// Añadir items de esta página
+		typeCount := make(map[string]int)
 		for i := range response.Items {
 			item := &response.Items[i]
 
+			// Count types for debugging
+			typeCount[item.Type]++
+
 			// Log raw data for series to debug episode count
 			if item.Type == "Series" {
-				c.logger.Info("Jellyfin raw series data",
+				c.logger.Debug("Jellyfin raw series data",
 					zap.String("name", item.Name),
 					zap.String("type", item.Type),
 					zap.Int("child_count", item.ChildCount),
@@ -234,19 +297,25 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 				)
 			}
 
-			media := c.convertToMedia(item)
-			allMedia = append(allMedia, media)
+			allItems = append(allItems, *item)
+		}
+
+		// Log type distribution for this page
+		if len(typeCount) > 0 {
+			c.logger.Debug("Jellyfin library types in this page",
+				zap.Any("type_counts", typeCount),
+			)
 		}
 
 		c.logger.Info("Retrieved Jellyfin page",
 			zap.Int("start_index", startIndex),
 			zap.Int("items_in_page", len(response.Items)),
-			zap.Int("total_retrieved", len(allMedia)),
+			zap.Int("total_retrieved", len(allItems)),
 			zap.Int("total_count", totalCount),
 		)
 
 		// Salir si no hay más items
-		if len(response.Items) < pageSize || len(allMedia) >= totalCount {
+		if len(response.Items) < pageSize || len(allItems) >= totalCount {
 			break
 		}
 
@@ -254,15 +323,15 @@ func (c *JellyfinClient) GetLibrary(ctx context.Context) ([]*models.Media, error
 	}
 
 	c.logger.Info("Jellyfin library retrieval complete",
-		zap.Int("total_items", len(allMedia)),
+		zap.Int("total_items", len(allItems)),
 	)
 
-	return allMedia, nil
+	return allItems, nil
 }
 
 // GetPlaybackInfo retrieves playback information for media.
 func (c *JellyfinClient) GetPlaybackInfo(ctx context.Context, mediaID string) (*models.PlaybackInfo, error) {
-	var item jellyfinItem
+	var item JellyfinItem
 
 	err := c.callWithRetry(ctx, func() error {
 		resp, err := c.client.R().
@@ -366,10 +435,14 @@ func (c *JellyfinClient) InvalidateCache(ctx context.Context) error {
 }
 
 // convertToMedia converts a Jellyfin item to internal Media model.
-func (c *JellyfinClient) convertToMedia(item *jellyfinItem) *models.Media {
+func (c *JellyfinClient) convertToMedia(item *JellyfinItem) *models.Media {
 	mediaType := "movie"
 	if item.Type == "Series" {
 		mediaType = "series"
+	} else if item.Type == "Episode" {
+		mediaType = "episode"
+	} else if item.Type == "Season" {
+		mediaType = "season"
 	}
 
 	var size int64
