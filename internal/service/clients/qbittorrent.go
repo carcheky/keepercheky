@@ -47,26 +47,83 @@ func NewQBittorrentClient(baseURL, username, password string, logger *zap.Logger
 }
 
 // qbTorrent represents a torrent from qBittorrent API.
+// This struct captures all available fields from /api/v2/torrents/info endpoint.
 type qbTorrent struct {
-	Hash        string  `json:"hash"`
-	Name        string  `json:"name"`
-	State       string  `json:"state"`
-	Progress    float64 `json:"progress"`
-	Ratio       float64 `json:"ratio"`
-	Size        int64   `json:"size"`
-	UpSpeed     int64   `json:"upspeed"`
-	DlSpeed     int64   `json:"dlspeed"`
-	SeedingTime int64   `json:"seeding_time"`
-	Category    string  `json:"category"`
-	Tags        string  `json:"tags"`
-	SavePath    string  `json:"save_path"`
-	ContentPath string  `json:"content_path"`
-	AmountLeft  int64   `json:"amount_left"`
-	AddedOn     int64   `json:"added_on"`     // Unix timestamp
-	CompletedOn int64   `json:"completed_on"` // Unix timestamp
-	ETA         int64   `json:"eta"`          // Seconds
-	NumSeeds    int     `json:"num_seeds"`    // Seeds connected
-	NumLeechs   int     `json:"num_leechs"`   // Leechers connected
+	// Basic identification
+	Hash       string `json:"hash"`        // Torrent hash (unique identifier)
+	InfoHashV1 string `json:"infohash_v1"` // InfoHash v1 (BitTorrent v1)
+	InfoHashV2 string `json:"infohash_v2"` // InfoHash v2 (BitTorrent v2)
+	Name       string `json:"name"`        // Torrent name
+	MagnetURI  string `json:"magnet_uri"`  // Magnet URI
+
+	// Size and progress
+	Size       int64   `json:"size"`        // Total size (bytes)
+	TotalSize  int64   `json:"total_size"`  // Total size including unselected files
+	Progress   float64 `json:"progress"`    // Download progress (0.0 to 1.0)
+	AmountLeft int64   `json:"amount_left"` // Bytes left to download
+	Completed  int64   `json:"completed"`   // Bytes completed
+
+	// State
+	State string `json:"state"` // Torrent state (see TorrentState constants)
+
+	// Speeds
+	DlSpeed int64 `json:"dlspeed"` // Download speed (bytes/s)
+	UpSpeed int64 `json:"upspeed"` // Upload speed (bytes/s)
+
+	// Transfer statistics
+	Downloaded        int64   `json:"downloaded"`         // Total downloaded (bytes)
+	Uploaded          int64   `json:"uploaded"`           // Total uploaded (bytes)
+	DownloadedSession int64   `json:"downloaded_session"` // Downloaded this session
+	UploadedSession   int64   `json:"uploaded_session"`   // Uploaded this session
+	Ratio             float64 `json:"ratio"`              // Share ratio
+
+	// Peers and seeds
+	NumSeeds      int     `json:"num_seeds"`      // Seeds connected
+	NumComplete   int     `json:"num_complete"`   // Total seeds in swarm
+	NumLeechs     int     `json:"num_leechs"`     // Leechers connected
+	NumIncomplete int     `json:"num_incomplete"` // Total leechers in swarm
+	Availability  float64 `json:"availability"`   // Piece availability
+
+	// Time information
+	AddedOn      int64 `json:"added_on"`      // Unix timestamp when added
+	CompletionOn int64 `json:"completion_on"` // Unix timestamp when completed
+	CompletedOn  int64 `json:"completed_on"`  // Alias for completion_on (some API versions)
+	LastActivity int64 `json:"last_activity"` // Unix timestamp of last activity
+	SeenComplete int64 `json:"seen_complete"` // Unix timestamp last seen complete
+	TimeActive   int64 `json:"time_active"`   // Total active time (seconds)
+	SeedingTime  int64 `json:"seeding_time"`  // Total seeding time (seconds)
+	ETA          int64 `json:"eta"`           // Estimated time to completion (seconds)
+
+	// Paths
+	SavePath     string `json:"save_path"`     // Save path
+	ContentPath  string `json:"content_path"`  // Content path (full path)
+	DownloadPath string `json:"download_path"` // Temporary download path
+
+	// Organization
+	Category string `json:"category"` // Category
+	Tags     string `json:"tags"`     // Comma-separated tags
+
+	// Tracker
+	Tracker       string `json:"tracker"`        // Primary tracker URL
+	TrackersCount int    `json:"trackers_count"` // Number of trackers
+
+	// Priority and limits
+	Priority int   `json:"priority"` // Torrent priority
+	DlLimit  int64 `json:"dl_limit"` // Download limit (-1 = unlimited)
+	UpLimit  int64 `json:"up_limit"` // Upload limit (-1 = unlimited)
+
+	// Ratio and time limits
+	MaxRatio         float64 `json:"max_ratio"`          // Max ratio (-1 = global, -2 = unlimited)
+	MaxSeedingTime   int64   `json:"max_seeding_time"`   // Max seeding time (-1 = global, -2 = unlimited)
+	RatioLimit       float64 `json:"ratio_limit"`        // Applied ratio limit
+	SeedingTimeLimit int64   `json:"seeding_time_limit"` // Applied seeding time limit
+
+	// Flags
+	SeqDl        bool `json:"seq_dl"`         // Sequential download enabled
+	FlPiecePrio  bool `json:"f_l_piece_prio"` // First/last piece priority
+	ForceStart   bool `json:"force_start"`    // Force start enabled
+	SuperSeeding bool `json:"super_seeding"`  // Super seeding enabled
+	AutoTMM      bool `json:"auto_tmm"`       // Automatic Torrent Management
 }
 
 // qbBuildInfo represents build info from qBittorrent API.
@@ -322,27 +379,7 @@ func (c *QBittorrentClient) GetAllTorrentsMap(ctx context.Context) (map[string]*
 	torrentMap := make(map[string]*models.TorrentInfo, len(torrents))
 
 	for i, t := range torrents {
-		info := &models.TorrentInfo{
-			Hash:        t.Hash,
-			Name:        t.Name,
-			State:       t.State,
-			Progress:    t.Progress,
-			Ratio:       t.Ratio,
-			Size:        t.Size,
-			UpSpeed:     t.UpSpeed,
-			DlSpeed:     t.DlSpeed,
-			SeedingTime: t.SeedingTime,
-			Category:    t.Category,
-			Tags:        t.Tags,
-			SavePath:    t.SavePath,
-			IsSeeding:   c.isStateSeeding(t.State),
-			IsComplete:  t.Progress >= 1.0,
-			AddedOn:     t.AddedOn,
-			CompletedOn: t.CompletedOn,
-			ETA:         t.ETA,
-			NumSeeds:    t.NumSeeds,
-			NumPeers:    t.NumLeechs,
-		}
+		info := c.convertToTorrentInfo(&t)
 
 		// Log first 5 torrents for debugging path structure
 		if i < 5 {
@@ -398,22 +435,7 @@ func (c *QBittorrentClient) GetTorrentByPath(ctx context.Context, filePath strin
 	for _, t := range torrents {
 		// Check if the file path matches this torrent's save path or content path
 		if strings.Contains(filePath, t.SavePath) || strings.Contains(filePath, t.ContentPath) {
-			info := &models.TorrentInfo{
-				Hash:        t.Hash,
-				Name:        t.Name,
-				State:       t.State,
-				Progress:    t.Progress,
-				Ratio:       t.Ratio,
-				Size:        t.Size,
-				UpSpeed:     t.UpSpeed,
-				DlSpeed:     t.DlSpeed,
-				SeedingTime: t.SeedingTime,
-				Category:    t.Category,
-				Tags:        t.Tags,
-				SavePath:    t.SavePath,
-				IsSeeding:   c.isStateSeeding(t.State),
-				IsComplete:  t.Progress >= 1.0,
-			}
+			info := c.convertToTorrentInfo(&t)
 
 			c.logger.Info("Found torrent for path",
 				zap.String("path", filePath),
@@ -462,6 +484,89 @@ func (c *QBittorrentClient) isStateSeeding(state string) bool {
 	}
 
 	return seedingStates[state]
+}
+
+// convertToTorrentInfo converts a qbTorrent to TorrentInfo model with all fields populated.
+func (c *QBittorrentClient) convertToTorrentInfo(t *qbTorrent) *models.TorrentInfo {
+	return &models.TorrentInfo{
+		// Basic identification
+		Hash:       t.Hash,
+		InfoHashV1: t.InfoHashV1,
+		InfoHashV2: t.InfoHashV2,
+		Name:       t.Name,
+		MagnetURI:  t.MagnetURI,
+
+		// Size and progress
+		Size:       t.Size,
+		TotalSize:  t.TotalSize,
+		Progress:   t.Progress,
+		AmountLeft: t.AmountLeft,
+
+		// State and activity
+		State:        t.State,
+		IsSeeding:    c.isStateSeeding(t.State),
+		IsComplete:   t.Progress >= 1.0,
+		Availability: t.Availability,
+
+		// Speeds
+		UpSpeed: t.UpSpeed,
+		DlSpeed: t.DlSpeed,
+
+		// Transfer statistics
+		Ratio:             t.Ratio,
+		TotalUploaded:     t.Uploaded,
+		TotalDownloaded:   t.Downloaded,
+		UploadedSession:   t.UploadedSession,
+		DownloadedSession: t.DownloadedSession,
+
+		// Peers and seeds
+		NumSeeds:      t.NumSeeds,
+		NumComplete:   t.NumComplete,
+		NumPeers:      t.NumLeechs,
+		NumIncomplete: t.NumIncomplete,
+		Seeders:       t.NumSeeds,  // Backward compatibility
+		Leechers:      t.NumLeechs, // Backward compatibility
+
+		// Time information
+		AddedOn:      t.AddedOn,
+		CompletedOn:  t.CompletedOn,
+		LastActivity: t.LastActivity,
+		SeenComplete: t.SeenComplete,
+		TimeActive:   t.TimeActive,
+		SeedingTime:  t.SeedingTime,
+		ETA:          t.ETA,
+
+		// Paths
+		SavePath:     t.SavePath,
+		ContentPath:  t.ContentPath,
+		DownloadPath: t.DownloadPath,
+
+		// Organization
+		Category: t.Category,
+		Tags:     t.Tags,
+
+		// Tracker
+		Tracker:       t.Tracker,
+		TrackersCount: t.TrackersCount,
+
+		// Priority and limits
+		Priority: t.Priority,
+		DlLimit:  t.DlLimit,
+		UpLimit:  t.UpLimit,
+
+		// Ratio and time limits
+		MaxRatio:         t.MaxRatio,
+		MaxSeedingTime:   t.MaxSeedingTime,
+		RatioLimit:       t.RatioLimit,
+		SeedingTimeLimit: t.SeedingTimeLimit,
+
+		// Flags
+		SeqDl:        t.SeqDl,
+		FlPiecePrio:  t.FlPiecePrio,
+		ForceStart:   t.ForceStart,
+		SuperSeeding: t.SuperSeeding,
+		AutoTMM:      t.AutoTMM,
+	}
 }
 
 // GetAllTorrents retrieves all torrents as Media items (for orphaned torrents not in Radarr/Sonarr).
@@ -749,53 +854,41 @@ func (c *QBittorrentClient) GetEnhancedTorrentInfo(ctx context.Context, hash str
 	// Get enhanced properties
 	props, err := c.GetTorrentProperties(ctx, hash)
 	if err != nil {
-		// Log but don't fail - return basic info
+		// Log but don't fail - return basic info using helper
 		c.logger.Warn("Failed to get torrent properties, using basic info only",
 			zap.String("hash", hash),
 			zap.Error(err),
 		)
-
-		return &models.TorrentInfo{
-			Hash:        torrent.Hash,
-			Name:        torrent.Name,
-			State:       torrent.State,
-			Progress:    torrent.Progress,
-			Ratio:       torrent.Ratio,
-			Size:        torrent.Size,
-			UpSpeed:     torrent.UpSpeed,
-			DlSpeed:     torrent.DlSpeed,
-			SeedingTime: torrent.SeedingTime,
-			Category:    torrent.Category,
-			Tags:        torrent.Tags,
-			SavePath:    torrent.SavePath,
-			IsSeeding:   c.isStateSeeding(torrent.State),
-			IsComplete:  torrent.Progress >= 1.0,
-		}, nil
+		return c.convertToTorrentInfo(&torrent), nil
 	}
 
-	// Combine basic and enhanced info
-	info := &models.TorrentInfo{
-		Hash:            torrent.Hash,
-		Name:            torrent.Name,
-		State:           torrent.State,
-		Progress:        torrent.Progress,
-		Ratio:           torrent.Ratio,
-		Size:            torrent.Size,
-		UpSpeed:         torrent.UpSpeed,
-		DlSpeed:         torrent.DlSpeed,
-		SeedingTime:     torrent.SeedingTime,
-		Category:        torrent.Category,
-		Tags:            torrent.Tags,
-		SavePath:        torrent.SavePath,
-		IsSeeding:       c.isStateSeeding(torrent.State),
-		IsComplete:      torrent.Progress >= 1.0,
-		AddedOn:         props.AdditionDate,
-		CompletedOn:     props.CompletionDate,
-		ETA:             props.ETA,
-		TotalUploaded:   props.TotalUploaded,
-		TotalDownloaded: props.TotalDownloaded,
-		NumSeeds:        props.Seeds,
-		NumPeers:        props.Peers,
+	// Start with complete basic info
+	info := c.convertToTorrentInfo(&torrent)
+
+	// Override/enhance with properties endpoint data if available
+	// Properties endpoint may have more accurate data for some fields
+	if props.AdditionDate > 0 {
+		info.AddedOn = props.AdditionDate
+	}
+	if props.CompletionDate > 0 {
+		info.CompletedOn = props.CompletionDate
+	}
+	if props.ETA > 0 {
+		info.ETA = props.ETA
+	}
+	if props.TotalUploaded > 0 {
+		info.TotalUploaded = props.TotalUploaded
+	}
+	if props.TotalDownloaded > 0 {
+		info.TotalDownloaded = props.TotalDownloaded
+	}
+	if props.Seeds > 0 {
+		info.NumSeeds = props.Seeds
+		info.Seeders = props.Seeds
+	}
+	if props.Peers > 0 {
+		info.NumPeers = props.Peers
+		info.Leechers = props.Peers
 	}
 
 	return info, nil

@@ -126,9 +126,29 @@ curl http://localhost:8000/api/media   # API test
 
 ---
 
----
+## 📚 API References
 
-## 🎨 Frontend (Alpine.js)
+### External Services
+
+**Jellyfin API** (`docs/JELLYFIN_API_REFERENCE.md`)
+- Authentication with X-Emby-Token header
+- Items API with filters (includeItemTypes: Movie, Series, Episode)
+- Complete metadata fields and image URLs
+
+**qBittorrent API** (`docs/QBITTORRENT_API_REFERENCE.md`)
+- Cookie-based authentication (SID)
+- Complete torrent info endpoint with 50+ fields
+- Torrent states (downloading, uploading, stalledUP, etc.)
+- Properties, files, trackers, peers endpoints
+- Critical for cleanup: `state`, `ratio`, `seeding_time`, `progress`
+
+**Radarr API** (`docs/RADARR_API.md`)
+- Movie management and metadata
+- Quality profiles and download tracking
+
+**Consult these docs when working with external service integrations.**
+
+---
 
 ### Component Example
 
